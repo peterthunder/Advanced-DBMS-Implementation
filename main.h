@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <malloc.h>
 #include <math.h>
+#include <stdlib.h>
 
 /* Type definition for a tuple */
 typedef struct tuple{
@@ -21,14 +22,8 @@ typedef struct result{
 }Result;
 
 /* Radix Hash Join */
-Result* RadixHashJoin(Relation *reIR, Relation *reIS){
-
-    int i;
-
-    for(i=0; i<2; i++){
-        printf("reIR: key %d, payload %d -- reIS: key %d, payload %d\n",
-               reIR->tuples[i].key, reIR->tuples[i].payload, reIS->tuples[i].key, reIS->tuples[i].payload);
-    }
-
-}
-
+Result* RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets);
+/* Print out the relation*/
+void printRelation(Relation *relation, int choice);
+/* Partition Relation */
+void *partition(Relation* relation, Relation* relationNew, int number_of_buckets, int32_t **psum);
