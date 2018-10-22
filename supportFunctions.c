@@ -65,16 +65,18 @@ void fillRelationsWithRundNums(Relation **reIR, Relation **reIS, int number_of_b
 void printRelation(Relation *relation, int choice) {
 
     int i;
-    if(choice == 1)
-        printf("\nRelation R");
-    else if (choice == 2)
-        printf("\nRelation S");
-    else if (choice == 3)
-        printf("\nRelation R'");
-    else if (choice == 4)
-        printf("\nRelation S'");
-    else
-        return;
+    switch ( choice ) {
+        case 1: printf("\nRelation R");
+                break;
+        case 2: printf("\nRelation S");
+                break;
+        case 3: printf("\nRelation R'");
+                break;
+        case 4: printf("\nRelation S'");
+                break;
+        default:
+            return;
+    }
 
     for (i = 0; i < relation->num_tuples; i++) {
         printf("\n");
@@ -85,13 +87,15 @@ void printRelation(Relation *relation, int choice) {
 }
 
 
-void printHistogram(int32_t** histogram, int choice, int number_of_buckets){
+void printHistogram(int32_t** histogram, int choice, int number_of_buckets) {
 
     int i;
+
     if(choice == 1)
         printf("\n-----HistogramR-----\n");
     else
         printf("\n-----HistogramS----\n");
+
     for (i = 0; i < number_of_buckets; i++) {
         printf("Histogram[%d]: %1d|%d\n", i, histogram[i][0], histogram[i][1]);
     }
@@ -99,7 +103,7 @@ void printHistogram(int32_t** histogram, int choice, int number_of_buckets){
 }
 
 
-void printPsum(int32_t** psum, int choice, int number_of_buckets){
+void printPsum(int32_t** psum, int choice, int number_of_buckets) {
 
     int i;
 
@@ -115,39 +119,37 @@ void printPsum(int32_t** psum, int choice, int number_of_buckets){
 }
 
 
-void printAll( int choice,  Relation *reIR, Relation *reIS,int32_t** histogramR, int32_t** histogramS,
-               int32_t** psumR, int32_t** psumS, Relation *newReIR, Relation *newReIS, int number_of_buckets){
+void printAll(int choice,  Relation *reIR, Relation *reIS,int32_t** histogramR, int32_t** histogramS,
+               int32_t** psumR, int32_t** psumS, Relation *newReIR, Relation *newReIS, int number_of_buckets) {
 
-    if(choice==1)
-        printRelation(reIR, 1);
-    else if(choice==2)
-        printRelation(reIS, 2);
-    else{
-        printRelation(reIR, 1);
-        printRelation(reIS, 2);
+    switch ( choice ) {
+        case 1:
+            printRelation(reIR, 1);
+
+            printHistogram(histogramR, 2, number_of_buckets);
+            printPsum(psumR, 2, number_of_buckets);
+
+            printRelation(newReIR, 3);
+            break;
+        case 2:
+            printRelation(reIS, 2);
+
+            printHistogram(histogramS, 2, number_of_buckets);
+            printPsum(psumS, 2, number_of_buckets);
+
+            printRelation(newReIS, 4);
+            break;
+        default:    // Print for both relations.
+            printRelation(reIR, 1);
+            printRelation(reIS, 2);
+
+            printHistogram(histogramR, 1, number_of_buckets);
+            printPsum(psumR, 1, number_of_buckets);
+            printHistogram(histogramS, 2, number_of_buckets);
+            printPsum(psumS, 2, number_of_buckets);
+
+            printRelation(newReIR, 3);
+            printRelation(newReIS, 4);
     }
 
-    if(choice==1){
-        printHistogram(histogramR, 2, number_of_buckets);
-        printPsum(psumR, 2, number_of_buckets);
-    }
-    else if(choice==2){
-        printHistogram(histogramS, 2, number_of_buckets);
-        printPsum(psumS, 2, number_of_buckets);
-    }
-    else{
-        printHistogram(histogramR, 1, number_of_buckets);
-        printPsum(psumR, 1, number_of_buckets);
-        printHistogram(histogramS, 2, number_of_buckets);
-        printPsum(psumS, 2, number_of_buckets);
-    }
-
-    if(choice==1)
-        printRelation(newReIR, 3);
-    else if(choice==2)
-        printRelation(newReIS, 4);
-    else{
-        printRelation(newReIR, 3);
-        printRelation(newReIS, 4);
-    }
 }
