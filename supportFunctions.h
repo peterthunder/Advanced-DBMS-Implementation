@@ -27,6 +27,11 @@ typedef struct result{
 
 }Result;
 
+
+int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets);
+
+void fillRelationsWithRundNums(Relation **reIR, Relation **reIS, int number_of_buckets);
+
 /* Radix Hash Join */
 Result* RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets);
 
