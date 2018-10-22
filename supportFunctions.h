@@ -1,8 +1,6 @@
 #ifndef ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H
 #define ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H
 
-#endif //ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H
-
 #include <stdio.h>
 #include <stdint.h>
 #include <malloc.h>
@@ -56,3 +54,6 @@ void printPsum(int32_t** psum, int choice, int number_of_buckets);
 /* Print everything */
 void printAll(int choice, Relation *reIR, Relation *reIS,int32_t** histogramR, int32_t** histogramS,
                int32_t** psumR, int32_t** psumS, Relation *newReIR, Relation *newReIS, int number_of_buckets);
+
+
+#endif //ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H
