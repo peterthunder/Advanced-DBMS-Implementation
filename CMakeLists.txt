@@ -8,5 +8,7 @@ include_directories(.)
 add_executable(Advanced_DBMS_Implementation
         main.c
         supportFunctions.c
-        supportFunctions.h)
+        supportFunctions.h
+        radixHashJoin.c
+        radixHashJoin.h)
 target_link_libraries(Advanced_DBMS_Implementation m)

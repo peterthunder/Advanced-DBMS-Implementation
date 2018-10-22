@@ -1,4 +1,6 @@
 #include "supportFunctions.h"
+#include "radixHashJoin.h"
+
 
 int main(void) {
 
