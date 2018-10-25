@@ -8,12 +8,14 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define H1_PARAM 3 // Number of bits we keep after the 1st hash function pass
+#define H2_PARAM 101 // The number we use in the 2nd hash function as mod
+
 /* Type definition for a tuple */
 typedef struct tuple{
     int32_t key;
     int32_t payload;
 }Tuple;
-
 
 /* Type definition for a relation */
 typedef struct relation{
@@ -25,10 +27,9 @@ typedef struct result{
 
 }Result;
 
-
 int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets);
 
-void fillRelationsWithRundNums(Relation **reIR, Relation **reIS, int number_of_buckets);
+void fillRelationsWithRandNums(Relation **reIR, Relation **reIS, int number_of_buckets);
 
 /* Print the relation */
 void printRelation(Relation *relation, int choice);
@@ -38,6 +39,9 @@ void printHistogram(int32_t** histogram, int choice, int number_of_buckets);
 
 /* Print the Psum */
 void printPsum(int32_t** psum, int choice, int number_of_buckets);
+
+/* Print Chain of every bucket*/
+void printChainArrays(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain);
 
 /* Print everything */
 void printAll(int choice, Relation *reIR, Relation *reIS,int32_t** histogramR, int32_t** histogramS,

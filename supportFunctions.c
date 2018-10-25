@@ -1,12 +1,8 @@
 #include "supportFunctions.h"
 
-
 int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets) {
 
-    time_t t;
-    //srand((unsigned) time(&t));
-
-    *reIR = malloc(sizeof(Relation));
+   *reIR = malloc(sizeof(Relation));
     if (*reIR == NULL) {
         printf("Malloc failed!\n");
         perror("Malloc");
@@ -38,13 +34,14 @@ int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets)
         return -1;
     }
 
-    fillRelationsWithRundNums(reIR, reIS, number_of_buckets);
+    fillRelationsWithRandNums(reIR, reIS, number_of_buckets);
 
 }
 
+void fillRelationsWithRandNums(Relation **reIR, Relation **reIS, int number_of_buckets) {
 
-void fillRelationsWithRundNums(Relation **reIR, Relation **reIS, int number_of_buckets) {
-
+    time_t t;
+    //srand((unsigned) time(&t));
     int32_t i;
 
     /* Fill matrix R with random numbers from 0-199*/
@@ -60,7 +57,6 @@ void fillRelationsWithRundNums(Relation **reIR, Relation **reIS, int number_of_b
     }
 
 }
-
 
 void printRelation(Relation *relation, int choice) {
 
@@ -86,7 +82,6 @@ void printRelation(Relation *relation, int choice) {
     printf("\n");
 }
 
-
 void printHistogram(int32_t** histogram, int choice, int number_of_buckets) {
 
     int i;
@@ -101,7 +96,6 @@ void printHistogram(int32_t** histogram, int choice, int number_of_buckets) {
     }
     printf("\n");
 }
-
 
 void printPsum(int32_t** psum, int choice, int number_of_buckets) {
 
@@ -118,6 +112,24 @@ void printPsum(int32_t** psum, int choice, int number_of_buckets) {
     printf("\n");
 }
 
+void printChainArrays(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain){
+    int32_t i, j ;
+    int32_t difference;
+
+    for (i = 0; i < number_of_buckets; i++) {
+        if (i == number_of_buckets - 1)
+            difference = relationNew->num_tuples - psum[i][1];
+        else
+            difference = psum[i + 1][1] - psum[i][1];
+        printf("-----------------------------\n");
+        if (chain[i] != NULL)
+            for (j = 0; j < difference; j++) {
+                printf("Bucket: %d - Chain element: %d\n", i, chain[i][j]);
+            }
+        else
+            printf("I don't exist - Bucket %d.\n", i);
+    }
+}
 
 void printAll(int choice,  Relation *reIR, Relation *reIS,int32_t** histogramR, int32_t** histogramS,
                int32_t** psumR, int32_t** psumS, Relation *newReIR, Relation *newReIS, int number_of_buckets) {
@@ -153,3 +165,4 @@ void printAll(int choice,  Relation *reIR, Relation *reIS,int32_t** histogramR, 
     }
 
 }
+
