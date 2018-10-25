@@ -6,34 +6,10 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
     int i, j;
 
+    Relation *relationNewR, *relationNewS;
+
     /* Allocate memory for new matrices R' and S' that will be used as hash tables */
-    Relation *relationNewR = malloc(sizeof(Relation));
-    if (relationNewR == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
-        return NULL;
-    }
-    Relation *relationNewS = malloc(sizeof(Relation));
-    if (relationNewS == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
-        return NULL;
-    }
-
-    /* Matrix R' and S sizes'*/
-    relationNewR->num_tuples = reIR->num_tuples;
-    relationNewS->num_tuples = reIS->num_tuples;
-
-    relationNewR->tuples = malloc(sizeof(Tuple) * relationNewR->num_tuples);
-    if (relationNewR->tuples == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
-        return NULL;
-    }
-    relationNewS->tuples = malloc(sizeof(Tuple) * relationNewS->num_tuples);
-    if (relationNewS->tuples == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+    if ( initializeRelations(&relationNewR, &relationNewS, number_of_buckets, reIR->num_tuples, reIS->num_tuples, 0) == -1 ) {
         return NULL;
     }
 

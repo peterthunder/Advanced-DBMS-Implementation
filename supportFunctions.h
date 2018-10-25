@@ -27,7 +27,8 @@ typedef struct result{
 
 }Result;
 
-int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets);
+int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets, uint32_t numOfTuplesR,
+                        uint32_t numOfTUplesS, short isFillWithRandNums);
 
 void fillRelationsWithRandNums(Relation **reIR, Relation **reIS, int number_of_buckets);
 

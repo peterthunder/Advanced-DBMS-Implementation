@@ -1,6 +1,8 @@
 #include "supportFunctions.h"
 
-int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets) {
+
+int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets, uint32_t numOfTuplesR,
+                        uint32_t numOfTUplesS, short isFillWithRandNums) {
 
    *reIR = malloc(sizeof(Relation));
     if (*reIR == NULL) {
@@ -17,8 +19,8 @@ int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets)
     }
 
     /* Matrix R and S sizes*/
-    (*reIR)->num_tuples = 10;
-    (*reIS)->num_tuples = 5;
+    (*reIR)->num_tuples = numOfTuplesR;
+    (*reIS)->num_tuples = numOfTUplesS;
 
     (*reIR)->tuples = malloc(sizeof(Tuple) * (*reIR)->num_tuples);
     if ( (*reIR)->tuples == NULL ) {
@@ -34,8 +36,8 @@ int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets)
         return -1;
     }
 
-    fillRelationsWithRandNums(reIR, reIS, number_of_buckets);
-
+    if ( isFillWithRandNums )
+        fillRelationsWithRandNums(reIR, reIS, number_of_buckets);
 }
 
 void fillRelationsWithRandNums(Relation **reIR, Relation **reIS, int number_of_buckets) {

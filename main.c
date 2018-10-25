@@ -19,9 +19,9 @@ int main(void) {
 
     Relation *relation1, *relation2;
 
-    /* Initialize the relations with random numbers from 0-200, or from the file */
+    /* Initialize the relations with random numbers from 0-200 */
     int initReturnCode = 0;
-    if ( (initReturnCode = initializeRelations(&relation1, &relation2, number_of_buckets)) == -1 ) {
+    if ( (initReturnCode = initializeRelations(&relation1, &relation2, number_of_buckets, 10, 5, 1)) == -1 ) {
         return initReturnCode;  // ErrorCode
     }
 
