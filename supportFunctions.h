@@ -13,8 +13,9 @@
 
 /* Type definition for a tuple */
 typedef struct tuple{
-    int32_t key;
-    int32_t payload;
+    int32_t key; // hashvalue after 1st hash function
+    int32_t rowID; // rowID of this tuple
+    int32_t payload; // true value of this tuple
 }Tuple;
 
 /* Type definition for a relation */

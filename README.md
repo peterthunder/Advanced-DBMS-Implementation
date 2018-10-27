@@ -1,2 +1,2 @@
 # Advanced-DBMS-Implementation
-Project for course Κ23α "Software Development for Information Systems"
+Project for course Κ23a "Software Development for Information Systems"

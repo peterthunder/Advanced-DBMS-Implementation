@@ -40,6 +40,8 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
     printf("\n\n");
 
+
+    /* Bucket-Chain */
     int32_t hashValAppearances;
     /* Create an array that contains the chain arrays */
     int **chain = malloc(sizeof(int *) * number_of_buckets);
@@ -77,29 +79,39 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
              * only if the hashValueAppearances are greater than 0 */
             if (hashValAppearances <= 0)
                 continue;
-            else {
-                chain[i] = malloc(sizeof(int) * hashValAppearances);
-                if (chain[i] == NULL) {
-                    printf("Malloc failed!\n");
-                    perror("Malloc");
-                    return NULL;
-                }
 
-                for (j = 0; j < hashValAppearances; j++) {
-                    chain[i][j] = j;
-                }
+            chain[i] = malloc(sizeof(int) * hashValAppearances);
+            if (chain[i] == NULL) {
+                printf("Malloc failed!\n");
+                perror("Malloc");
+                return NULL;
+            }
 
-                /* Also, create a bucket_index array only if the hashValueAppearances are greater than 0,
-                 * to save memory */
-                bucket_index[i] = malloc(sizeof(int) * H2_PARAM);
-                if (bucket_index[i] == NULL) {
-                    printf("Malloc failed!\n");
-                    perror("Malloc");
-                    return NULL;
-                }
+            /* Also, create a bucket_index array only if the hashValueAppearances are greater than 0,
+             * to save memory */
+            bucket_index[i] = malloc(sizeof(int) * H2_PARAM);
+            if (bucket_index[i] == NULL) {
+                printf("Malloc failed!\n");
+                perror("Malloc");
+                return NULL;
+            }
 
-                for (j = 0; j < H2_PARAM; j++)
-                    bucket_index[i][j] = 0;
+            for (j = 0; j < H2_PARAM; j++)
+                bucket_index[i][j] = 0;
+
+            /* Fill chain and bucket_index arrays */
+            for (int k = 0; k < hashValAppearances; k++) {
+                int index_R = k + psumR[i][1];  /* Iterate in R' */
+                int32_t h2 = relationNewR->tuples[index_R].payload % H2_PARAM;
+                //printf("In here - bucket: %d - indexR: %d - h2: %d\n", i, index_R, h2);
+
+                if (bucket_index[i][h2] == 0) {
+                    bucket_index[i][h2] = k + 1;
+                    chain[i][(k + 1) - 1] = 0;
+                } else {
+                    chain[i][(k + 1) - 1] = bucket_index[i][h2];
+                    bucket_index[i][h2] = k + 1;
+                }
             }
         }
 
@@ -172,6 +184,7 @@ void *partition(Relation *relation, Relation *relationNew, int number_of_buckets
             if (relation->tuples[j].key == psum[i][0]) {
                 relationNew->tuples[indexOfNewR].key = relation->tuples[j].key;
                 relationNew->tuples[indexOfNewR].payload = relation->tuples[j].payload;
+                relationNew->tuples[indexOfNewR].rowID = relation->tuples[j].rowID;
                 indexOfNewR++;
                 currHashCounter++;
             }
