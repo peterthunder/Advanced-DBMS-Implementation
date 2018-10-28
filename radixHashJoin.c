@@ -4,12 +4,27 @@
 /* Relation R: reIR, Relation S: reIS, Number of buckets: 2^n */
 Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
-    int i, j;
+    int i, j, currentIndex, index_R;
+    int32_t h2Value;
+
+    reIR->tuples[reIR->num_tuples - 2].payload = 929;
+    reIR->tuples[reIR->num_tuples - 2].key = reIR->tuples[reIR->num_tuples - 2].payload % number_of_buckets;
+
+    reIR->tuples[reIR->num_tuples - 3].payload = 828;
+    reIR->tuples[reIR->num_tuples - 3].key = reIR->tuples[reIR->num_tuples - 3].payload % number_of_buckets;
+
+    reIS->tuples[reIS->num_tuples - 1].payload = 929;
+    reIS->tuples[reIS->num_tuples - 1].key = reIS->tuples[reIS->num_tuples - 1].payload % number_of_buckets;
+
+    reIS->tuples[reIS->num_tuples - 2].payload = 20;
+    reIS->tuples[reIS->num_tuples - 2].key = reIS->tuples[reIS->num_tuples - 2].payload % number_of_buckets;
+
 
     Relation *relationNewR, *relationNewS;
 
     /* Allocate memory for new matrices R' and S' that will be used as hash tables */
-    if ( initializeRelations(&relationNewR, &relationNewS, number_of_buckets, reIR->num_tuples, reIS->num_tuples, 0) == -1 ) {
+    if (initializeRelations(&relationNewR, &relationNewS, number_of_buckets, reIR->num_tuples, reIS->num_tuples, 0) ==
+        -1) {
         return NULL;
     }
 
@@ -36,13 +51,13 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     partition(reIR, relationNewR, number_of_buckets, psumR);
     partition(reIS, relationNewS, number_of_buckets, psumS);
 
-    printAll(1, reIR, reIS, histogramR, histogramS, psumR, psumS, relationNewR, relationNewS, number_of_buckets);
+    printAll(4, reIR, reIS, histogramR, histogramS, psumR, psumS, relationNewR, relationNewS, number_of_buckets);
 
     printf("\n\n");
 
 
     /* Bucket-Chain */
-    int32_t hashValAppearances;
+    int32_t num_tuples_of_currBucket;
     /* Create an array that contains the chain arrays */
     int **chain = malloc(sizeof(int *) * number_of_buckets);
     if (chain == NULL) {
@@ -69,25 +84,25 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     if (1) {
         for (i = 0; i < number_of_buckets; i++) {
 
-            /* Calculate the appearances of the hashvalue of a certain bucket according to the Psum */
+            /* Calculate the number of tuples in the i-th bucket using the Psum */
             if (i == number_of_buckets - 1)
-                hashValAppearances = relationNewR->num_tuples - psumR[i][1];
+                num_tuples_of_currBucket = relationNewR->num_tuples - psumR[i][1];
             else
-                hashValAppearances = psumR[i + 1][1] - psumR[i][1];
+                num_tuples_of_currBucket = psumR[i + 1][1] - psumR[i][1];
 
             /* Allocate memory for the ith-chain array, same size as the ith-bucket,
-             * only if the hashValueAppearances are greater than 0 */
-            if (hashValAppearances <= 0)
+             * only if the number of tuples in the i-th bucket is greater than 0 */
+            if (num_tuples_of_currBucket <= 0)
                 continue;
 
-            chain[i] = malloc(sizeof(int) * hashValAppearances);
+            chain[i] = malloc(sizeof(int) * num_tuples_of_currBucket);
             if (chain[i] == NULL) {
                 printf("Malloc failed!\n");
                 perror("Malloc");
                 return NULL;
             }
 
-            /* Also, create a bucket_index array only if the hashValueAppearances are greater than 0,
+            /* Also, create a bucket_index array only if the number of tuples in the i-th bucket are greater than 0,
              * to save memory */
             bucket_index[i] = malloc(sizeof(int) * H2_PARAM);
             if (bucket_index[i] == NULL) {
@@ -96,32 +111,90 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
                 return NULL;
             }
 
+            /* Initialise bucket_index array elements to 0*/
             for (j = 0; j < H2_PARAM; j++)
                 bucket_index[i][j] = 0;
 
             /* Fill chain and bucket_index arrays */
-            for (int k = 0; k < hashValAppearances; k++) {
-                int index_R = k + psumR[i][1];  /* Iterate in R' */
+            for (int k = 0; k < num_tuples_of_currBucket; k++) {
+                /* Iterate in R' */
+                index_R = psumR[i][1] + k;
                 int32_t h2 = relationNewR->tuples[index_R].payload % H2_PARAM;
-                //printf("In here - bucket: %d - indexR: %d - h2: %d\n", i, index_R, h2);
 
                 if (bucket_index[i][h2] == 0) {
                     bucket_index[i][h2] = k + 1;
-                    chain[i][(k + 1) - 1] = 0;
-                } else {
-                    chain[i][(k + 1) - 1] = bucket_index[i][h2];
+                    chain[i][k] = 0;
+                } else { chain[i][k] = bucket_index[i][h2];
                     bucket_index[i][h2] = k + 1;
                 }
             }
         }
-
-        //buildIndexAndChain(relationNewR, chain, bucket_index);
-
     } else {
-
+        /* Else do the same but for S */
     }
 
     printChainArrays(number_of_buckets, psumR, relationNewR, chain);
+
+
+    printf("\n\n\n\n");
+    //printf("b: %d - c: %d \n\n\n\n", bucket_index[2][29], chain[2][bucket_index[2][29] - 1]); // Debugging
+
+    /* Join-Phase */
+    for (i = 0; i < number_of_buckets; i++) {
+
+        printf("\n---------------- Bucket: %d -----------------\n", i);
+
+        /* Check if the i-th bucket of R is empty */
+        /* If it is, then go to the next bucket */
+        if (chain[i] == NULL) {
+            printf("> R's %d-th bucket is empty!\n", i);
+            continue;
+        }
+
+        /* If i-th bucket of R isn't empty, calculate the num of tuples in the i-th bucket of S */
+        if (i == number_of_buckets - 1)
+            num_tuples_of_currBucket = relationNewS->num_tuples - psumS[i][1];
+        else
+            num_tuples_of_currBucket = psumS[i + 1][1] - psumS[i][1];
+
+        /* If the num of tuples in the i-th bucket of S is 0, go to the next bucket */
+        if (num_tuples_of_currBucket == 0)
+            continue;   // Next bucket in S'
+
+        /* If the num of tuples isn't 0, use the bucket_index to find same values of S in R */
+        for (j = psumS[i][1]; j < psumS[i][1] + num_tuples_of_currBucket; j++) {
+
+            printf("Checking %d.\n", relationNewS->tuples[j].payload);
+            h2Value = relationNewS->tuples[j].payload % H2_PARAM;
+            currentIndex = bucket_index[i][h2Value];
+
+            //printf("Original Val: %d, H2 Val: %d, Bucket Val: %d.\n", relationNewS->tuples[j].payload, h2Value, currentIndex);
+
+            /* If the value of bucket_index[h2] is 0, it means there is no tuple with that h2, so go to the next tuple */
+            if (currentIndex == 0) {
+                printf("> No tuple in relation R has an h2 = %d.\n", h2Value);
+                continue;
+            }
+
+            /* If the value isn't 0, then a tuple with the same h2 exists.
+             * If it has the same value, then join-group both */
+            do {
+                printf("> Found same h2: %d.\n", h2Value);
+                printf(">> Comparing values pR: %d in %d, and pS: %d in %d.\n",
+                       relationNewR->tuples[currentIndex - 1 + psumR[i][1]].payload,
+                       currentIndex - 1 + psumR[i][1], relationNewS->tuples[j].payload, j);
+                if (relationNewS->tuples[j].payload == relationNewR->tuples[currentIndex - 1 + psumR[i][1]].payload)
+                    printf(">>> Found the same value: %d.\n", relationNewS->tuples[j].payload);
+                else
+                    printf("<<< Not the same value: %d != %d.\n",
+                           relationNewR->tuples[currentIndex - 1 + psumR[i][1]].payload,
+                           relationNewS->tuples[j].payload);
+                /* If a chain exists, meaning there is another tuple of R with the same h2, check it too*/
+                currentIndex = chain[i][currentIndex - 1];
+            } while (currentIndex != 0);
+        }
+    }
+
 
     /* De-allocate memory */
     for (i = 0; i < number_of_buckets; i++) {

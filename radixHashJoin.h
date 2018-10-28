@@ -3,7 +3,6 @@
 
 #include "supportFunctions.h"
 
-
 /* Radix Hash Join */
 Result* RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets);
 

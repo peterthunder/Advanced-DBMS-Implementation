@@ -21,7 +21,7 @@ int main(void) {
 
     /* Initialize the relations with random numbers from 0-200 */
     int initReturnCode = 0;
-    if ( (initReturnCode = initializeRelations(&relationR, &relationS, number_of_buckets, 10, 5, 1)) == -1 ) {
+    if ( (initReturnCode = initializeRelations(&relationR, &relationS, number_of_buckets, 20, 10, 1)) == -1 ) {
         return initReturnCode;  // ErrorCode
     }
 
