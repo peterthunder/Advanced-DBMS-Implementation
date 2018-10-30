@@ -3,8 +3,7 @@
 /* Relation R: reIR, Relation S: reIS, Number of buckets: 2^n */
 Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
-    int i, j, currentIndex, index_R;
-    int32_t h2Value;
+    int i;
 
     reIR->tuples[reIR->num_tuples - 2].payload = 929;
     reIR->tuples[reIR->num_tuples - 2].key = reIR->tuples[reIR->num_tuples - 2].payload % number_of_buckets;
@@ -58,7 +57,6 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
 
     /* Bucket-Chain */
-    int32_t num_tuples_of_currBucket;
     /* Create an array that contains the chain arrays */
     int **chain = malloc(sizeof(int *) * number_of_buckets);
     if (chain == NULL) {
@@ -87,22 +85,22 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     if (relationNewR->num_tuples <= relationNewS->num_tuples) {
         buildSmallestPartitionedRelationIndex(relationNewR, psumR, &bucket_index, &chain, number_of_buckets);
 
-        printChainArrays(number_of_buckets, psumR, relationNewR, chain);
-        printf("\n\n");
-        //printf("b: %d - c: %d \n\n\n\n", bucket_index[2][29], chain[2][bucket_index[2][29] - 1]); // Debugging
-
-        result = joinRelations(relationNewR, relationNewS, psumR, psumS, bucket_index, chain, number_of_buckets);
+        //printChainArray(number_of_buckets, psumR, relationNewR, chain);
+        result = joinRelations(relationNewR, relationNewS, psumR, psumS, bucket_index, chain, number_of_buckets, TRUE);
+        if(result == NULL){
+            return NULL;
+        }
     } else {
-        printf("IN S\n");
         buildSmallestPartitionedRelationIndex(relationNewS, psumS, &bucket_index, &chain, number_of_buckets);
 
-        printChainArrays(number_of_buckets, psumS, relationNewS, chain);
-        printf("\n\n");
-        //printf("b: %d - c: %d \n\n\n\n", bucket_index[2][29], chain[2][bucket_index[2][29] - 1]); // Debugging
-
-        result = joinRelations(relationNewS, relationNewR, psumS, psumR, bucket_index, chain, number_of_buckets);
+        //printChainArray(number_of_buckets, psumS, relationNewS, chain);
+        result = joinRelations(relationNewS, relationNewR, psumS, psumR, bucket_index, chain, number_of_buckets, FALSE);
+        if(result == NULL){
+            return NULL;
+        }
     }
 
+    printf("Join finished.\n");
 
     /* De-allocate memory */
     for (i = 0; i < number_of_buckets; i++) {
@@ -308,12 +306,20 @@ void *buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32
 
 /* Join two relations and return the result. */
 Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex,
-                      int32_t **bucket_index, int32_t **chain, int number_of_buckets) {
+                      int32_t **bucket_index, int32_t **chain, int number_of_buckets, bool is_R_relation_first) {
+
     int i, j, num_tuples_of_currBucket, currentIndex;
     int32_t h2Value;
 
-    /* For each bucket of relNoIndex, we check if there is such bucket in relWithIndex and if so, we continue by checking the values inside. */
+    Result *result = malloc(sizeof(Result));
+    if(result == NULL){
+        return NULL;
+    }
+    Result *current_result = result;
+    result->next_result = NULL;
+    result->num_joined_rowIDs = 0;
 
+    /* For each bucket of relNoIndex, we check if there is such bucket in relWithIndex and if so, we continue by checking the values inside. */
     for (i = 0; i < number_of_buckets; i++) {
 
         printf("\n---------------- Bucket: %d -----------------\n", i);
@@ -332,7 +338,7 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
             num_tuples_of_currBucket = psumNoIndex[i + 1][1] - psumNoIndex[i][1];
 
         /* If the num of tuples in the i-th bucket of relNoIndex is 0, go to the next bucket */
-        if (num_tuples_of_currBucket == 0){
+        if (num_tuples_of_currBucket == 0) {
             printf("> %d-th bucket in \"relNoIndex\" is empty!\n", i);
             continue;   // Next bucket in relNoIndex
         }
@@ -356,19 +362,38 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
              * If it has the same value, then join-group both */
             do {
                 printf("> Found same h2: %d.\n", h2Value);
-                printf(">> Comparing values p_relWithIndex: %d in %d, and p_relNoIndex: %d in %d.\n",
-                       relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload,
-                       currentIndex - 1 + psumWithIndex[i][1], relNoIndex->tuples[j].payload, j);
+                printf(">> Comparing values p_relWithIndex: %d in %d, and p_relNoIndex: %d in %d.\n", relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload, currentIndex - 1 + psumWithIndex[i][1], relNoIndex->tuples[j].payload, j);
                 if (relNoIndex->tuples[j].payload ==
-                    relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload)
+                    relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload) {
+
                     printf(">>> Found the same value: %d.\n", relNoIndex->tuples[j].payload);
-                else
-                    printf("<<< Not the same value: %d != %d.\n",
-                           relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload,
-                           relNoIndex->tuples[j].payload);
+
+                    /* If the current result is full, then create a new one and point to it with current result*/
+                    if (current_result->num_joined_rowIDs == JOINED_ROWIDS_NUM) {
+                        current_result->next_result = malloc(sizeof(Result));
+                        current_result->next_result->num_joined_rowIDs = 0;
+                        current_result = current_result->next_result;
+
+                        current_result->next_result = NULL;
+                    }
+                    /* We always want to write R's rowIDs first and S' rowIDs second. */
+                    /* So we use the variable "is_R_relation_first" to determine which relation was sent first. */
+                    if (is_R_relation_first) {
+                        /* If the current result isn' t full, insert a new rowid combo (rowIDR, rowIDS)
+                         * and increment the num_joined_rowIDs variable */
+                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].rowID;
+                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = relNoIndex->tuples[j].rowID;
+                    } else {
+                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = relNoIndex->tuples[j].rowID;
+                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].rowID;
+                    }
+                    current_result->num_joined_rowIDs++;
+                } else
+                    printf("<<< Not the same value: %d != %d.\n", relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload, relNoIndex->tuples[j].payload);
                 /* If a chain exists, meaning there is another tuple of relWithIndex with the same h2, check it too*/
                 currentIndex = chain[i][currentIndex - 1];
             } while (currentIndex != 0);
         }
     }
+    return result;
 }

@@ -1,6 +1,5 @@
 #include "supportFunctions.h"
 
-
 int allocateRelation(Relation **rel, uint32_t num_tuples) {
 
     *rel = malloc(sizeof(Relation));
@@ -24,7 +23,7 @@ int allocateRelation(Relation **rel, uint32_t num_tuples) {
 
 void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets) {
 
-    time_t t;
+    //time_t t;
     //srand((unsigned) time(&t));
     int32_t i;
 
@@ -32,7 +31,7 @@ void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets) 
     for (i = 0; i < (*rel)->num_tuples; i++) {
         (*rel)->tuples[i].payload = rand() % 199;
         (*rel)->tuples[i].key = (*rel)->tuples[i].payload % number_of_buckets;
-        (*rel)->tuples[i].rowID = i;
+        (*rel)->tuples[i].rowID = i+1;
     }
 }
 
@@ -95,7 +94,7 @@ void printPsum(int32_t **psum, int choice, int number_of_buckets) {
     printf("\n");
 }
 
-void printChainArrays(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain) {
+void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain) {
     int32_t i, j;
     int32_t difference;
 

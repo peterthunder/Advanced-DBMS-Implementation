@@ -7,9 +7,13 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 
 #define H1_PARAM 3 // Number of bits we keep after the 1st hash function pass
 #define H2_PARAM 101 // The number we use in the 2nd hash function as mod
+#define JOINED_ROWIDS_NUM ((1024 * 1024) / 8)
+#define TRUE true
+#define FALSE false
 
 /* Type definition for a tuple */
 typedef struct tuple {
@@ -22,10 +26,19 @@ typedef struct tuple {
 typedef struct relation {
     Tuple *tuples;
     uint32_t num_tuples;
+  /*  Tuple *postpartitioned_tuples;
+    int32_t **psum;
+    int32_t **chain;
+    int32_t **bucket_index;
+    bool built;
+    bool partitioned;*/
 } Relation;
 
+/* Type definition for a result */
 typedef struct result {
-
+    int32_t joined_rowIDs[JOINED_ROWIDS_NUM][2];
+    int num_joined_rowIDs;
+    struct result* next_result;
 } Result;
 
 int allocateRelation(Relation **rel, uint32_t num_tuples);
@@ -42,7 +55,7 @@ void printHistogram(int32_t **histogram, int choice, int number_of_buckets);
 void printPsum(int32_t **psum, int choice, int number_of_buckets);
 
 /* Print Chain of every bucket*/
-void printChainArrays(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain);
+void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain);
 
 /* Print everything */
 void printAll(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS,
