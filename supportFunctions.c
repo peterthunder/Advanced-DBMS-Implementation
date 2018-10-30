@@ -1,61 +1,39 @@
 #include "supportFunctions.h"
 
 
-int allocateRelations(Relation **reIR, Relation **reIS, uint32_t numOfTuplesR, uint32_t numOfTUplesS) {
+int allocateRelation(Relation **rel, uint32_t num_tuples) {
 
-    *reIR = malloc(sizeof(Relation));
-    if (*reIR == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
-        return -1;
-    }
-
-    *reIS = malloc(sizeof(Relation));
-    if (*reIS == NULL) {
+    *rel = malloc(sizeof(Relation));
+    if (*rel == NULL) {
         printf("Malloc failed!\n");
         perror("Malloc");
         return -1;
     }
 
     /* Matrix R and S sizes*/
-    (*reIR)->num_tuples = numOfTuplesR;
-    (*reIS)->num_tuples = numOfTUplesS;
+    (*rel)->num_tuples = num_tuples;
 
-    (*reIR)->tuples = malloc(sizeof(Tuple) * (*reIR)->num_tuples);
-    if ((*reIR)->tuples == NULL) {
+    (*rel)->tuples = malloc(sizeof(Tuple) * (*rel)->num_tuples);
+    if ((*rel)->tuples == NULL) {
         printf("Malloc failed!\n");
         perror("Malloc");
         return -1;
     }
 
-    (*reIS)->tuples = malloc(sizeof(Tuple) * (*reIS)->num_tuples);
-    if ((*reIS)->tuples == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
-        return -1;
-    }
 }
 
-void initializeRelationsWithRandNums(Relation **reIR, Relation **reIS, int number_of_buckets) {
+void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets) {
 
     time_t t;
     //srand((unsigned) time(&t));
     int32_t i;
 
     /* Fill matrix R with random numbers from 0-199*/
-    for (i = 0; i < (*reIR)->num_tuples; i++) {
-        (*reIR)->tuples[i].payload = rand() % 199;
-        (*reIR)->tuples[i].key = (*reIR)->tuples[i].payload % number_of_buckets;
-        (*reIR)->tuples[i].rowID = i;
+    for (i = 0; i < (*rel)->num_tuples; i++) {
+        (*rel)->tuples[i].payload = rand() % 199;
+        (*rel)->tuples[i].key = (*rel)->tuples[i].payload % number_of_buckets;
+        (*rel)->tuples[i].rowID = i;
     }
-
-    /* Fill matrix S with random numbers from 0-199*/
-    for (i = 0; i < (*reIS)->num_tuples; i++) {
-        (*reIS)->tuples[i].payload = rand() % 200;
-        (*reIS)->tuples[i].key = (*reIS)->tuples[i].payload % number_of_buckets;
-        (*reIS)->tuples[i].rowID = i;
-    }
-
 }
 
 void printRelation(Relation *relation, int choice) {

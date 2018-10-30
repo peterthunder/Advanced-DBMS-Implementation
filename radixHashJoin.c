@@ -1,6 +1,5 @@
 #include "radixHashJoin.h"
 
-
 /* Relation R: reIR, Relation S: reIS, Number of buckets: 2^n */
 Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
@@ -23,7 +22,10 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     Relation *relationNewR, *relationNewS;
 
     /* Allocate memory for new matrices R' and S' that will be used as hash tables */
-    if (allocateRelations(&relationNewR, &relationNewS, reIR->num_tuples, reIS->num_tuples) == -1) {
+    if (allocateRelation(&relationNewR, reIR->num_tuples) == -1) {
+        return NULL;
+    }
+    if (allocateRelation(&relationNewS, reIS->num_tuples) == -1) {
         return NULL;
     }
 
@@ -79,26 +81,24 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
         bucket_index[i] = NULL;
     }
 
-    Result* result;
+    Result *result;
 
     /* Build the bucket_index and the chain arrays of the smaller relation */
-    if ( relationNewR->num_tuples <= relationNewS->num_tuples )
-    {
+    if (relationNewR->num_tuples <= relationNewS->num_tuples) {
         buildSmallestPartitionedRelationIndex(relationNewR, psumR, &bucket_index, &chain, number_of_buckets);
 
         printChainArrays(number_of_buckets, psumR, relationNewR, chain);
-        printf("\n\n\n\n");
-        printf("b: %d - c: %d \n\n\n\n", bucket_index[2][29], chain[2][bucket_index[2][29] - 1]); // Debugging
+        printf("\n\n");
+        //printf("b: %d - c: %d \n\n\n\n", bucket_index[2][29], chain[2][bucket_index[2][29] - 1]); // Debugging
 
         result = joinRelations(relationNewR, relationNewS, psumR, psumS, bucket_index, chain, number_of_buckets);
-    }
-    else
-    {
+    } else {
+        printf("IN S\n");
         buildSmallestPartitionedRelationIndex(relationNewS, psumS, &bucket_index, &chain, number_of_buckets);
 
         printChainArrays(number_of_buckets, psumS, relationNewS, chain);
-        printf("\n\n\n\n");
-        printf("b: %d - c: %d \n\n\n\n", bucket_index[2][29], chain[2][bucket_index[2][29] - 1]); // Debugging
+        printf("\n\n");
+        //printf("b: %d - c: %d \n\n\n\n", bucket_index[2][29], chain[2][bucket_index[2][29] - 1]); // Debugging
 
         result = joinRelations(relationNewS, relationNewR, psumS, psumR, bucket_index, chain, number_of_buckets);
     }
@@ -250,11 +250,9 @@ int32_t **createPsum(int number_of_buckets, int32_t **histogram) {
     return psum;
 }
 
-
 /* Build the Index and the Chain Arrays of the relation with the less amount of tuples */
-void* buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t ***bucket_index, int32_t ***chain,
-                                             int number_of_buckets)
-{
+void *buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t ***bucket_index, int32_t ***chain,
+                                            int number_of_buckets) {
     int i, j, num_tuples_of_currBucket;
 
     for (i = 0; i < number_of_buckets; i++) {
@@ -271,7 +269,7 @@ void* buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32
             continue;
 
         (*chain)[i] = malloc(sizeof(int) * num_tuples_of_currBucket);
-        if ( (*chain)[i] == NULL ) {
+        if ((*chain)[i] == NULL) {
             printf("Malloc failed!\n");
             perror("Malloc");
             return NULL;
@@ -280,7 +278,7 @@ void* buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32
         /* Also, create a bucket_index array only if the number of tuples in the i-th bucket are greater than 0,
          * to save memory */
         (*bucket_index)[i] = malloc(sizeof(int) * H2_PARAM);
-        if ( (*bucket_index)[i] == NULL ) {
+        if ((*bucket_index)[i] == NULL) {
             printf("Malloc failed!\n");
             perror("Malloc");
             return NULL;
@@ -296,10 +294,11 @@ void* buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32
             int index_A = psum[i][1] + k;
             int32_t h2 = rel->tuples[index_A].payload % H2_PARAM;
 
-            if ( (*bucket_index)[i][h2] == 0 ) {
+            if ((*bucket_index)[i][h2] == 0) {
                 (*bucket_index)[i][h2] = k + 1;
                 (*chain)[i][k] = 0;
-            } else { (*chain)[i][k] = (*bucket_index)[i][h2];
+            } else {
+                (*chain)[i][k] = (*bucket_index)[i][h2];
                 (*bucket_index)[i][h2] = k + 1;
             }
         }
@@ -307,10 +306,9 @@ void* buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32
 
 }
 
-
 /* Join two relations and return the result. */
-Result* joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t** psumNoIndex , int32_t **bucket_index, int32_t **chain, int number_of_buckets)
-{
+Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex,
+                      int32_t **bucket_index, int32_t **chain, int number_of_buckets) {
     int i, j, num_tuples_of_currBucket, currentIndex;
     int32_t h2Value;
 
@@ -334,8 +332,10 @@ Result* joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
             num_tuples_of_currBucket = psumNoIndex[i + 1][1] - psumNoIndex[i][1];
 
         /* If the num of tuples in the i-th bucket of relNoIndex is 0, go to the next bucket */
-        if (num_tuples_of_currBucket == 0)
+        if (num_tuples_of_currBucket == 0){
+            printf("> %d-th bucket in \"relNoIndex\" is empty!\n", i);
             continue;   // Next bucket in relNoIndex
+        }
 
         /* If the num of tuples isn't 0, use the bucket_index to find same values of relNoIndex in relWithIndex */
         for (j = psumNoIndex[i][1]; j < psumNoIndex[i][1] + num_tuples_of_currBucket; j++) {
@@ -359,7 +359,8 @@ Result* joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
                 printf(">> Comparing values p_relWithIndex: %d in %d, and p_relNoIndex: %d in %d.\n",
                        relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload,
                        currentIndex - 1 + psumWithIndex[i][1], relNoIndex->tuples[j].payload, j);
-                if (relNoIndex->tuples[j].payload == relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload)
+                if (relNoIndex->tuples[j].payload ==
+                    relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload)
                     printf(">>> Found the same value: %d.\n", relNoIndex->tuples[j].payload);
                 else
                     printf("<<< Not the same value: %d != %d.\n",
@@ -370,5 +371,4 @@ Result* joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
             } while (currentIndex != 0);
         }
     }
-
 }
