@@ -83,21 +83,20 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
     /* Build the bucket_index and the chain arrays of the smaller relation */
     if (relationNewR->num_tuples <= relationNewS->num_tuples) {
-        buildSmallestPartitionedRelationIndex(relationNewR, psumR, &bucket_index, &chain, number_of_buckets);
+
+        if (buildSmallestPartitionedRelationIndex(relationNewR, psumR, &bucket_index, &chain, number_of_buckets) == NULL)
+            return NULL;
 
         //printChainArray(number_of_buckets, psumR, relationNewR, chain);
-        result = joinRelations(relationNewR, relationNewS, psumR, psumS, bucket_index, chain, number_of_buckets, TRUE);
-        if(result == NULL){
+        if ((result = joinRelations(relationNewR, relationNewS, psumR, psumS, bucket_index, chain, number_of_buckets, TRUE)) == NULL)
             return NULL;
-        }
     } else {
-        buildSmallestPartitionedRelationIndex(relationNewS, psumS, &bucket_index, &chain, number_of_buckets);
-
-        //printChainArray(number_of_buckets, psumS, relationNewS, chain);
-        result = joinRelations(relationNewS, relationNewR, psumS, psumR, bucket_index, chain, number_of_buckets, FALSE);
-        if(result == NULL){
+        if (buildSmallestPartitionedRelationIndex(relationNewS, psumS, &bucket_index, &chain, number_of_buckets) == NULL)
             return NULL;
-        }
+        
+        //printChainArray(number_of_buckets, psumS, relationNewS, chain);
+        if ((result = joinRelations(relationNewS, relationNewR, psumS, psumR, bucket_index, chain, number_of_buckets, FALSE)) == NULL)
+            return NULL;
     }
 
     printf("Join finished.\n");
