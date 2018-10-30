@@ -19,11 +19,12 @@ int main(void) {
 
     Relation *relationR, *relationS;
 
-    /* Initialize the relations with random numbers from 0-200 */
-    int initReturnCode = 0;
-    if ( (initReturnCode = initializeRelations(&relationR, &relationS, number_of_buckets, 20, 10, 1)) == -1 ) {
-        return initReturnCode;  // ErrorCode
+    /* Allocate the relations and initialize them with random numbers from 0-200 */
+    int allocReturnCode = 0;
+    if ( (allocReturnCode = allocateRelations(&relationR, &relationS, 20, 10)) == -1 ) {
+        return allocReturnCode;  // ErrorCode
     }
+    initializeRelationsWithRandNums(&relationR, &relationS, number_of_buckets);
 
     /* Do Radix Hash Join on the conjunction of the relations*/
     Result *result = RadixHashJoin(relationR, relationS, number_of_buckets);

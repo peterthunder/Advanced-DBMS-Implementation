@@ -1,8 +1,7 @@
 #include "supportFunctions.h"
 
 
-int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets, uint32_t numOfTuplesR,
-                        uint32_t numOfTUplesS, short isFillWithRandNums) {
+int allocateRelations(Relation **reIR, Relation **reIS, uint32_t numOfTuplesR, uint32_t numOfTUplesS) {
 
     *reIR = malloc(sizeof(Relation));
     if (*reIR == NULL) {
@@ -35,12 +34,9 @@ int initializeRelations(Relation **reIR, Relation **reIS, int number_of_buckets,
         perror("Malloc");
         return -1;
     }
-
-    if (isFillWithRandNums)
-        fillRelationsWithRandNums(reIR, reIS, number_of_buckets);
 }
 
-void fillRelationsWithRandNums(Relation **reIR, Relation **reIS, int number_of_buckets) {
+void initializeRelationsWithRandNums(Relation **reIR, Relation **reIS, int number_of_buckets) {
 
     time_t t;
     //srand((unsigned) time(&t));

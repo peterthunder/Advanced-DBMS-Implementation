@@ -23,8 +23,7 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     Relation *relationNewR, *relationNewS;
 
     /* Allocate memory for new matrices R' and S' that will be used as hash tables */
-    if (initializeRelations(&relationNewR, &relationNewS, number_of_buckets, reIR->num_tuples, reIS->num_tuples, 0) ==
-        -1) {
+    if (allocateRelations(&relationNewR, &relationNewS, reIR->num_tuples, reIS->num_tuples) == -1) {
         return NULL;
     }
 
