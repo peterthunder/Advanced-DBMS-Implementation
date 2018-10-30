@@ -94,27 +94,9 @@ void printPsum(int32_t **psum, int choice, int number_of_buckets) {
     printf("\n");
 }
 
-void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain) {
-    int32_t i, j;
-    int32_t difference;
-
-    for (i = 0; i < number_of_buckets; i++) {
-        if (i == number_of_buckets - 1)
-            difference = relationNew->num_tuples - psum[i][1];
-        else
-            difference = psum[i + 1][1] - psum[i][1];
-        printf("------------------------------\n");
-        if (chain[i] != NULL)
-            for (j = 0; j < difference; j++) {
-                printf("Bucket: %d-%d - Chain element: %d\n", i, j+1, chain[i][j]);
-            }
-        else
-            printf("Bucket %d - is empty.\n", i);
-    }
-}
-
-void printAll(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS,
-              int32_t **psumR, int32_t **psumS, Relation *newReIR, Relation *newReIS, int number_of_buckets) {
+void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS,
+                          int32_t **psumR, int32_t **psumS, Relation *newReIR, Relation *newReIS,
+                          int number_of_buckets) {
 
     switch (choice) {
         case 1:
@@ -148,3 +130,36 @@ void printAll(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, 
 
 }
 
+void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain) {
+    int32_t i, j;
+    int32_t difference;
+
+    for (i = 0; i < number_of_buckets; i++) {
+        if (i == number_of_buckets - 1)
+            difference = relationNew->num_tuples - psum[i][1];
+        else
+            difference = psum[i + 1][1] - psum[i][1];
+        printf("------------------------------\n");
+        if (chain[i] != NULL)
+            for (j = 0; j < difference; j++) {
+                printf("Bucket: %d-%d - Chain element: %d\n", i, j+1, chain[i][j]);
+            }
+        else
+            printf("Bucket %d - is empty.\n", i);
+    }
+}
+
+void printResult(Result *result) {
+    Result* current_result;
+
+    printf("\n\n");
+    current_result = result;
+    do {
+        printf("Number of tuples join in current result: %d\n", current_result->num_joined_rowIDs);
+        printf("[RowIDR|RowIDS]\n");
+        for (int i=0; i < current_result->num_joined_rowIDs; i++) {
+            printf("   (%3d|%3d)\n", current_result->joined_rowIDs[i][0], current_result->joined_rowIDs[i][1]);
+        }
+        current_result = current_result->next_result;
+    } while(current_result!=NULL);
+}

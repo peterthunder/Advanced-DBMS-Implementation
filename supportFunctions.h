@@ -54,12 +54,14 @@ void printHistogram(int32_t **histogram, int choice, int number_of_buckets);
 /* Print the Psum */
 void printPsum(int32_t **psum, int choice, int number_of_buckets);
 
+/* Print everything */
+void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS,
+                          int32_t **psumR, int32_t **psumS, Relation *newReIR, Relation *newReIS,
+                          int number_of_buckets);
+
 /* Print Chain of every bucket*/
 void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain);
 
-/* Print everything */
-void printAll(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS,
-              int32_t **psumR, int32_t **psumS, Relation *newReIR, Relation *newReIS, int number_of_buckets);
-
+void printResult(Result *result);
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H

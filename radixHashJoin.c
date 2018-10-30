@@ -51,7 +51,8 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     partition(reIR, relationNewR, number_of_buckets, psumR);
     partition(reIS, relationNewS, number_of_buckets, psumS);
 
-    printAll(4, reIR, reIS, histogramR, histogramS, psumR, psumS, relationNewR, relationNewS, number_of_buckets);
+    printAllForPartition(4, reIR, reIS, histogramR, histogramS, psumR, psumS, relationNewR, relationNewS,
+                         number_of_buckets);
 
     printf("\n\n");
 
@@ -93,7 +94,7 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     } else {
         if (buildSmallestPartitionedRelationIndex(relationNewS, psumS, &bucket_index, &chain, number_of_buckets) == NULL)
             return NULL;
-        
+
         //printChainArray(number_of_buckets, psumS, relationNewS, chain);
         if ((result = joinRelations(relationNewS, relationNewR, psumS, psumR, bucket_index, chain, number_of_buckets, FALSE)) == NULL)
             return NULL;
