@@ -16,6 +16,10 @@ int32_t **createHistogram(Relation* relation, int number_of_buckets);
 int32_t **createPsum(int number_of_buckets, int32_t **histogram);
 
 /* Build the Index and the Chain Arrays of the relation with the less amount of tuples */
-int buildIndexAndChain(Relation *relationNewR, int **chain, int **bucket);
+void* buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t ***bucket_index, int32_t ***chain,
+                                             int number_of_buckets);
+
+/* Join two relations and return the result. */
+Result* joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t** psumNoIndex , int32_t **bucket_index, int32_t **chain, int number_of_buckets);
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_RADIXHASHJOIN_H
