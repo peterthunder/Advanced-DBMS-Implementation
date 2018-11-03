@@ -6,7 +6,7 @@ Relation *allocateRelation(uint32_t num_tuples) {
     if (rel == NULL) {
         printf("Malloc failed!\n");
         perror("Malloc");
-        return -1;
+        return NULL;
     }
 
     /* Matrix R and S sizes*/
@@ -15,7 +15,7 @@ Relation *allocateRelation(uint32_t num_tuples) {
     if (rel->tuples == NULL) {
         printf("Malloc failed!\n");
         perror("Malloc");
-        return -1;
+        return NULL;
     }
 
     return rel;
