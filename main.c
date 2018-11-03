@@ -16,11 +16,10 @@ int main(void) {
     Relation **relations = malloc(sizeof(Relation *) * 10);
     uint32_t relation_size[10] = {20, 10, 10, 10, 10, 10, 10, 10, 10, 10};
 
-    int allocReturnCode = 0;
     /* Allocate the relations and initialize them with random numbers from 0-200 */
     for (i = 0; i < 10; i++) {
-        if ((allocReturnCode = allocateRelation(&relations[i], relation_size[i])) == -1) {
-            return allocReturnCode;  // ErrorCode
+        if ((relations[i] = allocateRelation(relation_size[i])) == NULL) {
+            return EXIT_FAILURE;  // ErrorCode
         }
         initializeRelationWithRandomNumbers(&relations[i], number_of_buckets);
     }
@@ -30,7 +29,7 @@ int main(void) {
     if(result == NULL){
         printf("Malloc failed!\n");
         perror("Malloc");
-        return -1;
+        return EXIT_FAILURE;
     }
 
     printResult(result);
@@ -48,4 +47,6 @@ int main(void) {
         result = next_result;
     } while(result!=NULL);
 
+
+    return EXIT_SUCCESS;
 }

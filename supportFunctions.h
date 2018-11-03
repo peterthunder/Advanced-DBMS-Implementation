@@ -41,7 +41,7 @@ typedef struct result {
     struct result* next_result;
 } Result;
 
-int allocateRelation(Relation **rel, uint32_t num_tuples);
+Relation* allocateRelation(uint32_t num_tuples);
 
 void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets);
 

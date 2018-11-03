@@ -1,24 +1,24 @@
 #include "supportFunctions.h"
 
-int allocateRelation(Relation **rel, uint32_t num_tuples) {
+Relation *allocateRelation(uint32_t num_tuples) {
 
-    *rel = malloc(sizeof(Relation));
-    if (*rel == NULL) {
+    Relation *rel = malloc(sizeof(Relation));
+    if (rel == NULL) {
         printf("Malloc failed!\n");
         perror("Malloc");
         return -1;
     }
 
     /* Matrix R and S sizes*/
-    (*rel)->num_tuples = num_tuples;
-
-    (*rel)->tuples = malloc(sizeof(Tuple) * (*rel)->num_tuples);
-    if ((*rel)->tuples == NULL) {
+    rel->num_tuples = num_tuples;
+    rel->tuples = malloc(sizeof(Tuple) * (rel->num_tuples));
+    if (rel->tuples == NULL) {
         printf("Malloc failed!\n");
         perror("Malloc");
         return -1;
     }
 
+    return rel;
 }
 
 void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets) {
