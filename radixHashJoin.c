@@ -21,10 +21,10 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     Relation *relationNewR, *relationNewS;
 
     /* Allocate memory for new matrices R' and S' that will be used as hash tables */
-    if ((relationNewR = allocateRelation( reIR->num_tuples)) == NULL) {
+    if ((relationNewR = allocateRelation(reIR->num_tuples)) == NULL) {
         return NULL;
     }
-    if ((relationNewS = allocateRelation( reIS->num_tuples)) == NULL) {
+    if ((relationNewS = allocateRelation(reIS->num_tuples)) == NULL) {
         return NULL;
     }
 
@@ -48,8 +48,8 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     }
 
     /* Partition the relations */
-    partition(reIR, relationNewR, number_of_buckets, psumR);
-    partition(reIS, relationNewS, number_of_buckets, psumS);
+    partition(reIR, &relationNewR, number_of_buckets, psumR);
+    partition(reIS, &relationNewS, number_of_buckets, psumS);
 
     printAllForPartition(4, reIR, reIS, histogramR, histogramS, psumR, psumS, relationNewR, relationNewS,
                          number_of_buckets);
@@ -134,7 +134,7 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 }
 
 /* Partition Relation */
-void *partition(Relation *relation, Relation *relationNew, int number_of_buckets, int32_t **psum) {
+void *partition(Relation *relation, Relation **relationNew, int number_of_buckets, int32_t **psum) {
 
     int i, j;
     unsigned int indexOfNewR = 0;
@@ -163,9 +163,9 @@ void *partition(Relation *relation, Relation *relationNew, int number_of_buckets
 
             /*If we find the current bucket's key in relation-table, append the relation-table's data to the new relation-table. */
             if (relation->tuples[j].key == psum[i][0]) {
-                relationNew->tuples[indexOfNewR].key = relation->tuples[j].key;
-                relationNew->tuples[indexOfNewR].payload = relation->tuples[j].payload;
-                relationNew->tuples[indexOfNewR].rowID = relation->tuples[j].rowID;
+                (*relationNew)->tuples[indexOfNewR].key = relation->tuples[j].key;
+                (*relationNew)->tuples[indexOfNewR].payload = relation->tuples[j].payload;
+                (*relationNew)->tuples[indexOfNewR].rowID = relation->tuples[j].rowID;
                 indexOfNewR++;
                 currHashCounter++;
             }
