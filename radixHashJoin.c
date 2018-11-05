@@ -7,7 +7,7 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
     int i;
 
-    reIR->tuples[reIR->num_tuples - 2].payload = 929;
+/*    reIR->tuples[reIR->num_tuples - 2].payload = 929;
     reIR->tuples[reIR->num_tuples - 2].key = reIR->tuples[reIR->num_tuples - 2].payload % number_of_buckets;
 
     reIR->tuples[reIR->num_tuples - 3].payload = 828;
@@ -17,7 +17,7 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     reIS->tuples[reIS->num_tuples - 1].key = reIS->tuples[reIS->num_tuples - 1].payload % number_of_buckets;
 
     reIS->tuples[reIS->num_tuples - 2].payload = 20;
-    reIS->tuples[reIS->num_tuples - 2].key = reIS->tuples[reIS->num_tuples - 2].payload % number_of_buckets;
+    reIS->tuples[reIS->num_tuples - 2].key = reIS->tuples[reIS->num_tuples - 2].payload % number_of_buckets;*/
 
 
     /* Construct Histograms an Psums */
