@@ -4,9 +4,13 @@ Project for course Κ23a "Software Development for Information Systems".
 This project uses the [RadixHashJoin methodology](https://ieeexplore.ieee.org/document/6544839) to Join two Tables.
 
 # How to run
-Navigate to the root-directory and run the following commands:
-1) `make`
-2) `./radixHashJoin`
+Navigate to the root-directory of this project and run the commands of your preferred choice:
+1) For **BASIC** (fast) execution run:
+    1) `make BASIC`
+    2) `./radixHashJoin_basic`
+2) For **DEBUG** (with prints) execution run:
+    1) `make DEBUG`
+    2) `./radixHashJoin_debug`
 
 # Unit-testing
 We apply unit-testing in our code by using the ["Unity" Framework](https://github.com/ThrowTheSwitch/Unity), which we include directly in "***UnitTesting/Unity-master***".
