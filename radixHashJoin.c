@@ -20,15 +20,7 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     reIS->tuples[reIS->num_tuples - 2].key = reIS->tuples[reIS->num_tuples - 2].payload % number_of_buckets;
 
 
-    Relation *relationNewR, *relationNewS;
-
-    /* Allocate memory for new matrices R' and S' that will be used as hash tables */
-    if ((relationNewR = allocateRelation(reIR->num_tuples)) == NULL) {
-        return NULL;
-    }
-    if ((relationNewS = allocateRelation(reIS->num_tuples)) == NULL) {
-        return NULL;
-    }
+    /* Construct Histograms an Psums */
 
     /* Create Relation R histogram and psum */
     int32_t **histogramR = createHistogram(reIR, number_of_buckets);
@@ -46,6 +38,18 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     }
     int32_t **psumS = createPsum(number_of_buckets, histogramS);
     if (psumS == NULL) {
+        return NULL;
+    }
+
+
+    /* Create new relations to assign the partitioned relations. */
+    Relation *relationNewR, *relationNewS;
+
+    /* Allocate memory for new matrices R' and S' that will be used as hash tables. */
+    if ((relationNewR = allocateRelation(reIR->num_tuples)) == NULL) {
+        return NULL;
+    }
+    if ((relationNewS = allocateRelation(reIS->num_tuples)) == NULL) {
         return NULL;
     }
 
