@@ -40,8 +40,7 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     if (psumS == NULL) {
         return NULL;
     }
-
-
+    
     /* Create new relations to assign the partitioned relations. */
     Relation *relationNewR, *relationNewS;
 
@@ -63,27 +62,10 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 #endif
 
     /* Bucket-Chain */
-    /* Create an array that contains the chain arrays */
-    int **chain = malloc(sizeof(int *) * number_of_buckets);
-    if (chain == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+    int **chain;
+    int **bucket_index;
+    if ( allocateAndInitializeBucketIndexAndChain(&chain, &bucket_index, number_of_buckets) == NULL )
         return NULL;
-    }
-
-    /* Create an array that contains bucket_index arrays of size H2_PARAM(for example 101) each */
-    int **bucket_index = malloc(sizeof(int *) * number_of_buckets);
-    if (bucket_index == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
-        return NULL;
-    }
-
-    /* Initialise pointers to NULL */
-    for (i = 0; i < number_of_buckets; i++) {
-        chain[i] = NULL;
-        bucket_index[i] = NULL;
-    }
 
     Result *result;
 
@@ -154,6 +136,31 @@ void partition(Relation *relation, Relation **relationNew, int number_of_buckets
                 currHashCounter++;
             }
         }
+    }
+}
+
+void *allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index, int number_of_buckets) {
+
+    /* Create an array that contains bucket_index arrays of size H2_PARAM(for example 101) each */
+    *bucket_index = malloc(sizeof(int *) * number_of_buckets);
+    if ( (*bucket_index) == NULL ) {
+        printf("Malloc failed!\n");
+        perror("Malloc");
+        return NULL;
+    }
+
+    /* Create an array that contains the chain arrays */
+    *chain = malloc(sizeof(int *) * number_of_buckets);
+    if ( (*chain) == NULL ) {
+        printf("Malloc failed!\n");
+        perror("Malloc");
+        return NULL;
+    }
+
+    /* Initialise pointers to NULL */
+    for (int i = 0; i < number_of_buckets; i++) {
+        (*bucket_index)[i] = NULL;
+        (*chain)[i] = NULL;
     }
 }
 
