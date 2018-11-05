@@ -25,6 +25,7 @@ compiler:
     items:
       - UNITY_INCLUDE_DOUBLE
       - UNITY_SUPPORT_TEST_CASES
+      - PRINTING
   object_files:
     prefix: '-o'
     extension: '.o'
