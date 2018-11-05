@@ -111,33 +111,8 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
     printf("Join finished.\n");
 
-    /* De-allocate memory */
-    for (i = 0; i < number_of_buckets; i++) {
-        free(histogramR[i]);
-        free(histogramS[i]);
-        free(psumR[i]);
-        free(psumS[i]);
-        if (chain[i] != NULL)
-            free(chain[i]);
-        if (bucket_index[i] != NULL)
-            free(bucket_index[i]);
-    }
-
-    free(chain);
-    free(bucket_index);
-
-    free(histogramR);
-    free(psumR);
-
-    free(histogramS);
-    free(psumS);
-
-    free(relationNewR->tuples);
-    free(relationNewS->tuples);
-
-    free(relationNewR);
-    free(relationNewS);
-
+    deAllocateRadixHashJoinMemory(histogramR, histogramS, psumR, psumS, chain, bucket_index, relationNewR, relationNewS,
+            number_of_buckets);
 
     return result;
 }
@@ -422,4 +397,35 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
         }
     }
     return result;
+}
+
+/* De-allocate memory */
+void deAllocateRadixHashJoinMemory(int32_t** histogramR, int32_t** histogramS, int32_t** psumR, int32_t** psumS,
+        int32_t** chain, int32_t** bucket_index, Relation* relationNewR, Relation* relationNewS, int number_of_buckets)
+{
+    for (int i = 0; i < number_of_buckets; i++) {
+        free(histogramR[i]);
+        free(histogramS[i]);
+        free(psumR[i]);
+        free(psumS[i]);
+        if (chain[i] != NULL)
+            free(chain[i]);
+        if (bucket_index[i] != NULL)
+            free(bucket_index[i]);
+    }
+
+    free(chain);
+    free(bucket_index);
+
+    free(histogramR);
+    free(psumR);
+
+    free(histogramS);
+    free(psumS);
+
+    free(relationNewR->tuples);
+    free(relationNewS->tuples);
+
+    free(relationNewR);
+    free(relationNewS);
 }
