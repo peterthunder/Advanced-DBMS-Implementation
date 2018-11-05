@@ -134,7 +134,7 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 }
 
 /* Partition Relation */
-void *partition(Relation *relation, Relation **relationNew, int number_of_buckets, int32_t **psum) {
+void partition(Relation *relation, Relation **relationNew, int number_of_buckets, int32_t **psum) {
 
     int i, j;
     unsigned int indexOfNewR = 0;
@@ -301,7 +301,6 @@ void *buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32
             }
         }
     }
-
 }
 
 /* Join two relations and return the result. */

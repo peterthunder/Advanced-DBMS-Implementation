@@ -30,9 +30,9 @@ compiler:
       - 'c:/Projects/NexGen/Prototypes/CMockTest/src/'
       - 'c:/Projects/NexGen/Prototypes/CMockTest/mocks/'
       - 'c:/CMock/src/'
-      - 'c:/CMock/examples/src/'
+      - 'c:/CMock/Testing/src/'
       - 'c:/CMock/vendor/unity/src/'
-      - 'c:/CMock/vendor/unity/examples/helper/'
+      - 'c:/CMock/vendor/unity/Testing/helper/'
       - *unit_tests_path
   defines:
     prefix: '-D'
