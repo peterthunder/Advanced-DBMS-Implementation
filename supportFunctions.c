@@ -31,7 +31,7 @@ void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets) 
     for (i = 0; i < (*rel)->num_tuples; i++) {
         (*rel)->tuples[i].payload = rand() % 199;
         (*rel)->tuples[i].key = (*rel)->tuples[i].payload % number_of_buckets;
-        (*rel)->tuples[i].rowID = i+1;
+        (*rel)->tuples[i].rowID = i + 1;
     }
 }
 
@@ -142,24 +142,24 @@ void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNe
         printf("------------------------------\n");
         if (chain[i] != NULL)
             for (j = 0; j < difference; j++) {
-                printf("Bucket: %d-%d - Chain element: %d\n", i, j+1, chain[i][j]);
+                printf("Bucket: %d-%d - Chain element: %d\n", i, j + 1, chain[i][j]);
             }
         else
             printf("Bucket %d - is empty.\n", i);
     }
 }
 
-void printResult(Result *result) {
-    Result* current_result;
+void printResults(Result *result) {
+    Result *current_result;
 
     printf("\n\n");
     current_result = result;
     do {
         printf("Number of tuples join in current result: %d\n", current_result->num_joined_rowIDs);
         printf("[RowIDR|RowIDS]\n");
-        for (int i=0; i < current_result->num_joined_rowIDs; i++) {
+        for (int i = 0; i < current_result->num_joined_rowIDs; i++) {
             printf("   (%3d|%3d)\n", current_result->joined_rowIDs[i][0], current_result->joined_rowIDs[i][1]);
         }
         current_result = current_result->next_result;
-    } while(current_result!=NULL);
+    } while (current_result != NULL);
 }

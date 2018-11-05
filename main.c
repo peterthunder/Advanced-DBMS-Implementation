@@ -3,6 +3,8 @@
 
 int main(void) {
 
+    clock_t start_t, end_t, total_t;
+
     // n  = cache size / maxsizeofbucket;
 
     int cache_size = 6 * (1024 * 1024); // Cache size is 6mb
@@ -14,7 +16,7 @@ int main(void) {
     int32_t number_of_buckets = (int32_t) pow(2, n);
 
     Relation **relations = malloc(sizeof(Relation *) * 10);
-    uint32_t relation_size[10] = {20, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+    uint32_t relation_size[10] = {200, 100, 10, 10, 10, 10, 10, 10, 10, 10};
 
     /* Allocate the relations and initialize them with random numbers from 0-200 */
     for (i = 0; i < 10; i++) {
@@ -24,15 +26,23 @@ int main(void) {
         initializeRelationWithRandomNumbers(&relations[i], number_of_buckets);
     }
 
+    start_t = clock();
+
     /* Do Radix Hash Join on the conjunction of the relations */
     Result *result = RadixHashJoin(relations[0], relations[1], number_of_buckets);
-    if(result == NULL){
+    if (result == NULL) {
         printf("Malloc failed!\n");
         perror("Malloc");
         return EXIT_FAILURE;
     }
 
-    printResult(result);
+    end_t = clock();
+
+    total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
+    printf("Total time taken by CPU for RHS: %f\n", (double) total_t);
+#if PRINTING
+    printResults(result);
+#endif
 
     /* De-allocate memory*/
     for (i = 0; i < 10; i++) {
@@ -40,12 +50,12 @@ int main(void) {
         free(relations[i]);
     }
     free(relations);
-    
+
     do {
-        Result* next_result = result->next_result;
+        Result *next_result = result->next_result;
         free(result);
         result = next_result;
-    } while(result!=NULL);
+    } while (result != NULL);
 
 
     return EXIT_SUCCESS;

@@ -62,6 +62,6 @@ void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **
 /* Print Chain of every bucket*/
 void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain);
 
-void printResult(Result *result);
+void printResults(Result *result);
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H
