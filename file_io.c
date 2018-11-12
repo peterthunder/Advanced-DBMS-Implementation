@@ -23,7 +23,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     /* Open the file on that path */
     fptr1 = fopen(init_path, "r");
     if (fptr1 == NULL) {
-        perror("Error opening file...\n");
+        fprintf(stderr, "Error opening file \"%s\": %s!\n", init_path, strerror(errno));
         return NULL;
     }
 
@@ -73,7 +73,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
         /* Open the mapped_tables */
         if ((fd = open(table_path, O_RDWR, 0)) == -1) {
-            perror("error opening mapped_tables file");
+            fprintf(stderr, "Error opening file \"%s\": %s!\n", table_path, strerror(errno));
             return NULL;
         }
         /* Get the size of the mapped_tables */
