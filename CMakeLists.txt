@@ -68,6 +68,8 @@ add_executable(Advanced_DBMS_Implementation
         radixHashJoin.h
         supportFunctions.c
         supportFunctions.h
-        )
+        file_io.c
+        file_io.h
+        #[[ example.c]] )
 
 target_link_libraries(Advanced_DBMS_Implementation m)
