@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define H1_PARAM 3 // Number of bits we PRINTINGkeep after the 1st hash function pass
+#define H1_PARAM 3 // Number of bits we PRINTING keep after the 1st hash function pass
 #define H2_PARAM 101 // The number we use in the 2nd hash function as mod
 #define JOINED_ROWIDS_NUM ((1024 * 1024) / 8)
 #define TRUE true

@@ -155,7 +155,7 @@ void printResults(Result *result) {
     printf("\n\n");
     current_result = result;
     do {
-        printf("Number of tuples join in current result: %d\n", current_result->num_joined_rowIDs);
+        printf("Number of tuples joined in current result: %d\n", current_result->num_joined_rowIDs);
         printf("[RowIDR|RowIDS]\n");
         for (int i = 0; i < current_result->num_joined_rowIDs; i++) {
             printf("   (%3d|%3d)\n", current_result->joined_rowIDs[i][0], current_result->joined_rowIDs[i][1]);

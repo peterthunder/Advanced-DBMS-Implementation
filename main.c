@@ -40,7 +40,7 @@ int main(void) {
     end_t = clock();
 
     total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
-    printf("Total time taken by CPU for RHS: %f\n", (double) total_t);
+    printf("\nTotal time taken by CPU for RHS: %f\n", (double) total_t);
 #if PRINTING
     printResults(result);
 #endif
@@ -53,7 +53,7 @@ int main(void) {
 
     printf("N: %ju\n", tables[0]->num_columns);
 
-    /* De-allocate memory*/
+    /*De-allocate memory*/
     for (i = 0; i < num_of_tables; i++) {
         munmap(mapped_tables[i], (size_t)mapped_tables_sizes[i]);
         free(tables[i]);

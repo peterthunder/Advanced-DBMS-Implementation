@@ -1,6 +1,7 @@
 #include "file_io.h"
 
 Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_tables_sizes) {
+    printf("Mmaping tables to memory and initiailizing structures.\n");
 
     printf("\n");
 
@@ -103,7 +104,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
         close(fd);
         current_table++;
-        printf("--------------------------------------------\n");
+        printf("-------------------------------------------------------\n");
         table_name[0] = '\0';
     }
 
