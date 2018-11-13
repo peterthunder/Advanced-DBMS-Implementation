@@ -20,5 +20,5 @@ For **"Unity"** to work, we first need to install "**ruby**", "**rake**", "**lib
 3) `sudo apt-get install libc6-dev-i386`
 4) `sudo apt-get install g++-multilib`
 
-Then, in order to run the tests, you have to navigate in "***UnitTesting/Unity-master/Testing/RadixHashJoin_Test***" and run the following command in the terminal:<br/>
-`rake`
+Then, in order to run the tests, you have to run the following command:<br/>
+`make UNIT_TESTING`
