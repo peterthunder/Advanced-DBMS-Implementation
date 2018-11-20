@@ -2,7 +2,11 @@
 
 /* Relation R: reIR, Relation S: reIS, Number of buckets: 2^n */
 Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
-    printf(">Running RadixHashJoin on Relations S and R.\n");
+
+    clock_t start_t, end_t, total_t;
+
+    printf("\n# Running RadixHashJoin on Relations S and R.\n");
+    start_t = clock();
 
 /*    reIR->tuples[reIR->num_tuples - 2].payload = 929;
     reIR->tuples[reIR->num_tuples - 2].key = reIR->tuples[reIR->num_tuples - 2].payload % number_of_buckets;
@@ -52,6 +56,7 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     /* Partition the relations */
     partition(reIR, &relationNewR, number_of_buckets, psumR);
     partition(reIS, &relationNewS, number_of_buckets, psumS);
+    printf("  -Phase 1: Partitioning the relations.\n");
 
 #if PRINTING
     printAllForPartition(4, reIR, reIS, histogramR, histogramS, psumR, psumS, relationNewR, relationNewS, number_of_buckets);
@@ -68,30 +73,39 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
     /* Build the bucket_index and the chain arrays of the smaller relation */
     if (relationNewR->num_tuples <= relationNewS->num_tuples) {
-
+        printf("  -Phase 2: Building index on the smaller relation.\n");
         if (buildSmallestPartitionedRelationIndex(relationNewR, psumR, &bucket_index, &chain, number_of_buckets) ==
             NULL)
             return NULL;
 
         //printChainArray(number_of_buckets, psumR, relationNewR, chain);
+        printf("  -Phase 3: Joining the relations.\n");
         if ((result = joinRelations(relationNewR, relationNewS, psumR, psumS, bucket_index, chain, number_of_buckets,
                                     TRUE)) == NULL)
             return NULL;
     } else {
+        printf("  -Phase 2: Building index on the smaller relation.\n");
         if (buildSmallestPartitionedRelationIndex(relationNewS, psumS, &bucket_index, &chain, number_of_buckets) ==
             NULL)
             return NULL;
-
         //printChainArray(number_of_buckets, psumS, relationNewS, chain);
+        printf("  -Phase 3: Joining the relations.\n");
         if ((result = joinRelations(relationNewS, relationNewR, psumS, psumR, bucket_index, chain, number_of_buckets,
                                     FALSE)) == NULL)
             return NULL;
     }
 
-    printf(">Join finished.\n");
-
     deAllocateRadixHashJoinMemory(histogramR, histogramS, psumR, psumS, chain, bucket_index, relationNewR, relationNewS,
                                   number_of_buckets);
+
+    end_t = clock();
+
+    total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
+#if PRINTING
+    printf("  -Total time taken by CPU for RadixHashJoin: %f seconds.\n", (double) total_t);
+#endif
+
+    printf(" -Join finished.\n");
 
     return result;
 }
@@ -187,8 +201,6 @@ int32_t **createHistogram(Relation *relation, int number_of_buckets) {
         histogram[i][0] = i;
         histogram[i][1] = 0;
     }
-
-
 
     /* Fill out the histogram according to the hash values*/
     for (i = 0; i < relation->num_tuples; i++) {

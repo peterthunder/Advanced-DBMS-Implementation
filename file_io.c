@@ -1,9 +1,7 @@
 #include "file_io.h"
 
 Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_tables_sizes) {
-    printf("Mmaping tables to memory and initiailizing structures.\n");
-
-    printf("\n");
+    printf("\n# Mmapping tables to memory and initializing structures.\n");
 
     FILE *fptr1;
     int fd, current_table = 0, i;
@@ -19,7 +17,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     strcpy(init_path, base_path);
     strcat(init_path, init_filename);
 
-    printf("Path of the file with the mapped_tables names: %s\n\n", init_path);
+    printf("  -Path of the file with the mapped_tables names: %s\n", init_path);
 
     /* Open the file on that path */
     fptr1 = fopen(init_path, "r");
@@ -37,7 +35,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         table_name[0] = '\0';
     }
 
-    printf("Num of tables: %d\n\n", *num_of_tables);
+    printf("  -Number of tables: %d\n", *num_of_tables);
 
     rewind(fptr1);
 
@@ -60,6 +58,9 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     /* Read the names of the tables line by line */
     while (!feof(fptr1)) {
+#if PRINTING
+        printf("\n");
+#endif
         //table_name[0] = '\0';
         /* Get the name of the mapped_tables file */
         getline(&table_name, &size, fptr1);
@@ -70,8 +71,9 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         /* Create the path of the mapped_tables */
         strcpy(table_path, base_path);
         strcat(table_path, table_name);
+#if PRINTING
         printf("Path of the %d-th mapped_tables: %s\n", current_table, table_path);
-
+#endif
         /* Open the mapped_tables */
         if ((fd = open(table_path, O_RDWR, 0)) == -1) {
             fprintf(stderr, "Error opening file \"%s\": %s!\n", table_path, strerror(errno));
@@ -89,10 +91,10 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         (*mapped_tables)[current_table] = mmap(0, size, PROT_READ | PROT_EXEC, MAP_SHARED, fd, 0);
         if ((*mapped_tables)[current_table] == MAP_FAILED)
             perror("error reading mapped_tables file");
-
+#if PRINTING
         printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", current_table,
                (*mapped_tables)[current_table][0], (*mapped_tables)[current_table][1]);
-
+#endif
         /* Initialize each table's variables */
         tables[current_table]->num_tuples = (*mapped_tables)[current_table][0];
         tables[current_table]->num_columns = (*mapped_tables)[current_table][1]; // OR (**mapped_tables + current_table)[1];
@@ -104,9 +106,13 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
         close(fd);
         current_table++;
+#if PRINTING
         printf("-------------------------------------------------------\n");
+#endif
         table_name[0] = '\0';
     }
+
+    printf("  -Finished mmapping tables to memory and initializing structures.\n");
 
     fclose(fptr1);
     free(table_name);
