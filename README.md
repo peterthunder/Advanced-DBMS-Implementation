@@ -14,11 +14,8 @@ Navigate to the root-directory of this project and run the commands of your pref
 
 # Unit-testing
 We apply unit-testing in our code by using the ["Unity" Framework](https://github.com/ThrowTheSwitch/Unity), which we include directly in "***UnitTesting/Unity-master***".
-For **"Unity"** to work, we first need to install "**ruby**", "**rake**", "**libc6-dev-i386**" and "**g++-multilib**" by running the following commands in the terminal:<br/>
-1) `sudo apt-get install ruby`
-2) `sudo apt-get install rake`
-3) `sudo apt-get install libc6-dev-i386`
-4) `sudo apt-get install g++-multilib`
+For **"Unity"** to work, we first need to install "**ruby**", "**rake**", "**libc6-dev-i386**" and "**g++-multilib**" by running the provided installer-script:<br/>
+`./scripts/installUnitTestingDependencies.sh`
 
 Then, in order to run the tests, you have to run the following command:<br/>
 `make UNIT_TESTING`
