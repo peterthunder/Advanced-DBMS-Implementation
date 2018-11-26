@@ -1,5 +1,19 @@
 #include "file_io.h"
 
+// A simple atoi() function
+int myAtoi(char *str) {
+    int res = 0; // Initialize result
+
+    // Iterate through all characters of input string and
+    // update result
+    for (int i = 0; str[i] != '\0'; ++i)
+        res = res * 10 + str[i] - '0';
+
+    // return result.
+    return res;
+}
+
+
 Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_tables_sizes) {
     printf("\n# Mmapping tables to memory and initializing structures.\n");
 
@@ -112,9 +126,175 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         table_name[0] = '\0';
     }
 
-    printf("  -Finished mmapping tables to memory and initializing structures.\n");
+    printf(" -Finished mmapping tables to memory and initializing structures.\n");
 
     fclose(fptr1);
     free(table_name);
     return tables;
+}
+
+void *read_workload() {
+
+    FILE *fptr;
+    size_t size;
+    char *saveptr1, *saveptr2, *saveptr3, *token;
+    int **filters = NULL, **joins = NULL,  *relation_IDs = NULL;
+
+    int query_count = 0, relationId_count = 0, join_count = 0, filter_count = 0, selection_count = 0, i, dot_count = 0;
+    char query_parts[3][1024], *query = NULL, workload_filename[1024] = "workloads/small/small.work", query_part[1024], *join;
+
+    /* Open the file on that path */
+    fptr = fopen(workload_filename, "r");
+    if (fptr == NULL) {
+        fprintf(stderr, "Error opening file \"%s\": %s!\n", workload_filename, strerror(errno));
+        return NULL;
+    }
+
+    /* Count the number of tables */
+    while (!feof(fptr)) {
+
+        getline(&query, &size, fptr);
+        query[strlen(query) - 1] = '\0';
+
+        if (strcmp(query, "\n") == 0 || strlen(query) == 0)
+            continue;
+
+        /* Parse Query */
+        /* Get Query Parts */
+        printf("Query: %s\n\n", query);
+        token = strtok_r(query, "|", &saveptr1);
+        while (token != NULL) {
+            strcpy(query_parts[query_count], token);
+            token = strtok_r(NULL, "|", &saveptr1);
+            query_count++;
+        }
+
+        for (i = 0; i < query_count; i++) {
+            printf("Query_part[%d]: %s\n", i, query_parts[i]);
+        }
+
+        /* Parse the Relation IDs*/
+        /* Find the num of Relation IDs*/
+        strcpy(query_part, query_parts[0]);
+        token = strtok_r(query_part, " ", &saveptr1);
+        while (token != NULL) {
+            relationId_count++;
+            token = strtok_r(NULL, " ", &saveptr1);
+        }
+
+        printf("Relation id count: %d \n", relationId_count);
+        //printf("%s\n", query_parts[0]);
+
+        relation_IDs = malloc(sizeof(int) * relationId_count);
+        if (relation_IDs == NULL) {
+            printf("Malloc failed!\n");
+            perror("Malloc");
+            return NULL;
+        }
+        relationId_count = 0;
+
+        /* Save the relation IDs in an array */
+        strcpy(query_part, query_parts[0]);
+        token = strtok_r(query_parts[0], " ", &saveptr1);
+        while (token != NULL) {
+            relation_IDs[relationId_count] = myAtoi(token);
+            relationId_count++;
+            //printf("In here\n");
+            token = strtok_r(NULL, " ", &saveptr1);
+        }
+
+        for (i = 0; i < relationId_count; i++) {
+            printf("Relation_ID[%d]: %d\n", i, relation_IDs[i]);
+        }
+
+
+        /* Parse the Predicates */
+        strcpy(query_part, query_parts[1]);
+        token = strtok_r(query_part, "&", &saveptr1);
+        while (token != NULL) {
+            join = token;
+            while ((join = strstr(join, ".")) != NULL) {
+                dot_count++;
+                strcpy(join, join + 1);
+                printf("%s\n", join);
+            }
+
+            if (dot_count == 2)
+                join_count++;
+            else
+                filter_count++;
+
+            dot_count = 0;
+            token = strtok_r(NULL, "&", &saveptr1);
+        }
+
+        if (join_count > 0) {
+            joins = malloc(sizeof(int *) * join_count);
+            if (joins == NULL) {
+                printf("Malloc failed!\n");
+                perror("Malloc");
+                return NULL;
+            }
+            for (i = 0; i < join_count; i++) {
+                joins[i] = malloc(sizeof(int) * 4);
+                if (joins[i] == NULL) {
+                    printf("Malloc failed!\n");
+                    perror("Malloc");
+                    return NULL;
+                }
+            }
+        }
+
+        if (filter_count > 0) {
+            filters = malloc(sizeof(int *) * filter_count);
+            if (filters == NULL) {
+                printf("Malloc failed!\n");
+                perror("Malloc");
+                return NULL;
+            }
+            for (i = 0; i < join_count; i++) {
+                filters[i] = malloc(sizeof(int) * 4);
+                if (filters[i] == NULL) {
+                    printf("Malloc failed!\n");
+                    perror("Malloc");
+                    return NULL;
+                }
+            }
+        }
+
+        printf("Predicate count: %d \n", join_count);
+
+        /*  SELECT SUM("1".c2), SUM("0".c1)
+            FROM r3 "0", r0 "1", r1 "2"
+            WHERE 0.c2=1.c0 and 0.c1=c2.0 and 0.c2>3499
+         */
+
+
+        break;
+
+
+        query[0] = '\0';
+    }
+
+    if (relation_IDs != NULL) {
+        free(relation_IDs);
+    }
+
+    if (joins != NULL) {
+        for (i = 0; i < join_count; i++) {
+            if (joins[i] != NULL)
+                free(joins[i]);
+        }
+        free(joins);
+    }
+
+    if (filters != NULL) {
+        for (i = 0; i < filter_count; i++) {
+            if (filters[i] != NULL)
+                free(filters[i]);
+        }
+        free(filters);
+    }
+
+    fclose(fptr);
 }

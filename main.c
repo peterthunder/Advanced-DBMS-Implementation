@@ -45,7 +45,11 @@ int main(void) {
 
     Table **tables = read_tables(&num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
-    printf("\nNumber of colums of table 0: %ju\n", tables[0]->num_columns);
+    printf("\nNumber of colums of table 0: %ju\n\n", tables[0]->num_columns);
+
+
+    read_workload();
+
 
     /*De-allocate memory*/
     for (i = 0; i < num_of_tables; i++) {
