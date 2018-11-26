@@ -15,11 +15,11 @@ int32_t **createHistogram(Relation *relation, int number_of_buckets);
 /* Create psum of Relation using its histogram */
 int32_t **createPsum(int number_of_buckets, int32_t **histogram);
 
-void *allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index, int number_of_buckets);
+int allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index, int number_of_buckets);
 
 /* Build the Index and the Chain Arrays of the relation with the less amount of tuples */
-void *buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t ***bucket_index, int32_t ***chain,
-                                            int number_of_buckets);
+int buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t ***bucket_index, int32_t ***chain,
+                                          int number_of_buckets);
 
 /* Join two relations and return the result. */
 Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex,
