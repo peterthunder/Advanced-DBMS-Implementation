@@ -70,6 +70,8 @@ add_executable(Advanced_DBMS_Implementation
         supportFunctions.h
         file_io.c
         file_io.h
+        parser.c
+        parser.h
         #[[ example.c]] )
 
 target_link_libraries(Advanced_DBMS_Implementation m)

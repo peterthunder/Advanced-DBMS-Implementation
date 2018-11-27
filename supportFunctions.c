@@ -163,3 +163,18 @@ void printResults(Result *result) {
         current_result = current_result->next_result;
     } while (current_result != NULL);
 }
+
+
+// Taken From: https://www.geeksforgeeks.org/write-your-own-atoi/
+// A simple atoi() function
+int myAtoi(char *str) {
+    int res = 0; // Initialize result
+
+    // Iterate through all characters of input string and
+    // update result
+    for (int i = 0; str[i] != '\0'; ++i)
+        res = res * 10 + str[i] - '0';
+
+    // return result.
+    return res;
+}

@@ -1,6 +1,7 @@
 #include "supportFunctions.h"
 #include "radixHashJoin.h"
 #include "file_io.h"
+#include "parser.h"
 
 int main(void) {
 
@@ -48,7 +49,11 @@ int main(void) {
     printf("\nNumber of colums of table 0: %ju\n\n", tables[0]->num_columns);
 
 
+
+
     read_workload();
+
+
 
 
     /*De-allocate memory*/

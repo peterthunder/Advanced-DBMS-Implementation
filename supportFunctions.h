@@ -15,6 +15,9 @@
 #define JOINED_ROWIDS_NUM ((1024 * 1024) / 8)
 #define TRUE true
 #define FALSE false
+#define EQUAL 0
+#define GREATER 1
+#define LESS 2
 
 /* Type definition for a tuple */
 typedef struct tuple {
@@ -64,5 +67,7 @@ void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **
 void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain);
 
 void printResults(Result *result);
+
+int myAtoi(char *str);
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H
