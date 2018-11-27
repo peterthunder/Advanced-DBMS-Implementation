@@ -64,14 +64,14 @@ add_executable(Advanced_DBMS_Implementation
         UnitTesting/Unity-master/Testing/RadixHashJoin_Test/test/TestProductionCode.c
         UnitTesting/Unity-master/Testing/unity_config.h]]
         main.c
-        radixHashJoin.c
-        radixHashJoin.h
-        supportFunctions.c
-        supportFunctions.h
         file_io.c
         file_io.h
         parser.c
         parser.h
+        radixHashJoin.c
+        radixHashJoin.h
+        supportFunctions.c
+        supportFunctions.h
         #[[ example.c]] )
 
 target_link_libraries(Advanced_DBMS_Implementation m)
