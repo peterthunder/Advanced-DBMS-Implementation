@@ -33,9 +33,11 @@ void *read_workload(char* base_path, char* workload_filename) {
         if (strcmp(query, "\n") == 0 || strlen(query) == 0)
             continue;
         query_count++;
+
+        printf("\n----------------------------------------------------------------\n");
+
         /* Parse Query */
         /* Get Query Parts */
-        printf("\n----------------------------------------------------------------\n");
         printf("Query[%d]: %s\n", query_count - 1, query);
         token1 = strtok_r(query, "|", &saveptr1);
         while (token1 != NULL) {
@@ -43,7 +45,6 @@ void *read_workload(char* base_path, char* workload_filename) {
             token1 = strtok_r(NULL, "|", &saveptr1);
             query_parts_count++;
         }
-
 
         /* Parse the Relation IDs*/
         /* Find the num of Relation IDs*/
@@ -263,6 +264,7 @@ void *read_workload(char* base_path, char* workload_filename) {
                     printf(" and ");
             }
         }
+
 
         free(relation_IDs);
 

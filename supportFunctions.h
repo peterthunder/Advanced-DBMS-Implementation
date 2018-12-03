@@ -9,6 +9,9 @@
 #include <time.h>
 #include <stdbool.h>
 #include <string.h>
+#include "parser.h"
+#include "file_io.h"
+
 
 #define H1_PARAM 3 // Number of bits we PRINTING keep after the 1st hash function pass
 #define H2_PARAM 101 // The number we use in the 2nd hash function as mod
@@ -47,6 +50,9 @@ typedef struct result {
     int num_joined_rowIDs;
     struct result* next_result;
 } Result;
+
+
+
 
 Relation* allocateRelation(uint32_t num_tuples);
 
