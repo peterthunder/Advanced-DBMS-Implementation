@@ -44,21 +44,15 @@ int main(void) {
     uint64_t **mapped_tables;
     int *mapped_tables_sizes;
 
-    Table **tables = read_tables(&num_of_tables, &mapped_tables, &mapped_tables_sizes);
+    Table **tables = read_tables(WORKDLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
     printf("\nNumber of colums of table 0: %ju\n\n", tables[0]->num_columns);
 
-
-
-
-    read_workload();
-
-
-
+    read_workload(WORKDLOAD_BASE_PATH, WORKLOAD_FILENAME);
 
     /*De-allocate memory*/
     for (i = 0; i < num_of_tables; i++) {
-        munmap(mapped_tables[i], (size_t)mapped_tables_sizes[i]);
+        munmap(mapped_tables[i], (size_t) mapped_tables_sizes[i]);
         free(tables[i]);
     }
     free(tables);

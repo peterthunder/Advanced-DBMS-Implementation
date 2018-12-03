@@ -1,6 +1,6 @@
 #include "parser.h"
 
-void *read_workload() {
+void *read_workload(char* base_path, char* workload_filename) {
 
     FILE *fptr;
     size_t size;
@@ -8,10 +8,16 @@ void *read_workload() {
     int **filters = NULL, **joins = NULL, *relation_IDs = NULL, **selections = NULL, isfilter;
     int query_parts_count = 0, relationId_count = 0, join_count = 0, filter_count = 0, selection_count = 0, i, dot_count = 0, query_count = 0;
     int current_join = 0, current_filter = 0, current_selection = 0, join_part = 0;
-    char query_parts[3][1024], *query = NULL, workload_filename[1024] = "workloads/small/small.work", query_part[1024], *join = NULL, dummy[1024];
+    char query_parts[3][1024], *query = NULL, query_part[1024], *join = NULL, dummy[1024];
+
+    char workload_path[1024];
+    workload_path[0] = '\0';
+    /* Create the path of the file that contains the workload */
+    strcpy(workload_path, base_path);
+    strcat(workload_path, workload_filename);
 
     /* Open the file on that path */
-    fptr = fopen(workload_filename, "r");
+    fptr = fopen(workload_path, "r");
     if (fptr == NULL) {
         fprintf(stderr, "Error opening file \"%s\": %s!\n", workload_filename, strerror(errno));
         return NULL;
@@ -307,7 +313,7 @@ int isFilter(char *predicate) {
         strcpy(la, la + 1);
     }
 
-    if (dots_count == 2)
+    if (dots_count >= 2)
         return FALSE;
     else
         return TRUE;

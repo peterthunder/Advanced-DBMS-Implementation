@@ -18,6 +18,9 @@
 #define EQUAL 0
 #define GREATER 1
 #define LESS 2
+#define WORKDLOAD_BASE_PATH  "workloads/small/"
+#define TABLES_FILENAME "small.init"
+#define WORKLOAD_FILENAME "small.work"
 
 /* Type definition for a tuple */
 typedef struct tuple {

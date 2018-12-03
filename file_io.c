@@ -1,6 +1,6 @@
 #include "file_io.h"
 
-Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_tables_sizes) {
+Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, uint64_t ***mapped_tables, int **mapped_tables_sizes) {
     printf("\n# Mmapping tables to memory and initializing structures.\n");
 
     FILE *fptr1;
@@ -8,7 +8,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     size_t size;
     struct stat st;
     char *table_name = NULL;
-    char base_path[1024] = "workloads/small/", init_filename[1024] = "small.init", init_path[1024], table_path[1024];
+    char init_path[1024], table_path[1024];
     /* Init */
     *num_of_tables = 0;
 
