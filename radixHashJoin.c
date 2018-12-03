@@ -58,8 +58,6 @@ int testRHJ()
 }
 
 
-
-
 /* Relation R: reIR, Relation S: reIS, Number of buckets: 2^n */
 Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
@@ -512,4 +510,86 @@ void deAllocateRadixHashJoinMemory(int32_t **histogramR, int32_t **histogramS, i
 
     free(relationNewR);
     free(relationNewS);
+}
+
+void execute_query(Query_Info * query_info){
+    print_query(query_info);
+    free_query(query_info);
+}
+
+void print_query(Query_Info * query_info){
+
+
+    int i;
+
+    printf("\tSELECT ");
+    if (query_info->selections != NULL) {
+        for (i = 0; i < query_info->selection_count; i++) {
+            if (query_info->selections[i] != NULL)
+                printf("SUM(\"%d\".c%d)", query_info->selections[i][0], query_info->selections[i][1]);
+            if (i != query_info->selection_count - 1)
+                printf(", ");
+        }
+    }
+
+    printf("\n\tFROM ");
+    for (i = 0; i < query_info->relationId_count; i++) {
+        printf("r%d \"%d\"", query_info->relation_IDs[i], i);
+        if (i != query_info->relationId_count - 1)
+            printf(", ");
+    }
+
+    printf("\n\tWHERE ");
+
+    if (query_info->joins != NULL) {
+        for (i = 0; i < query_info->join_count; i++) {
+            if (query_info->joins[i] != NULL)
+                printf("%d.c%d=%d.c%d", query_info->joins[i][0], query_info->joins[i][1], query_info->joins[i][2], query_info->joins[i][3]);
+            if (query_info->filter_count != 0)
+                printf(" and ");
+        }
+    }
+
+    if (query_info->filters != NULL) {
+        for (i = 0; i < query_info->filter_count; i++) {
+            if (query_info->filters[i] != NULL)
+                printf("%d.c%d(%d)%d", query_info->filters[i][0], query_info->filters[i][1], query_info->filters[i][2], query_info->filters[i][3]);
+            if (i != query_info->filter_count - 1)
+                printf(" and ");
+        }
+    }
+
+}
+
+void free_query(Query_Info * query_info){
+
+    int i;
+
+    free(query_info->relation_IDs);
+
+    if (query_info->joins != NULL) {
+        for (i = 0; i < query_info->join_count; i++) {
+            if (query_info->joins[i] != NULL)
+                free(query_info->joins[i]);
+        }
+        free(query_info->joins);
+    }
+
+    if (query_info->filters != NULL) {
+        for (i = 0; i < query_info->filter_count; i++) {
+            if (query_info->filters[i] != NULL)
+                free(query_info->filters[i]);
+        }
+        free(query_info->filters);
+    }
+
+    if (query_info->selections != NULL) {
+        for (i = 0; i < query_info->selection_count; i++) {
+            if (query_info->selections[i] != NULL)
+                free(query_info->selections[i]);
+        }
+        free(query_info->selections);
+    }
+
+    free(query_info);
 }

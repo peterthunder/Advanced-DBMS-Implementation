@@ -9,6 +9,9 @@
 #include <time.h>
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
+#include <errno.h>
+
 #include "parser.h"
 #include "file_io.h"
 
