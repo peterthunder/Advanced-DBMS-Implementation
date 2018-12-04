@@ -564,8 +564,8 @@ void print_query(Query_Info * query_info){
                         printf("%d.c%d>%d", query_info->filters[i][0], query_info->filters[i][1], query_info->filters[i][3]);
                         break;
                     default:
-                        fprintf(stderr, "Invalid operator: %d", query_info->filters[i][2]);
-                        break;
+                        fprintf(stderr, "\nInvalid operator found: %d\n\n", query_info->filters[i][2]);
+                        return;
                 }
             }
             if (i != query_info->filter_count - 1)
