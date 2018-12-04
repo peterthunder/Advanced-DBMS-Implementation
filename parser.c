@@ -124,7 +124,7 @@ Query_Info *parse_query(char *query) {
             perror("Malloc");
             return NULL;
         }
-        for (i = 0; i < q->join_count; i++) {
+        for (i = 0; i < q->filter_count; i++) {
             q->filters[i] = malloc(sizeof(int) * 4);
             if (q->filters[i] == NULL) {
                 printf("Malloc failed!\n");
@@ -132,6 +132,7 @@ Query_Info *parse_query(char *query) {
                 return NULL;
             }
         }
+
     }
 
     strcpy(query_part, query_parts[1]);
@@ -234,7 +235,7 @@ Query_Info *parse_query(char *query) {
     }
 
 
-    // De-allocate temporal memory.
+    // De-allocate temporary memory.
     for (i = 0; i < query_parts_count; i++) {
         free(query_parts[i]);
     }
@@ -247,15 +248,13 @@ int isFilter(char *predicate) {
 
     int dots_count = 0;
 
-    char *pred = malloc(sizeof(char) * 1024);
-    strcpy(pred, predicate);
+    char *pred, predi[1024];
+    strcpy(predi, predicate);
 
-    while ((pred = strstr(pred, ".")) != NULL) {
+    while ((pred = strstr(predi, ".")) != NULL) {
         dots_count++;
-        strcpy(pred, pred + 1);
+        memcpy(pred, pred + 1, strlen(pred+1)+1);
     }
-
-    free(pred);
 
     if (dots_count >= 2)
         return FALSE;

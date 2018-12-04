@@ -41,18 +41,36 @@ Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, ui
 
     /* Allocate all the memory needed and initialize all the structures */
     Table **tables = malloc(sizeof(Table *) * (*num_of_tables));
+    if (tables == NULL) {
+        printf("Malloc failed!\n");
+        perror("Malloc");
+        return NULL;
+    }
     for (i = 0; i < *num_of_tables; i++) {
         tables[i] = malloc(sizeof(Table));
+        if (tables[i] == NULL) {
+            printf("Malloc failed!\n");
+            perror("Malloc");
+            return NULL;
+        }
         tables[i]->num_tuples = 0;
         tables[i]->num_columns = 0;
         tables[i]->column_indexes = NULL;
     }
 
     *mapped_tables = malloc(sizeof(uint64_t *) * (*num_of_tables));
-    for (i = 0; i < (*num_of_tables); i++)
-        (*mapped_tables)[i] = malloc(sizeof(uint64_t *));
+    if (*mapped_tables == NULL) {
+        printf("Malloc failed!\n");
+        perror("Malloc");
+        return NULL;
+    }
 
     *mapped_tables_sizes = malloc(sizeof(int) * (*num_of_tables));
+    if (*mapped_tables_sizes == NULL) {
+        printf("Malloc failed!\n");
+        perror("Malloc");
+        return NULL;
+    }
     for (i = 0; i < (*num_of_tables); i++)
         (*mapped_tables_sizes)[i] = -1;
 
@@ -99,6 +117,11 @@ Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, ui
         tables[current_table]->num_tuples = (*mapped_tables)[current_table][0];
         tables[current_table]->num_columns = (*mapped_tables)[current_table][1]; // OR (**mapped_tables + current_table)[1];
         tables[current_table]->column_indexes = malloc(sizeof(uint64_t *) * tables[current_table]->num_columns);
+        if (tables[current_table]->column_indexes == NULL) {
+            printf("Malloc failed!\n");
+            perror("Malloc");
+            return NULL;
+        }
         for (i = 0; i < tables[current_table]->num_columns; i++) {
             tables[current_table]->column_indexes[i] = &(*mapped_tables)[current_table][2 + i *
                                                                                             tables[current_table]->num_tuples];

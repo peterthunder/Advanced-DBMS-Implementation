@@ -60,6 +60,7 @@ int main(void) {
     free(mapped_tables_sizes);
     free(mapped_tables);
     free(tables);
+    free(query);
 
     return EXIT_SUCCESS;
 }
