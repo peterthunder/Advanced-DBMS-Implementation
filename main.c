@@ -39,6 +39,10 @@ int main(void) {
         query_count++;
 
         Query_Info *query_info = parse_query(query);
+        if(query_info == NULL){
+            fprintf(stderr, "An error occurred while parsing the query: %s\nExiting program...\n", query);
+            exit(-1);
+        }
         print_query(query_info, query, query_count);
         execute_query(query_info);
         free_query(query_info);
