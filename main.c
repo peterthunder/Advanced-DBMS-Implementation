@@ -38,12 +38,8 @@ int main(void) {
             continue;
         query_count++;
 
-        printf("\n----------------------------------------------------------------\n");
-
-        /* Parse Query */
-        /* Get Query Parts */
-        printf("Query[%d]: %s\n", query_count - 1, query);
         Query_Info *query_info = parse_query(query);
+        print_query(query_info, query, query_count);
         execute_query(query_info);
         free_query(query_info);
     }

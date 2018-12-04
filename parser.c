@@ -35,7 +35,7 @@ Query_Info *parse_query(char *query) {
     }
 
     assert(query_parts_count == 3);
-
+    /* Get Query Parts */
     query_parts = malloc(sizeof(char *) * query_parts_count);
     if (query_parts == NULL) {
         printf("Malloc failed!\n");
@@ -52,7 +52,6 @@ Query_Info *parse_query(char *query) {
     }
     query_parts_count = 0;
     /* Parse Query */
-    /* Get Query Parts */
     strcpy(query_part, query);
     token1 = strtok_r(query_part, "|", &saveptr1);
     while (token1 != NULL) {
@@ -146,12 +145,10 @@ Query_Info *parse_query(char *query) {
                     q->filters[current_filter][0] = myAtoi(token3);
                     token3 = strtok_r(NULL, ".", &saveptr3);
                     q->filters[current_filter][1] = myAtoi(token3);
-
                 } else {
                     q->filters[current_filter][2] = GREATER;
                     q->filters[current_filter][3] = myAtoi(token2);
                     current_filter++;
-
                 }
                 token2 = strtok_r(NULL, ">", &saveptr2);
             }
@@ -163,12 +160,10 @@ Query_Info *parse_query(char *query) {
                     q->filters[current_filter][0] = myAtoi(token3);
                     token3 = strtok_r(NULL, ".", &saveptr3);
                     q->filters[current_filter][1] = myAtoi(token3);
-
                 } else {
                     q->filters[current_filter][2] = LESS;
                     q->filters[current_filter][3] = myAtoi(token2);
                     current_filter++;
-
                 }
                 token2 = strtok_r(NULL, "<", &saveptr2);
             }
@@ -253,7 +248,7 @@ int isFilter(char *predicate) {
 
     while ((pred = strstr(predi, ".")) != NULL) {
         dots_count++;
-        memcpy(pred, pred + 1, strlen(pred+1)+1);
+        memcpy(pred, pred + 1, strlen(pred + 1) + 1);
     }
 
     if (dots_count >= 2)

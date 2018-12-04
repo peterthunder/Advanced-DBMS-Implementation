@@ -68,6 +68,8 @@ add_executable(Advanced_DBMS_Implementation
         file_io.h
         parser.c
         parser.h
+        query_functions.c
+        query_functions.h
         radixHashJoin.c
         radixHashJoin.h
         supportFunctions.c

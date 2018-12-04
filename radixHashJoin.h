@@ -1,7 +1,7 @@
 #ifndef ADVANCED_DBMS_IMPLEMENTATION_RADIXHASHJOIN_H
 #define ADVANCED_DBMS_IMPLEMENTATION_RADIXHASHJOIN_H
 
-#include "supportFunctions.h"
+#include "query_functions.h"
 
 int testRHJ();
 
@@ -30,14 +30,5 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
 /* De-allocate memory */
 void deAllocateRadixHashJoinMemory(int32_t** histogramR, int32_t** histogramS, int32_t** psumR, int32_t** psumS,
         int32_t** chain, int32_t** bucket_index, Relation* relationNewR, Relation* relationNewS, int number_of_buckets);
-
-/* Execute the query*/
-void execute_query(Query_Info * query_info);
-
-/* Print the query */
-void print_query(Query_Info * query_info);
-
-/* Free the query */
-void free_query(Query_Info * query_info);
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_RADIXHASHJOIN_H
