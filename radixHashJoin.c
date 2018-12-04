@@ -552,8 +552,22 @@ void print_query(Query_Info * query_info){
 
     if (query_info->filters != NULL) {
         for (i = 0; i < query_info->filter_count; i++) {
-            if (query_info->filters[i] != NULL)
-                printf("%d.c%d(%d)%d", query_info->filters[i][0], query_info->filters[i][1], query_info->filters[i][2], query_info->filters[i][3]);
+            if (query_info->filters[i] != NULL) {
+                switch (query_info->filters[i][2]) {
+                    case EQUAL:
+                        printf("%d.c%d=%d", query_info->filters[i][0], query_info->filters[i][1], query_info->filters[i][3]);
+                        break;
+                    case LESS:
+                        printf("%d.c%d<%d", query_info->filters[i][0], query_info->filters[i][1], query_info->filters[i][3]);
+                        break;
+                    case GREATER:
+                        printf("%d.c%d>%d", query_info->filters[i][0], query_info->filters[i][1], query_info->filters[i][3]);
+                        break;
+                    default:
+                        fprintf(stderr, "Invalid operator: %d", query_info->filters[i][2]);
+                        break;
+                }
+            }
             if (i != query_info->filter_count - 1)
                 printf(" and ");
         }
