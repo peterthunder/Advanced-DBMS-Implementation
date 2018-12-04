@@ -27,8 +27,7 @@ int testRHJ() {
     /* Do Radix Hash Join on the conjunction of the relations */
     Result *result = RadixHashJoin(relations[0], relations[1], number_of_buckets);
     if (result == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return EXIT_FAILURE;
     }
 
@@ -209,16 +208,14 @@ int allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index, 
     /* Create an array that contains bucket_index arrays of size H2_PARAM(for example 101) each */
     *bucket_index = malloc(sizeof(int *) * number_of_buckets);
     if ((*bucket_index) == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return -1;
     }
 
     /* Create an array that contains the chain arrays */
     *chain = malloc(sizeof(int *) * number_of_buckets);
     if ((*chain) == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return -1;
     }
 
@@ -239,8 +236,7 @@ int32_t **createHistogram(Relation *relation, int number_of_buckets) {
     /*Allocate memory for an Histogram-2dArray with size (number_of_buckets * 2) */
     int32_t **histogram = malloc(sizeof(int32_t *) * number_of_buckets);
     if (histogram == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return NULL;
     }
 
@@ -248,8 +244,7 @@ int32_t **createHistogram(Relation *relation, int number_of_buckets) {
     for (i = 0; i < number_of_buckets; i++) {
         histogram[i] = malloc(sizeof(int32_t) * 2);
         if (histogram[i] == NULL) {
-            printf("Malloc failed!\n");
-            perror("Malloc");
+            fprintf(stderr, "Malloc failed!\n");
             return NULL;
         }
 
@@ -274,8 +269,7 @@ int32_t **createPsum(int number_of_buckets, int32_t **histogram) {
     /*Allocate memory for Psum-2dArray with size (number_of_buckets * 2) */
     int32_t **psum = malloc(sizeof(int32_t *) * number_of_buckets);
     if (psum == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return NULL;
     }
 
@@ -283,8 +277,7 @@ int32_t **createPsum(int number_of_buckets, int32_t **histogram) {
 
         psum[i] = malloc(sizeof(int32_t) * 2);
         if (psum[i] == NULL) {
-            printf("Malloc failed!\n");
-            perror("Malloc");
+            fprintf(stderr, "Malloc failed!\n");
             return NULL;
         }
 
@@ -324,8 +317,7 @@ int buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t
 
         (*chain)[i] = malloc(sizeof(int) * num_tuples_of_currBucket);
         if ((*chain)[i] == NULL) {
-            printf("Malloc failed!\n");
-            perror("Malloc");
+            fprintf(stderr, "Malloc failed!\n");
             return -1;
         }
 
@@ -333,8 +325,7 @@ int buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t
          * to save memory */
         (*bucket_index)[i] = malloc(sizeof(int) * H2_PARAM);
         if ((*bucket_index)[i] == NULL) {
-            printf("Malloc failed!\n");
-            perror("Malloc");
+            fprintf(stderr, "Malloc failed!\n");
             return -1;
         }
 

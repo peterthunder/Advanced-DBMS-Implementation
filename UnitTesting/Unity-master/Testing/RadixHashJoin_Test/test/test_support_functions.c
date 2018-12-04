@@ -61,16 +61,14 @@ void fillHistograms(int32_t ***histogram1, int32_t ***histogram2, Relation *rela
     /*Allocate memory for an Histogram-2dArray with size (number_of_buckets * 2) */
     *histogram1 = malloc(sizeof(int32_t *) * number_of_buckets);
     if (*histogram1 == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return;
     }
 
     for (i = 0; i < number_of_buckets; i++) {
         (*histogram1)[i] = malloc(sizeof(int32_t) * 2);
         if ((*histogram1)[i] == NULL) {
-            printf("Malloc failed!\n");
-            perror("Malloc");
+            fprintf(stderr, "Malloc failed!\n");
             return;
         }
 
@@ -92,16 +90,14 @@ void fillPsums(int32_t ***psum1, int32_t ***psum2, int32_t **histogram2) {
     /*Allocate memory for an Histogram-2dArray with size (number_of_buckets * 2) */
     *psum1 = malloc(sizeof(int32_t *) * number_of_buckets);
     if (*psum1 == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return;
     }
 
     for (i = 0; i < number_of_buckets; i++) {
         (*psum1)[i] = malloc(sizeof(int32_t) * 2);
         if ((*psum1)[i] == NULL) {
-            printf("Malloc failed!\n");
-            perror("Malloc");
+            fprintf(stderr, "Malloc failed!\n");
             return;
         }
 

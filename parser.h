@@ -31,6 +31,6 @@ int parseFilter(char *token, int operator, Query_Info **q, int *current_filter);
 
 int parseJoin(char *token, Query_Info **q, int *current_join);
 
-int isFilter(char *predicate);
+bool isFilter(char *predicate);
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_PARSER_H

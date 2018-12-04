@@ -42,15 +42,13 @@ Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, ui
     /* Allocate all the memory needed and initialize all the structures */
     Table **tables = malloc(sizeof(Table *) * (*num_of_tables));
     if (tables == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return NULL;
     }
     for (i = 0; i < *num_of_tables; i++) {
         tables[i] = malloc(sizeof(Table));
         if (tables[i] == NULL) {
-            printf("Malloc failed!\n");
-            perror("Malloc");
+            fprintf(stderr, "Malloc failed!\n");
             return NULL;
         }
         tables[i]->num_tuples = 0;
@@ -60,15 +58,13 @@ Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, ui
 
     *mapped_tables = malloc(sizeof(uint64_t *) * (*num_of_tables));
     if (*mapped_tables == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return NULL;
     }
 
     *mapped_tables_sizes = malloc(sizeof(int) * (*num_of_tables));
     if (*mapped_tables_sizes == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return NULL;
     }
     for (i = 0; i < (*num_of_tables); i++)
@@ -118,8 +114,7 @@ Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, ui
         tables[current_table]->num_columns = (*mapped_tables)[current_table][1]; // OR (**mapped_tables + current_table)[1];
         tables[current_table]->column_indexes = malloc(sizeof(uint64_t *) * tables[current_table]->num_columns);
         if (tables[current_table]->column_indexes == NULL) {
-            printf("Malloc failed!\n");
-            perror("Malloc");
+            fprintf(stderr, "Malloc failed!\n");
             return NULL;
         }
         for (i = 0; i < tables[current_table]->num_columns; i++) {

@@ -4,8 +4,7 @@ Relation *allocateRelation(uint32_t num_tuples) {
 
     Relation *rel = malloc(sizeof(Relation));
     if (rel == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return NULL;
     }
 
@@ -13,8 +12,7 @@ Relation *allocateRelation(uint32_t num_tuples) {
     rel->num_tuples = num_tuples;
     rel->tuples = malloc(sizeof(Tuple) * (rel->num_tuples));
     if (rel->tuples == NULL) {
-        printf("Malloc failed!\n");
-        perror("Malloc");
+        fprintf(stderr, "Malloc failed!\n");
         return NULL;
     }
 
