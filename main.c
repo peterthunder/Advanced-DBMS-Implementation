@@ -45,6 +45,7 @@ int main(void) {
         printf("Query[%d]: %s\n", query_count - 1, query);
         Query_Info *query_info = parse_query(query);
         execute_query(query_info);
+        free_query(query_info);
     }
     printf("\n----------------------------------------------------------------");
 
@@ -53,8 +54,11 @@ int main(void) {
     /*De-allocate memory*/
     for (i = 0; i < num_of_tables; i++) {
         munmap(mapped_tables[i], (size_t) mapped_tables_sizes[i]);
+        free(tables[i]->column_indexes);
         free(tables[i]);
     }
+    free(mapped_tables_sizes);
+    free(mapped_tables);
     free(tables);
 
     return EXIT_SUCCESS;

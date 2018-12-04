@@ -15,6 +15,7 @@ Query_Info *parse_query(char *query) {
         return NULL;
     }
 
+    // Initialize struct.
     q->relation_IDs = NULL;
     q->relationId_count = 0;
     q->filters = NULL;
@@ -231,6 +232,13 @@ Query_Info *parse_query(char *query) {
         token1 = strtok_r(NULL, " ", &saveptr1);
         current_selection++;
     }
+
+
+    // De-allocate temporal memory.
+    for (i = 0; i < query_parts_count; i++) {
+        free(query_parts[i]);
+    }
+    free(query_parts);
 
     return q;
 }

@@ -116,5 +116,6 @@ Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, ui
 
     fclose(fptr1);
     free(table_name);
+
     return tables;
 }

@@ -514,7 +514,7 @@ void deAllocateRadixHashJoinMemory(int32_t **histogramR, int32_t **histogramS, i
 
 void execute_query(Query_Info * query_info){
     print_query(query_info);
-    free_query(query_info);
+    // Create intermediate tables and do the Joins.
 }
 
 void print_query(Query_Info * query_info){
