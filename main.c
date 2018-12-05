@@ -4,13 +4,14 @@ int main(void) {
 
     FILE *fptr;
     size_t size;
-    int query_count = 0, num_of_tables, i, *mapped_tables_sizes;
+    int query_count = 0, num_of_tables, i, j, *mapped_tables_sizes;
     char *query = NULL, workload_path[1024];
     uint64_t **mapped_tables;
 
     testRHJ();
 
-    Table **tables = read_tables(WORKDLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables, &mapped_tables_sizes);
+    Table **tables = read_tables(WORKDLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables,
+                                 &mapped_tables_sizes);
 
     printf("\nNumber of columns of table 0: %ju\n\n", tables[0]->num_columns);
 
@@ -26,6 +27,27 @@ int main(void) {
         return -1;
     }
 
+    Relation ***relation_array;
+
+    relation_array = malloc(sizeof(Relation **) * num_of_tables);
+    if (relation_array == NULL) {
+        fprintf(stderr, "Malloc failed!\n");
+        return -1;
+    }
+    for (i = 0; i < num_of_tables; i++) {
+
+        relation_array[i] = malloc(sizeof(Relation *) * tables[i]->num_columns);
+        if (relation_array[i] == NULL) {
+            fprintf(stderr, "Malloc failed!\n");
+            return -1;
+        }
+
+        printf(" Table %d has %ju columns.\n", i, tables[i]->num_columns);
+        for (j = 0; j < tables[i]->num_columns; j++) {
+            relation_array[i][j] = NULL;
+        }
+    }
+
     /* Get queries */
     while (!feof(fptr)) {
 
@@ -39,19 +61,34 @@ int main(void) {
         query_count++;
 
         Query_Info *query_info = parse_query(query);
-        if(query_info == NULL){
+        if (query_info == NULL) {
             fprintf(stderr, "An error occurred while parsing the query: %s\nExiting program...\n", query);
             exit(-1);
         }
         print_query(query_info, query, query_count);
-        execute_query(query_info);
+        if((execute_query(query_info, tables, &relation_array))==-1){
+            fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
+            exit(-1);
+        }
         free_query(query_info);
+       /* if(query_count==3)
+            break;*/
     }
-    printf("\n----------------------------------------------------------------");
+    printf("\n----------------------------------------------------------------\n");
 
     fclose(fptr);
 
     /*De-allocate memory*/
+    for (i = 0; i < num_of_tables; i++) {
+        for (j = 0; j < tables[i]->num_columns; j++) {
+            if(relation_array[i][j]!=NULL){
+                free(relation_array[i][j]);
+            }
+        }
+        free(relation_array[i]);
+    }
+    free(relation_array);
+
     for (i = 0; i < num_of_tables; i++) {
         munmap(mapped_tables[i], (size_t) mapped_tables_sizes[i]);
         free(tables[i]->column_indexes);

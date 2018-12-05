@@ -1,12 +1,12 @@
 BASIC:
 	make CLEAN_BASIC
 	@echo "Compile main...";
-	gcc -g -o radixHashJoin_basic main.c file_io.c parser.c radixHashJoin.c supportFunctions.c -lm
+	gcc -g -o radixHashJoin_basic main.c file_io.c parser.c query_functions.c radixHashJoin.c supportFunctions.c -lm
 
 DEBUG:
 	make CLEAN_DEBUG
 	@echo "Compile main...";
-	gcc -g -o radixHashJoin_debug main.c file_io.c parser.c radixHashJoin.c supportFunctions.c -lm -D PRINTING
+	gcc -g -o radixHashJoin_debug main.c file_io.c parser.c query_functions.c radixHashJoin.c supportFunctions.c -lm -D PRINTING
 
 UNIT_TESTING:
 	cd UnitTesting/Unity-master/Testing/RadixHashJoin_Test && rake

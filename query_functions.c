@@ -1,11 +1,97 @@
 #include "query_functions.h"
 
-void execute_query(Query_Info *query_info) {
+int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array) {
+
     // Create intermediate tables and do the Joins.
 
+    int i, column, table_number;
+    printf("\n");
+    for (i = 0; i < query_info->join_count; i++) {
+
+        table_number = query_info->relation_IDs[query_info->joins[i][0]];
+        column = query_info->joins[i][1];
+
+        if ((*relation_array)[table_number][column] == NULL) {
+            printf("++Creating Relation %d.%d from filter++\n", table_number, column);
+            (*relation_array)[table_number][column] = malloc(sizeof(Relation));
+            if (relation_array[i] == NULL) {
+                fprintf(stderr, "Malloc failed!\n");
+                return -1;
+            }
+
+        }
+
+        table_number = query_info->relation_IDs[query_info->joins[i][2]];
+        column = query_info->joins[i][3];
+
+        if ((*relation_array)[table_number][column] == NULL) {
+            printf("++Creating Relation %d.%d from filter++\n", table_number, column);
+            (*relation_array)[table_number][column] = malloc(sizeof(Relation));
+            if (relation_array[i] == NULL) {
+                fprintf(stderr, "Malloc failed!\n");
+                return -1;
+            }
+        }
+    }
+
+
+    for (i = 0; i < query_info->filter_count; i++) {
+        table_number = query_info->relation_IDs[query_info->filters[i][0]];
+        column = query_info->filters[i][1];
+
+        if ((*relation_array)[table_number][column] == NULL) {
+            printf("--Creating Relation %d.%d from filter--\n", table_number, column);
+            (*relation_array)[table_number][column] = malloc(sizeof(Relation));
+            if (relation_array[i] == NULL) {
+                fprintf(stderr, "Malloc failed!\n");
+                return -1;
+            }
+        }
+    }
+
+
+
+    /*
+ ----------------------------------------------------------------
+        Query 44
+
+        13 13|0.1=1.2&1.6=8220|1.5
+
+        SELECT SUM("1".c5)
+        FROM r13 "0", r13 "1"
+        WHERE 0.c1=1.c2 and 1.c6=8220
+
+ ----------------------------------------------------------------
+
+        Query 27
+
+        12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0<33199|2.1 0.1 0.2
+
+        SELECT SUM("2".c1), SUM("0".c1), SUM("0".c2)
+        FROM r12 "0", r1 "1", r6 "2", r12 "3"
+        WHERE 0.c2=1.c0 and 1.c0=2.c1 and 0.c1=3.c2 and 3.c0<33199
+
+ ----------------------------------------------------------------
+     */
+
+
+
+
+    /*   0 2 4|     0.1=1.2 &   1.0=2.1 &   0.1>3000     |   0.0 1.1    */
+
+
+
+
+    //filters
+
+    //self joins
+
+    // joins
+
+    return 0;
 }
 
-void print_query(Query_Info *query_info, char* query, int query_number) {
+void print_query(Query_Info *query_info, char *query, int query_number) {
 
     int i;
 

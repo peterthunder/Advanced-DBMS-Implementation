@@ -336,4 +336,3 @@ bool isFilter(char *predicate) {
         return TRUE;
 
 }
-

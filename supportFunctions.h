@@ -39,12 +39,12 @@ typedef struct tuple {
 typedef struct relation {
     Tuple *tuples;
     uint32_t num_tuples;
-  /*  Tuple *postpartitioned_tuples;
+    Tuple *postpartitioned_tuples;
     int32_t **psum;
     int32_t **chain;
     int32_t **bucket_index;
     bool built;
-    bool partitioned;*/
+    bool partitioned;
 } Relation;
 
 /* Type definition for a result */
@@ -53,7 +53,6 @@ typedef struct result {
     int num_joined_rowIDs;
     struct result* next_result;
 } Result;
-
 
 
 

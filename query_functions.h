@@ -3,7 +3,7 @@
 
 #include "supportFunctions.h"
 /* Execute the query*/
-void execute_query(Query_Info * query_info);
+int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array);
 
 /* Print the query */
 void print_query(Query_Info * query_info, char* query, int query_number);
