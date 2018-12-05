@@ -10,14 +10,14 @@ int main(void) {
 
     testRHJ();
 
-    Table **tables = read_tables(WORKDLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables,
+    Table **tables = read_tables(WORKLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables,
                                  &mapped_tables_sizes);
 
     printf("\nNumber of columns of table 0: %ju\n\n", tables[0]->num_columns);
 
     workload_path[0] = '\0';
     /* Create the path of the file that contains the workload */
-    strcpy(workload_path, WORKDLOAD_BASE_PATH);
+    strcpy(workload_path, WORKLOAD_BASE_PATH);
     strcat(workload_path, WORKLOAD_FILENAME);
 
     /* Open the file on that path */

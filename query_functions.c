@@ -12,7 +12,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
         column = query_info->joins[i][1];
 
         if ((*relation_array)[table_number][column] == NULL) {
-            printf("++Creating Relation %d.%d from filter++\n", table_number, column);
+            printf("++Creating Relation %d.%d from join++\n", table_number, column);
             (*relation_array)[table_number][column] = malloc(sizeof(Relation));
             if (relation_array[i] == NULL) {
                 fprintf(stderr, "Malloc failed!\n");
@@ -25,7 +25,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
         column = query_info->joins[i][3];
 
         if ((*relation_array)[table_number][column] == NULL) {
-            printf("++Creating Relation %d.%d from filter++\n", table_number, column);
+            printf("++Creating Relation %d.%d from join++\n", table_number, column);
             (*relation_array)[table_number][column] = malloc(sizeof(Relation));
             if (relation_array[i] == NULL) {
                 fprintf(stderr, "Malloc failed!\n");
