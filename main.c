@@ -15,7 +15,7 @@ int main(void) {
     int32_t number_of_buckets = (int32_t) pow(2, n);
 
 
-    //testRHJ();
+    testRHJ();
 
     Table **tables = read_tables(WORKLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables,
                                  &mapped_tables_sizes);
@@ -72,8 +72,8 @@ int main(void) {
             fprintf(stderr, "An error occurred while parsing the query: %s\nExiting program...\n", query);
             exit(-1);
         }
-        print_query(query_info, query, query_count);
-        if((execute_query(query_info, tables, &relation_array))==-1){
+        //print_query(query_info, query, query_count);
+        if ((execute_query(query_info, tables, &relation_array)) == -1) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
             exit(-1);
         }
@@ -90,36 +90,7 @@ int main(void) {
         for (j = 0; j < tables[i]->num_columns; j++) {
             if (relation_array[i][j] != NULL) {
 
-                free(relation_array[i][j]->tuples);
-
-                if (relation_array[i][j]->paritioned_relation != NULL) {
-                    free(relation_array[i][j]->paritioned_relation->tuples);
-                    free(relation_array[i][j]->paritioned_relation);
-                }
-
-                if (relation_array[i][j]->psum != NULL) {
-                    for (k = 0; k < number_of_buckets; k++) {
-                        free(relation_array[i][j]->psum[k]);
-                    }
-                    free(relation_array[i][j]->psum);
-                }
-
-                if (relation_array[i][j]->chain != NULL) {
-                    for (k = 0; k < number_of_buckets; k++) {
-                        free(relation_array[i][j]->chain[k]);
-                    }
-                    free(relation_array[i][j]->chain);
-                }
-
-                if (relation_array[i][j]->bucket_index != NULL) {
-                    for (k = 0; k < number_of_buckets; k++) {
-                        free(relation_array[i][j]->bucket_index[k]);
-                    }
-                    free(relation_array[i][j]->bucket_index);
-                }
-
-                free(relation_array[i][j]);
-
+             deAllocateRelation(&relation_array[i][j], number_of_buckets);
             }
         }
         free(relation_array[i]);

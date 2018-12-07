@@ -1,6 +1,6 @@
 #include "supportFunctions.h"
 
-Relation *allocateRelation(uint32_t num_tuples) {
+Relation *allocateRelation(uint32_t num_tuples, bool is_complete) {
 
     Relation *rel = malloc(sizeof(Relation));
     if (rel == NULL) {
@@ -17,10 +17,13 @@ Relation *allocateRelation(uint32_t num_tuples) {
     }
     rel->psum = NULL;
     rel->paritioned_relation = NULL;
-    rel->partitioned = FALSE;
+    rel->is_partitioned = FALSE;
     rel->chain = NULL;
     rel->bucket_index = NULL;
-    rel->built = FALSE;
+    rel->is_built = FALSE;
+    /* If the relation is filled from the original table, then it's complete */
+    /* If the relation is filled from the intermediate table then it's incomplete */
+    rel->is_full_column = is_complete;
 
     return rel;
 }

@@ -41,8 +41,9 @@ typedef struct relation {
     int32_t **psum;
     int32_t **chain;
     int32_t **bucket_index;
-    bool built;
-    bool partitioned;
+    bool is_built;
+    bool is_partitioned;
+    bool is_full_column;
 } Relation;
 
 /* Type definition for a result */
@@ -59,7 +60,7 @@ typedef struct table_{
     uint64_t **column_indexes;
 } Table;
 
-Relation* allocateRelation(uint32_t num_tuples);
+Relation* allocateRelation(uint32_t num_tuples, bool is_complete);
 
 void initializeRelation(Relation **rel, Table **tables, int table_number, int column_number);
 

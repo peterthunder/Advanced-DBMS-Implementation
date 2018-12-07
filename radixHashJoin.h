@@ -6,7 +6,7 @@
 int testRHJ();
 
 /* Radix Hash Join */
-Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets);
+Result *RadixHashJoin(Relation **reIR, Relation **reIS, int number_of_buckets);
 
 /* Partition Relation */
 void partition(Relation *relation, Relation **relationNew, int number_of_buckets, int32_t **psum);
@@ -27,8 +27,7 @@ int buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t
 Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex,
                       int32_t **bucket_index, int32_t **chain, int number_of_buckets, bool is_R_relation_first);
 
-/* De-allocate memory */
-void deAllocateRadixHashJoinMemory(int32_t** histogramR, int32_t** histogramS, int32_t** psumR, int32_t** psumS,
-        int32_t** chain, int32_t** bucket_index, Relation* relationNewR, Relation* relationNewS, int number_of_buckets);
+/* De-allocate Relation memory */
+void deAllocateRelation(Relation **relation, int number_of_buckets);
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_RADIXHASHJOIN_H
