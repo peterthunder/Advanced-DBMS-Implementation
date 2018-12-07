@@ -15,21 +15,38 @@ Relation *allocateRelation(uint32_t num_tuples) {
         fprintf(stderr, "Malloc failed!\n");
         return NULL;
     }
+    rel->psum = NULL;
+    rel->paritioned_relation = NULL;
+    rel->partitioned = FALSE;
+    rel->chain = NULL;
+    rel->bucket_index = NULL;
+    rel->built = FALSE;
 
     return rel;
 }
 
+
+void initializeRelation(Relation **rel, Table **tables, int table_number, int column_number) {
+
+    int32_t i;
+
+    for (i = 0; i < (*rel)->num_tuples; i++) {
+        (*rel)->tuples[i].payload = (int32_t)tables[table_number]->column_indexes[column_number][i];
+        (*rel)->tuples[i].key = i + 1;
+
+    }
+}
+
+
 void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets) {
 
-    //time_t t;
-    //srand((unsigned) time(&t));
     int32_t i;
 
     /* Fill matrix R with random numbers from 0-199*/
     for (i = 0; i < (*rel)->num_tuples; i++) {
         (*rel)->tuples[i].payload = rand() % 199;
-        (*rel)->tuples[i].key = (*rel)->tuples[i].payload % number_of_buckets;
-        (*rel)->tuples[i].rowID = i + 1;
+        (*rel)->tuples[i].key = i + 1;
+
     }
 }
 
@@ -55,8 +72,8 @@ void printRelation(Relation *relation, int choice) {
 
     for (i = 0; i < relation->num_tuples; i++) {
         printf("\n");
-        printf("|%2d|%3d|%3d|%2d|", relation->tuples[i].key, relation->tuples[i].payload % H2_PARAM,
-               relation->tuples[i].payload, relation->tuples[i].rowID);
+        printf("|%2d|%3d|%3d|%2d|", relation->tuples[i].payload % H1_PARAM, relation->tuples[i].payload % H2_PARAM,
+               relation->tuples[i].payload, relation->tuples[i].key);
     }
 
     printf("\n");

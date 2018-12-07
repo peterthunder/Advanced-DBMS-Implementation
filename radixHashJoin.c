@@ -39,7 +39,6 @@ int testRHJ() {
 
 
     /*De-allocate memory*/
-
     for (i = 0; i < 10; i++) {
         free(relations[i]->tuples);
         free(relations[i]);
@@ -54,7 +53,6 @@ int testRHJ() {
 
 }
 
-
 /* Relation R: reIR, Relation S: reIS, Number of buckets: 2^n */
 Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
 
@@ -63,18 +61,11 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
     printf("\n# Running RadixHashJoin on Relations S and R.\n");
     start_t = clock();
 
-/*    reIR->tuples[reIR->num_tuples - 2].payload = 929;
-    reIR->tuples[reIR->num_tuples - 2].key = reIR->tuples[reIR->num_tuples - 2].payload % number_of_buckets;
-
+    /* Certain values to create chains*/
+    reIR->tuples[reIR->num_tuples - 2].payload = 929;
     reIR->tuples[reIR->num_tuples - 3].payload = 828;
-    reIR->tuples[reIR->num_tuples - 3].key = reIR->tuples[reIR->num_tuples - 3].payload % number_of_buckets;
-
     reIS->tuples[reIS->num_tuples - 1].payload = 929;
-    reIS->tuples[reIS->num_tuples - 1].key = reIS->tuples[reIS->num_tuples - 1].payload % number_of_buckets;
-
     reIS->tuples[reIS->num_tuples - 2].payload = 20;
-    reIS->tuples[reIS->num_tuples - 2].key = reIS->tuples[reIS->num_tuples - 2].payload % number_of_buckets;*/
-
 
     /* Construct Histograms an Psums */
 
@@ -148,15 +139,22 @@ Result *RadixHashJoin(Relation *reIR, Relation *reIS, int number_of_buckets) {
             return NULL;
     }
 
-    deAllocateRadixHashJoinMemory(histogramR, histogramS, psumR, psumS, chain, bucket_index, relationNewR, relationNewS,
-                                  number_of_buckets);
-
     end_t = clock();
 
     total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
 #if PRINTING
     printf("  -Total time taken by CPU for RadixHashJoin: %f seconds.\n", (double) total_t);
 #endif
+
+
+    /* Free Histograms */
+    for (int i = 0; i < number_of_buckets; i++) {
+        free(histogramR[i]);
+        free(histogramS[i]);
+    }
+    free(histogramR);
+    free(histogramS);
+
 
     printf(" -Join finished.\n");
 
@@ -192,10 +190,9 @@ void partition(Relation *relation, Relation **relationNew, int number_of_buckets
                 break;
 
             /*If we find the current bucket's key in relation-table, append the relation-table's data to the new relation-table. */
-            if (relation->tuples[j].key == psum[i][0]) {
+            if (relation->tuples[j].payload % number_of_buckets == psum[i][0]) {
                 (*relationNew)->tuples[indexOfNewR].key = relation->tuples[j].key;
                 (*relationNew)->tuples[indexOfNewR].payload = relation->tuples[j].payload;
-                (*relationNew)->tuples[indexOfNewR].rowID = relation->tuples[j].rowID;
                 indexOfNewR++;
                 currHashCounter++;
             }
@@ -255,7 +252,7 @@ int32_t **createHistogram(Relation *relation, int number_of_buckets) {
 
     /* Fill out the histogram according to the hash values*/
     for (i = 0; i < relation->num_tuples; i++) {
-        histogram[relation->tuples[i].key][1]++;
+        histogram[relation->tuples[i].payload % number_of_buckets][1]++;
     }
 
     return histogram;
@@ -440,21 +437,21 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
                     if (is_R_relation_first) {
 #if PRINTING
                         printf("=TRUE ~> JOIN[%d|%d]\n", relWithIndex->tuples[
-                                currentIndex - 1 + psumWithIndex[i][1]].rowID, relNoIndex->tuples[j].rowID);
+                                currentIndex - 1 + psumWithIndex[i][1]].key, relNoIndex->tuples[j].key);
 #endif
                         /* If the current result isn' t full, insert a new rowid combo (rowIDR, rowIDS)
                          * and increment the num_joined_rowIDs variable */
                         current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = relWithIndex->tuples[
-                                currentIndex - 1 + psumWithIndex[i][1]].rowID;
-                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = relNoIndex->tuples[j].rowID;
+                                currentIndex - 1 + psumWithIndex[i][1]].key;
+                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = relNoIndex->tuples[j].key;
                     } else {
 #if PRINTING
-                        printf("=TRUE ~> JOIN[%d|%d]\n", relNoIndex->tuples[j].rowID,
-                                relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].rowID);
+                        printf("=TRUE ~> JOIN[%d|%d]\n", relNoIndex->tuples[j].key,
+                                relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].key);
 #endif
-                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = relNoIndex->tuples[j].rowID;
+                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = relNoIndex->tuples[j].key;
                         current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = relWithIndex->tuples[
-                                currentIndex - 1 + psumWithIndex[i][1]].rowID;
+                                currentIndex - 1 + psumWithIndex[i][1]].key;
                     }
                     current_result->num_joined_rowIDs++;
                 } else {
@@ -475,8 +472,6 @@ void deAllocateRadixHashJoinMemory(int32_t **histogramR, int32_t **histogramS, i
                                    int32_t **chain, int32_t **bucket_index, Relation *relationNewR,
                                    Relation *relationNewS, int number_of_buckets) {
     for (int i = 0; i < number_of_buckets; i++) {
-        free(histogramR[i]);
-        free(histogramS[i]);
         free(psumR[i]);
         free(psumS[i]);
         if (chain[i] != NULL)
@@ -488,10 +483,7 @@ void deAllocateRadixHashJoinMemory(int32_t **histogramR, int32_t **histogramS, i
     free(chain);
     free(bucket_index);
 
-    free(histogramR);
     free(psumR);
-
-    free(histogramS);
     free(psumS);
 
     free(relationNewR->tuples);

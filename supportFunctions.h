@@ -13,8 +13,6 @@
 #include <errno.h>
 
 #include "parser.h"
-#include "file_io.h"
-
 
 #define H1_PARAM 3 // Number of bits we PRINTING keep after the 1st hash function pass
 #define H2_PARAM 101 // The number we use in the 2nd hash function as mod
@@ -28,10 +26,10 @@
 #define TABLES_FILENAME "small.init"
 #define WORKLOAD_FILENAME "small.work"
 
+
 /* Type definition for a tuple */
 typedef struct tuple {
-    int32_t key; // hashvalue after 1st hash function
-    int32_t rowID; // rowID of this tuple
+    int32_t key; // rowID of this tuple
     int32_t payload; // true value of this tuple
 } Tuple;
 
@@ -39,7 +37,7 @@ typedef struct tuple {
 typedef struct relation {
     Tuple *tuples;
     uint32_t num_tuples;
-    Tuple *postpartitioned_tuples;
+    struct relation *paritioned_relation;
     int32_t **psum;
     int32_t **chain;
     int32_t **bucket_index;
@@ -54,9 +52,16 @@ typedef struct result {
     struct result* next_result;
 } Result;
 
-
+/* Struct that holds the information of all the columns of a single table */
+typedef struct table_{
+    uint64_t num_tuples;
+    uint64_t num_columns;
+    uint64_t **column_indexes;
+} Table;
 
 Relation* allocateRelation(uint32_t num_tuples);
+
+void initializeRelation(Relation **rel, Table **tables, int table_number, int column_number);
 
 void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets);
 

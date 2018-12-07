@@ -4,48 +4,74 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
 
     // Create intermediate tables and do the Joins.
 
-    int i, column, table_number;
-    printf("\n");
+    int i, column_number, table_number, j = 0;
+    //printf("\n");
     for (i = 0; i < query_info->join_count; i++) {
 
-        table_number = query_info->relation_IDs[query_info->joins[i][0]];
-        column = query_info->joins[i][1];
+        /* 12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0<33199|2.1 0.1 0.2
+         *
+         * 0.2 = 1.0
+         *
+         * 0 -> 12
+         * 1 - > 1
+         *
+         * */
 
-        if ((*relation_array)[table_number][column] == NULL) {
-            printf("++Creating Relation %d.%d from join++\n", table_number, column);
-            (*relation_array)[table_number][column] = malloc(sizeof(Relation));
-            if (relation_array[i] == NULL) {
+        table_number = query_info->relation_IDs[query_info->joins[i][0]];
+        column_number = query_info->joins[i][1];
+
+        if ((*relation_array)[table_number][column_number] == NULL) {
+
+            //printf("++Creating Relation %d.%d from join++\n", table_number, column_number);
+
+            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples);
+            if ((*relation_array)[table_number][column_number] == NULL) {
                 fprintf(stderr, "Malloc failed!\n");
                 return -1;
             }
 
+            initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
         }
 
-        table_number = query_info->relation_IDs[query_info->joins[i][2]];
-        column = query_info->joins[i][3];
+        /* while(j!=10){
+             printf("P: %d , RID: %d \n", (*relation_array)[table_number][column_number]->tuples[j].payload, (*relation_array)[table_number][column_number]->tuples[j].key);
+             j++;
+         }
+         getchar();
+         */
 
-        if ((*relation_array)[table_number][column] == NULL) {
-            printf("++Creating Relation %d.%d from join++\n", table_number, column);
-            (*relation_array)[table_number][column] = malloc(sizeof(Relation));
-            if (relation_array[i] == NULL) {
+
+        table_number = query_info->relation_IDs[query_info->joins[i][2]];
+        column_number = query_info->joins[i][3];
+
+        if ((*relation_array)[table_number][column_number] == NULL) {
+            //printf("++Creating Relation %d.%d from join++\n", table_number, column_number);
+            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples);
+            if ((*relation_array)[table_number][column_number] == NULL) {
                 fprintf(stderr, "Malloc failed!\n");
                 return -1;
             }
+
+            initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
+
         }
     }
 
 
     for (i = 0; i < query_info->filter_count; i++) {
-        table_number = query_info->relation_IDs[query_info->filters[i][0]];
-        column = query_info->filters[i][1];
 
-        if ((*relation_array)[table_number][column] == NULL) {
-            printf("--Creating Relation %d.%d from filter--\n", table_number, column);
-            (*relation_array)[table_number][column] = malloc(sizeof(Relation));
-            if (relation_array[i] == NULL) {
+        table_number = query_info->relation_IDs[query_info->filters[i][0]];
+        column_number = query_info->filters[i][1];
+
+        if ((*relation_array)[table_number][column_number] == NULL) {
+           // printf("--Creating Relation %d.%d from filter--\n", table_number, column_number);
+            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples);
+            if ((*relation_array)[table_number][column_number] == NULL) {
                 fprintf(stderr, "Malloc failed!\n");
                 return -1;
             }
+
+            initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
         }
     }
 

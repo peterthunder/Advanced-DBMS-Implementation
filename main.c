@@ -4,11 +4,18 @@ int main(void) {
 
     FILE *fptr;
     size_t size;
-    int query_count = 0, num_of_tables, i, j, *mapped_tables_sizes;
+    int query_count = 0, num_of_tables, i, j, k, *mapped_tables_sizes;
     char *query = NULL, workload_path[1024];
     uint64_t **mapped_tables;
 
-    testRHJ();
+    /* H1_PARAM is the number of the last-n bits of the 32-bit number we wanna keep */
+    int32_t n = H1_PARAM;
+
+    /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
+    int32_t number_of_buckets = (int32_t) pow(2, n);
+
+
+    //testRHJ();
 
     Table **tables = read_tables(WORKLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables,
                                  &mapped_tables_sizes);
@@ -71,8 +78,8 @@ int main(void) {
             exit(-1);
         }
         free_query(query_info);
-       /* if(query_count==3)
-            break;*/
+        /* if (query_count == 1)
+             break;*/
     }
     printf("\n----------------------------------------------------------------\n");
 
@@ -81,8 +88,38 @@ int main(void) {
     /*De-allocate memory*/
     for (i = 0; i < num_of_tables; i++) {
         for (j = 0; j < tables[i]->num_columns; j++) {
-            if(relation_array[i][j]!=NULL){
+            if (relation_array[i][j] != NULL) {
+
+                free(relation_array[i][j]->tuples);
+
+                if (relation_array[i][j]->paritioned_relation != NULL) {
+                    free(relation_array[i][j]->paritioned_relation->tuples);
+                    free(relation_array[i][j]->paritioned_relation);
+                }
+
+                if (relation_array[i][j]->psum != NULL) {
+                    for (k = 0; k < number_of_buckets; k++) {
+                        free(relation_array[i][j]->psum[k]);
+                    }
+                    free(relation_array[i][j]->psum);
+                }
+
+                if (relation_array[i][j]->chain != NULL) {
+                    for (k = 0; k < number_of_buckets; k++) {
+                        free(relation_array[i][j]->chain[k]);
+                    }
+                    free(relation_array[i][j]->chain);
+                }
+
+                if (relation_array[i][j]->bucket_index != NULL) {
+                    for (k = 0; k < number_of_buckets; k++) {
+                        free(relation_array[i][j]->bucket_index[k]);
+                    }
+                    free(relation_array[i][j]->bucket_index);
+                }
+
                 free(relation_array[i][j]);
+
             }
         }
         free(relation_array[i]);

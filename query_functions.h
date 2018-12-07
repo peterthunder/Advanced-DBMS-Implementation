@@ -1,7 +1,7 @@
 #ifndef ADVANCED_DBMS_IMPLEMENTATION_QUERY_FUNCTIONS_H
 #define ADVANCED_DBMS_IMPLEMENTATION_QUERY_FUNCTIONS_H
 
-#include "supportFunctions.h"
+#include "file_io.h"
 /* Execute the query*/
 int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array);
 
