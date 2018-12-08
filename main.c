@@ -4,7 +4,7 @@ int main(void) {
 
     FILE *fptr;
     size_t size;
-    int query_count = 0, num_of_tables, i, j, k, *mapped_tables_sizes;
+    int query_count = 0, num_of_tables, i, j, *mapped_tables_sizes;
     char *query = NULL, workload_path[1024];
     uint64_t **mapped_tables;
 
@@ -79,17 +79,18 @@ int main(void) {
         }
         free_query(query_info);
         /* if (query_count == 1)
-             break;*/
+             break; */
     }
     printf("\n----------------------------------------------------------------\n");
 
     fclose(fptr);
 
-    /*De-allocate memory*/
+    /* De-allocate memory */
     for (i = 0; i < num_of_tables; i++) {
-        for (j = 0; j < tables[i]->num_columns; j++) {
-            if (relation_array[i][j] != NULL) {
 
+        for (j = 0; j < tables[i]->num_columns; j++) {
+
+            if (relation_array[i][j] != NULL) {
              deAllocateRelation(&relation_array[i][j], number_of_buckets);
             }
         }

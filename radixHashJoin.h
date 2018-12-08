@@ -30,4 +30,8 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
 /* De-allocate Relation memory */
 void deAllocateRelation(Relation **relation, int number_of_buckets);
 
+/* De-allocate Result memory */
+void deAllocateResult(Result **result);
+
+
 #endif //ADVANCED_DBMS_IMPLEMENTATION_RADIXHASHJOIN_H
