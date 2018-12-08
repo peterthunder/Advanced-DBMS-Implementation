@@ -24,11 +24,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
 
             //printf("++Creating Relation %d.%d from join++\n", table_number, column_number);
 
-            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples, TRUE);
-            if ((*relation_array)[table_number][column_number] == NULL) {
-                fprintf(stderr, "Malloc failed!\n");
-                return -1;
-            }
+            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples, TRUE);    // Allocation-errors are handled internally.
 
             initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
         }
@@ -46,11 +42,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
 
         if ((*relation_array)[table_number][column_number] == NULL) {
             //printf("++Creating Relation %d.%d from join++\n", table_number, column_number);
-            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples, TRUE);
-            if ((*relation_array)[table_number][column_number] == NULL) {
-                fprintf(stderr, "Malloc failed!\n");
-                return -1;
-            }
+            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples, TRUE);    // Allocation-errors are handled internally.
 
             initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
 
@@ -65,11 +57,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
 
         if ((*relation_array)[table_number][column_number] == NULL) {
            // printf("--Creating Relation %d.%d from filter--\n", table_number, column_number);
-            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples, TRUE);
-            if ((*relation_array)[table_number][column_number] == NULL) {
-                fprintf(stderr, "Malloc failed!\n");
-                return -1;
-            }
+            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples, TRUE);   // Allocation-errors are handled internally.
 
             initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
         }

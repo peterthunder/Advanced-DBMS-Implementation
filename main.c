@@ -36,18 +36,11 @@ int main(void) {
 
     Relation ***relation_array;
 
-    relation_array = malloc(sizeof(Relation **) * num_of_tables);
-    if (relation_array == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return -1;
-    }
+    relation_array = myMalloc(sizeof(Relation **) * num_of_tables);
+
     for (i = 0; i < num_of_tables; i++) {
 
-        relation_array[i] = malloc(sizeof(Relation *) * tables[i]->num_columns);
-        if (relation_array[i] == NULL) {
-            fprintf(stderr, "Malloc failed!\n");
-            return -1;
-        }
+        relation_array[i] = myMalloc(sizeof(Relation *) * tables[i]->num_columns);
 
         printf(" Table %d has %ju columns.\n", i, tables[i]->num_columns);
         for (j = 0; j < tables[i]->num_columns; j++) {
@@ -67,11 +60,8 @@ int main(void) {
             continue;
         query_count++;
 
-        Query_Info *query_info = parse_query(query);
-        if (query_info == NULL) {
-            fprintf(stderr, "An error occurred while parsing the query: %s\nExiting program...\n", query);
-            exit(-1);
-        }
+        Query_Info *query_info = parse_query(query);    // Allocation-errors are handled internally.
+
         //print_query(query_info, query, query_count);
         if ((execute_query(query_info, tables, &relation_array)) == -1) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);

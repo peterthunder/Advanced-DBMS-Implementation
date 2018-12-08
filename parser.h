@@ -21,15 +21,15 @@ Query_Info * createQueryInfo(void);
 
 char **parseQueryParts(char *query, int *query_parts_count);
 
-int parseRelationIDs(char *query_part, Query_Info **q);
+void parseRelationIDs(char *query_part, Query_Info **q);
 
 int parsePredicates(char *query_part, Query_Info **q);
 
-int parseSelections(char *query_part, Query_Info **q);
+void parseSelections(char *query_part, Query_Info **q);
 
 int parseFilter(char *token, int operator, Query_Info **q, int *current_filter);
 
-int parseJoin(char *token, Query_Info **q, int *current_join);
+void parseJoin(char *token, Query_Info **q, int *current_join);
 
 bool isFilter(char *predicate);
 

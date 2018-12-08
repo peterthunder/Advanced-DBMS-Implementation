@@ -1,20 +1,25 @@
 #include "supportFunctions.h"
 
+
+void* myMalloc(size_t sizeOfAllocation)
+{
+    void *ptr = malloc(sizeOfAllocation);
+    if (ptr == NULL) {
+        fprintf(stderr, "Malloc failed!\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+        return ptr;
+}
+
+
 Relation *allocateRelation(uint32_t num_tuples, bool is_complete) {
 
-    Relation *rel = malloc(sizeof(Relation));
-    if (rel == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return NULL;
-    }
+    Relation *rel = myMalloc(sizeof(Relation));
 
     /* Matrix R and S sizes*/
     rel->num_tuples = num_tuples;
-    rel->tuples = malloc(sizeof(Tuple) * (rel->num_tuples));
-    if (rel->tuples == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return NULL;
-    }
+    rel->tuples = myMalloc(sizeof(Tuple) * (rel->num_tuples));
     rel->psum = NULL;
     rel->paritioned_relation = NULL;
     rel->is_partitioned = FALSE;

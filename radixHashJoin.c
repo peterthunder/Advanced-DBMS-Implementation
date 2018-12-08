@@ -13,14 +13,12 @@ int testRHJ() {
     /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
     int32_t number_of_buckets = (int32_t) pow(2, n);
 
-    Relation **relations = malloc(sizeof(Relation *) * 10);
+    Relation **relations = myMalloc(sizeof(Relation *) * 10);
     uint32_t relation_size[10] = {20, 10, 30, 10, 10, 10, 10, 10, 10, 10};
 
     /* Allocate the relations and initialize them with random numbers from 0-200 */
     for (i = 0; i < 10; i++) {
-        if ((relations[i] = allocateRelation(relation_size[i], TRUE)) == NULL) {
-            return EXIT_FAILURE;  // ErrorCode
-        }
+        relations[i] = allocateRelation(relation_size[i], TRUE);    // Allocation-errors are handled internally.
         initializeRelationWithRandomNumbers(&relations[i], number_of_buckets);
     }
 
@@ -77,31 +75,19 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS, int number_of_buckets) {
     /***** Construct Histograms and Psums *****/
 
     /* Create Relation R histogram and psum */
-    int32_t **histogramR = createHistogram((*reIR), number_of_buckets);
-    if (histogramR == NULL) {
-        return NULL;
-    }
+    int32_t **histogramR = createHistogram((*reIR), number_of_buckets);    // Allocation-errors are handled internally.
 
     if ((*reIR)->psum == NULL) {
-        (*reIR)->psum = createPsum(number_of_buckets, histogramR);
-        if ((*reIR)->psum == NULL)
-            return NULL;
-
+        (*reIR)->psum = createPsum(number_of_buckets, histogramR);    // Allocation-errors are handled internally.
     }else{
         printf("   -Psum is already built for Relation R.\n");
     }
 
     /* Create Relation S histogram and psum */
-    int32_t **histogramS = createHistogram((*reIS), number_of_buckets);
-    if (histogramS == NULL)
-        return NULL;
-
+    int32_t **histogramS = createHistogram((*reIS), number_of_buckets);    // Allocation-errors are handled internally.
 
     if ((*reIS)->psum == NULL) {
-        (*reIS)->psum = createPsum(number_of_buckets, histogramS);
-        if ((*reIS)->psum == NULL)
-            return NULL;
-
+        (*reIS)->psum = createPsum(number_of_buckets, histogramS);    // Allocation-errors are handled internally.
     }
     else{
         printf("   -Psum is already built for Relation S.\n");
@@ -159,14 +145,10 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS, int number_of_buckets) {
     /* Build the bucket_index and the chain arrays of the smaller relation */
     else if ((*reIR)->num_tuples <= (*reIS)->num_tuples) {
 
-        if (allocateAndInitializeBucketIndexAndChain(&(*reIR)->chain, &(*reIR)->bucket_index, number_of_buckets) == -1)
-            return NULL;
-
+        allocateAndInitializeBucketIndexAndChain(&(*reIR)->chain, &(*reIR)->bucket_index, number_of_buckets);    // Allocation-errors are handled internally.
 
         printf("  -Phase 2: Building index on the smaller relation R.\n");
-        if (buildSmallestPartitionedRelationIndex((*reIR)->paritioned_relation, (*reIR)->psum, &(*reIR)->bucket_index,
-                                                  &(*reIR)->chain, number_of_buckets) == -1)
-                    return NULL;
+        buildSmallestPartitionedRelationIndex((*reIR)->paritioned_relation, (*reIR)->psum, &(*reIR)->bucket_index, &(*reIR)->chain, number_of_buckets);    // Allocation-errors are handled internally.
 
         (*reIR)->is_built = TRUE;
 
@@ -178,13 +160,10 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS, int number_of_buckets) {
             return NULL;
     } else {
 
-        if (allocateAndInitializeBucketIndexAndChain(&(*reIS)->chain, &(*reIS)->bucket_index, number_of_buckets) == -1)
-            return NULL;
+        allocateAndInitializeBucketIndexAndChain(&(*reIS)->chain, &(*reIS)->bucket_index, number_of_buckets);    // Allocation-errors are handled internally.
 
         printf("  -Phase 2: Building index on the smaller relation S.\n");
-        if (buildSmallestPartitionedRelationIndex((*reIS)->paritioned_relation, (*reIS)->psum, &(*reIS)->bucket_index,
-                                                  &(*reIS)->chain, number_of_buckets) == -1)
-            return NULL;
+        buildSmallestPartitionedRelationIndex((*reIS)->paritioned_relation, (*reIS)->psum, &(*reIS)->bucket_index, &(*reIS)->chain, number_of_buckets);    // Allocation-errors are handled internally.
 
         (*reIS)->is_built = TRUE;
 
@@ -266,29 +245,19 @@ void partition(Relation *relation, Relation **relationNew, int number_of_buckets
     }
 }
 
-int allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index, int number_of_buckets) {
+void allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index, int number_of_buckets) {
 
     /* Create an array that contains bucket_index arrays of size H2_PARAM(for example 101) each */
-    *bucket_index = malloc(sizeof(int *) * number_of_buckets);
-    if ((*bucket_index) == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return -1;
-    }
+    *bucket_index = myMalloc(sizeof(int *) * number_of_buckets);
 
     /* Create an array that contains the chain arrays */
-    *chain = malloc(sizeof(int *) * number_of_buckets);
-    if ((*chain) == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return -1;
-    }
+    *chain = myMalloc(sizeof(int *) * number_of_buckets);
 
     /* Initialise pointers to NULL */
     for (int i = 0; i < number_of_buckets; i++) {
         (*bucket_index)[i] = NULL;
         (*chain)[i] = NULL;
     }
-
-    return 0;
 }
 
 /* Create histogram of Relation */
@@ -297,20 +266,10 @@ int32_t **createHistogram(Relation *relation, int number_of_buckets) {
     int i;
 
     /*Allocate memory for an Histogram-2dArray with size (number_of_buckets * 2) */
-    int32_t **histogram = malloc(sizeof(int32_t *) * number_of_buckets);
-    if (histogram == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return NULL;
-    }
-
+    int32_t **histogram = myMalloc(sizeof(int32_t *) * number_of_buckets);
 
     for (i = 0; i < number_of_buckets; i++) {
-        histogram[i] = malloc(sizeof(int32_t) * 2);
-        if (histogram[i] == NULL) {
-            fprintf(stderr, "Malloc failed!\n");
-            return NULL;
-        }
-
+        histogram[i] = myMalloc(sizeof(int32_t) * 2);
         /* Histogram contains Hash key-Number of hash key appearances */
         histogram[i][0] = i;
         histogram[i][1] = 0;
@@ -330,39 +289,25 @@ int32_t **createPsum(int number_of_buckets, int32_t **histogram) {
     int i;
 
     /*Allocate memory for Psum-2dArray with size (number_of_buckets * 2) */
-    int32_t **psum = malloc(sizeof(int32_t *) * number_of_buckets);
-    if (psum == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return NULL;
-    }
+    int32_t **psum = myMalloc(sizeof(int32_t *) * number_of_buckets);
 
     for (i = 0; i < number_of_buckets; i++) {
 
-        psum[i] = malloc(sizeof(int32_t) * 2);
-        if (psum[i] == NULL) {
-            fprintf(stderr, "Malloc failed!\n");
-            return NULL;
-        }
-
+        psum[i] = myMalloc(sizeof(int32_t) * 2);
         /* Psum contains Hash key-Index of bucket */
         psum[i][0] = i;
         psum[i][1] = 0;
     }
 
-    for (i = 0; i < number_of_buckets; i++) {
-        if (i == 0) {
-            continue;
-        } else {
+    for ( i = 0; i < number_of_buckets; i++ )
+        if ( i != 0 )
             psum[i][1] = psum[i - 1][1] + histogram[i - 1][1];
-        }
-    }
 
     return psum;
 }
 
 /* Build the Index and the Chain Arrays of the relation with the less amount of tuples */
-int buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t ***bucket_index, int32_t ***chain,
-                                          int number_of_buckets) {
+void buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t ***bucket_index, int32_t ***chain, int number_of_buckets) {
     int i, j, num_tuples_of_currBucket;
 
     for (i = 0; i < number_of_buckets; i++) {
@@ -378,19 +323,11 @@ int buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t
         if (num_tuples_of_currBucket <= 0)
             continue;
 
-        (*chain)[i] = malloc(sizeof(int) * num_tuples_of_currBucket);
-        if ((*chain)[i] == NULL) {
-            fprintf(stderr, "Malloc failed!\n");
-            return -1;
-        }
+        (*chain)[i] = myMalloc(sizeof(int) * num_tuples_of_currBucket);
 
         /* Also, create a bucket_index array only if the number of tuples in the i-th bucket are greater than 0,
          * to save memory */
-        (*bucket_index)[i] = malloc(sizeof(int) * H2_PARAM);
-        if ((*bucket_index)[i] == NULL) {
-            fprintf(stderr, "Malloc failed!\n");
-            return -1;
-        }
+        (*bucket_index)[i] = myMalloc(sizeof(int) * H2_PARAM);
 
         /* Initialise bucket_index array elements to 0*/
         for (j = 0; j < H2_PARAM; j++)
@@ -411,8 +348,6 @@ int buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t
             }
         }
     }
-
-    return 0;
 }
 
 /* Join two relations and return the result.
@@ -425,11 +360,7 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
     int i, j, num_tuples_of_currBucket, currentIndex;
     int32_t h2Value;
 
-    Result *result = malloc(sizeof(Result));
-    if (result == NULL) {
-        perror("Malloc failed\n.");
-        return NULL;
-    }
+    Result *result = myMalloc(sizeof(Result));
     Result *current_result = result;
     result->next_result = NULL;
     result->num_joined_rowIDs = 0;
@@ -494,7 +425,7 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
 
                     /* If the current result is full, then create a new one and point to it with current result*/
                     if (current_result->num_joined_rowIDs == JOINED_ROWIDS_NUM) {
-                        current_result->next_result = malloc(sizeof(Result));
+                        current_result->next_result = myMalloc(sizeof(Result));
                         current_result->next_result->num_joined_rowIDs = 0;
                         current_result = current_result->next_result;
                         current_result->next_result = NULL;
@@ -564,7 +495,6 @@ void deAllocateRelation(Relation **relation, int number_of_buckets) {
         free((*relation)->paritioned_relation->tuples);
         free((*relation)->paritioned_relation);
     }
-
 
     free((*relation));
     *relation  = NULL;

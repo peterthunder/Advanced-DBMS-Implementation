@@ -6,23 +6,13 @@ Query_Info *parse_query(char *query) {
     int query_parts_count = 0, i;
     char **query_parts;
 
-    Query_Info *query_info = createQueryInfo();
-    if (query_info == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return NULL;
-    }
+    Query_Info *query_info = createQueryInfo();    // Allocation-errors are handled internally.
 
     /* Parse the Query Parts*/
-    if ((query_parts = parseQueryParts(query, &query_parts_count)) == NULL) {
-        printf("An error occurred while parsing the query parts!\n");
-        return NULL;
-    }
+    query_parts = parseQueryParts(query, &query_parts_count);     // Allocation-errors are handled internally.
 
     /* Parse the Relation IDs*/
-    if ((parseRelationIDs(query_parts[0], &query_info)) == -1) {
-        printf("An error occurred while parsing the relation ids!\n");
-        return NULL;
-    }
+    parseRelationIDs(query_parts[0], &query_info);    // Allocation-errors are handled internally.
 
     /* Parse the Predicates */
     if ((parsePredicates(query_parts[1], &query_info)) == -1) {
@@ -31,10 +21,7 @@ Query_Info *parse_query(char *query) {
     }
 
     /* Parse the selections */
-    if ((parseSelections(query_parts[2], &query_info)) == -1) {
-        printf("An error occurred while parsing the predicates!\n");
-        return NULL;
-    }
+    parseSelections(query_parts[2], &query_info);    // Allocation-errors are handled internally.
 
     // De-allocate temporary memory.
     for (i = 0; i < query_parts_count; i++) {
@@ -48,11 +35,7 @@ Query_Info *parse_query(char *query) {
 /* Allocate and Initialize Query Info */
 Query_Info * createQueryInfo(void){
 
-    Query_Info *q = malloc(sizeof(Query_Info));
-    if (q == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return NULL;
-    }
+    Query_Info *q = myMalloc(sizeof(Query_Info));
 
     // Initialize struct.
     q->relation_IDs = NULL;
@@ -83,17 +66,10 @@ char **parseQueryParts(char *query, int *query_parts_count) {
 
     assert((*query_parts_count) == 3);
     /* Get Query Parts */
-    query_parts = malloc(sizeof(char *) * (3));
-    if (query_parts == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return NULL;
-    }
+    query_parts = myMalloc(sizeof(char *) * (3));
+
     for (i = 0; i < (*query_parts_count); i++) {
-        query_parts[i] = malloc(sizeof(char) * 1024);
-        if (query_parts[i] == NULL) {
-            fprintf(stderr, "Malloc failed!\n");
-            return NULL;
-        }
+        query_parts[i] = myMalloc(sizeof(char) * 1024);
     }
     (*query_parts_count) = 0;
     /* Parse Query */
@@ -109,7 +85,7 @@ char **parseQueryParts(char *query, int *query_parts_count) {
 }
 
 /* Parse the Relation IDs */
-int parseRelationIDs(char *query_part, Query_Info **q) {
+void parseRelationIDs(char *query_part, Query_Info **q) {
 
     char *token, *saveptr, dummy_string[1024];
 
@@ -121,11 +97,7 @@ int parseRelationIDs(char *query_part, Query_Info **q) {
         token = strtok_r(NULL, " ", &saveptr);
     }
 
-    (*q)->relation_IDs = malloc(sizeof(int) * (*q)->relationId_count);
-    if ((*q)->relation_IDs == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return -1;
-    }
+    (*q)->relation_IDs = myMalloc(sizeof(int) * (*q)->relationId_count);
     (*q)->relationId_count = 0;
 
     /* Save the relation IDs in an array */
@@ -136,8 +108,6 @@ int parseRelationIDs(char *query_part, Query_Info **q) {
         (*q)->relationId_count++;
         token = strtok_r(NULL, " ", &saveptr);
     }
-
-    return 0;
 }
 
 /* Parse the Predicates */
@@ -158,53 +128,36 @@ int parsePredicates(char *query_part, Query_Info **q) {
     }
 
     if ((*q)->join_count > 0) {
-        (*q)->joins = malloc(sizeof(int *) * (*q)->join_count);
-        if ((*q)->joins == NULL) {
-            fprintf(stderr, "Malloc failed!\n");
-            return -1;
-        }
-        for (i = 0; i < (*q)->join_count; i++) {
-            (*q)->joins[i] = malloc(sizeof(int) * 4);
-            if ((*q)->joins[i] == NULL) {
-                fprintf(stderr, "Malloc failed!\n");
-                return -1;
-            }
-        }
+        (*q)->joins = myMalloc(sizeof(int *) * (*q)->join_count);
+        for (i = 0; i < (*q)->join_count; i++)
+            (*q)->joins[i] = myMalloc(sizeof(int) * 4);
     }
 
     if ((*q)->filter_count > 0) {
-        (*q)->filters = malloc(sizeof(int *) * (*q)->filter_count);
-        if ((*q)->filters == NULL) {
-            fprintf(stderr, "Malloc failed!\n");
-            return -1;
-        }
-        for (i = 0; i < (*q)->filter_count; i++) {
-            (*q)->filters[i] = malloc(sizeof(int) * 4);
-            if ((*q)->filters[i] == NULL) {
-                fprintf(stderr, "Malloc failed!\n");
-                return -1;
-            }
-        }
-
+        (*q)->filters = myMalloc(sizeof(int *) * (*q)->filter_count);
+        for (i = 0; i < (*q)->filter_count; i++)
+            (*q)->filters[i] = myMalloc(sizeof(int) * 4);
     }
 
     strcpy(dummy_string, query_part);
     token = strtok_r(dummy_string, "&", &saveptr);
     while (token != NULL) {
 
-        if ((strstr(token, ">")) != NULL)
-            parseFilter(token, GREATER, q, &current_filter);
-
-        else if ((strstr(token, "<")) != NULL)
-            parseFilter(token, LESS, q, &current_filter);
-
+        if ((strstr(token, ">")) != NULL) {
+            if (parseFilter(token, GREATER, q, &current_filter) == -1)
+                return -1;
+        }
+        else if ((strstr(token, "<")) != NULL) {
+            if (parseFilter(token, LESS, q, &current_filter) == -1)
+                return -1;
+        }
         else if ((strstr(token, "=")) != NULL) {
-
-            if (isFilter(token))
-                parseFilter(token, EQUAL, q, &current_filter);
+            if (isFilter(token)) {
+                if (parseFilter(token, EQUAL, q, &current_filter) == -1)
+                    return -1;
+            }
             else
                 parseJoin(token, q, &current_join);
-
         } else {
             perror("Unknown character!\n");
             return -1;
@@ -216,7 +169,7 @@ int parsePredicates(char *query_part, Query_Info **q) {
 }
 
 /* Parse the selections */
-int parseSelections(char *query_part, Query_Info **q){
+void parseSelections(char *query_part, Query_Info **q){
 
     int i,  current_selection = 0;
     char dummy_string[1024], *token, *saveptr, *token1, *saveptr1;
@@ -228,18 +181,9 @@ int parseSelections(char *query_part, Query_Info **q){
         token = strtok_r(NULL, " ", &saveptr);
     }
 
-    (*q)->selections = malloc(sizeof(int *) * (*q)->selection_count);
-    if ((*q)->selections == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        return -1;
-    }
-    for (i = 0; i < (*q)->selection_count; i++) {
-        (*q)->selections[i] = malloc(sizeof(int) * 2);
-        if ((*q)->selections[i] == NULL) {
-            fprintf(stderr, "Malloc failed!\n");
-            return -1;
-        }
-    }
+    (*q)->selections = myMalloc(sizeof(int *) * (*q)->selection_count);
+    for (i = 0; i < (*q)->selection_count; i++)
+        (*q)->selections[i] = myMalloc(sizeof(int) * 2);
 
     strcpy(dummy_string, query_part);
     token = strtok_r(dummy_string, " ", &saveptr);
@@ -251,15 +195,12 @@ int parseSelections(char *query_part, Query_Info **q){
         token = strtok_r(NULL, " ", &saveptr);
         current_selection++;
     }
-
-    return 0;
 }
 
 /* Parse a Filter */
 int parseFilter(char *token, int operator, Query_Info **q, int *current_filter) {
 
     char *saveptr2, *saveptr3, *token1;
-
 
     if (operator == EQUAL)
         token1 = strtok_r(token, "=", &saveptr2);
@@ -292,12 +233,11 @@ int parseFilter(char *token, int operator, Query_Info **q, int *current_filter) 
             token1 = strtok_r(NULL, ">", &saveptr2);
 
     }
-
     return 0;
 }
 
 /* Parse a Join */
-int parseJoin(char *token, Query_Info **q, int *current_join) {
+void parseJoin(char *token, Query_Info **q, int *current_join) {
 
     int join_part = 0;
     char *saveptr1, *saveptr2, *token1, *token2;
@@ -314,8 +254,6 @@ int parseJoin(char *token, Query_Info **q, int *current_join) {
         }
         join_part = 2;
     }
-
-    return 0;
 }
 
 bool isFilter(char *predicate) {
@@ -334,5 +272,4 @@ bool isFilter(char *predicate) {
         return FALSE;
     else
         return TRUE;
-
 }

@@ -60,6 +60,8 @@ typedef struct table_{
     uint64_t **column_indexes;
 } Table;
 
+void* myMalloc(size_t sizeOfAllocation);
+
 Relation* allocateRelation(uint32_t num_tuples, bool is_complete);
 
 void initializeRelation(Relation **rel, Table **tables, int table_number, int column_number);
