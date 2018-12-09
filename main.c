@@ -14,11 +14,9 @@ int main(void) {
     /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
     int32_t number_of_buckets = (int32_t) pow(2, n);
 
-
     testRHJ();
 
-    Table **tables = read_tables(WORKLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables,
-                                 &mapped_tables_sizes);
+    Table **tables = read_tables(WORKLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
     printf("\nNumber of columns of table 0: %ju\n\n", tables[0]->num_columns);
 
@@ -28,8 +26,7 @@ int main(void) {
     strcat(workload_path, WORKLOAD_FILENAME);
 
     /* Open the file on that path */
-    fptr = fopen(workload_path, "r");
-    if (fptr == NULL) {
+    if ( (fptr = fopen(workload_path, "r")) == NULL) {
         fprintf(stderr, "Error opening file \"%s\": %s!\n", workload_path, strerror(errno));
         return -1;
     }

@@ -181,18 +181,15 @@ void free_query(Query_Info *query_info) {
 
     free(query_info->joins);
 
-
     for (i = 0; i < query_info->filter_count; i++)
         free(query_info->filters[i]);
 
     free(query_info->filters);
 
-
     for (i = 0; i < query_info->selection_count; i++)
         free(query_info->selections[i]);
 
     free(query_info->selections);
-
 
     free(query_info);
 }

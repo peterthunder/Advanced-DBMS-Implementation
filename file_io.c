@@ -20,8 +20,7 @@ Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, ui
     printf("  -Path of the file with the mapped_tables names: %s\n", init_path);
 
     /* Open the file on that path */
-    fptr1 = fopen(init_path, "r");
-    if (fptr1 == NULL) {
+    if ( (fptr1 = fopen(init_path, "r")) == NULL ) {
         fprintf(stderr, "Error opening file \"%s\": %s!\n", init_path, strerror(errno));
         return NULL;
     }

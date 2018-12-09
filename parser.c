@@ -171,7 +171,7 @@ int parsePredicates(char *query_part, Query_Info **q) {
 /* Parse the selections */
 void parseSelections(char *query_part, Query_Info **q){
 
-    int i,  current_selection = 0;
+    int i, current_selection = 0;
     char dummy_string[1024], *token, *saveptr, *token1, *saveptr1;
 
     strcpy(dummy_string, query_part);
