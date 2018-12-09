@@ -1,8 +1,8 @@
 #ifndef ADVANCED_DBMS_IMPLEMENTATION_TEST_SUPPORT_FUNCTIONS_H
 #define ADVANCED_DBMS_IMPLEMENTATION_TEST_SUPPORT_FUNCTIONS_H
 
-#include "../../../../../supportFunctions.h"
-#include "../../../../../radixHashJoin.h"
+#include "../../../../../src/supportFunctions.h"
+#include "../../../../../src/radixHashJoin.h"
 
 void initializeRelations(Relation **relation1, Relation **relation2);
 void freeMemory(Relation *relation1, Relation *relation2, int32_t **histogram1, int32_t **histogram2,  int32_t **psum1, int32_t **psum2);

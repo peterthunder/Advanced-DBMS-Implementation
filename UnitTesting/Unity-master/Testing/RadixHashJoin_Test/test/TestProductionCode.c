@@ -1,6 +1,6 @@
 #include "../../../src/unity.h"
-#include "../../../../../radixHashJoin.h"
-#include "../../../../../supportFunctions.h"
+#include "../../../../../src/radixHashJoin.h"
+#include "../../../../../src/supportFunctions.h"
 #include "test_support_functions.h"
 
 //sometimes you may want to get at local data in a module.
