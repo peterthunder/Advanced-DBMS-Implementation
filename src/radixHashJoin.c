@@ -1,7 +1,7 @@
 #include "radixHashJoin.h"
 
 
-int testRHJ() {
+void testRHJ() {
     // n  = cache size / maxsizeofbucket;
 
     int cache_size = 6 * (1024 * 1024); // Cache size is 6mb

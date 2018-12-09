@@ -3,7 +3,7 @@
 
 #include "query_functions.h"
 
-int testRHJ();
+void testRHJ();
 
 /* Radix Hash Join */
 Result *RadixHashJoin(Relation **reIR, Relation **reIS, int number_of_buckets);
