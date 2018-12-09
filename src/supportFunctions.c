@@ -1,18 +1,5 @@
 #include "supportFunctions.h"
 
-
-void* myMalloc(size_t sizeOfAllocation)
-{
-    void *ptr = malloc(sizeOfAllocation);
-    if (ptr == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
-        exit(EXIT_FAILURE);
-    }
-    else
-        return ptr;
-}
-
-
 Relation *allocateRelation(uint32_t num_tuples, bool is_complete) {
 
     Relation *rel = myMalloc(sizeof(Relation));
@@ -33,18 +20,16 @@ Relation *allocateRelation(uint32_t num_tuples, bool is_complete) {
     return rel;
 }
 
-
 void initializeRelation(Relation **rel, Table **tables, int table_number, int column_number) {
 
     int32_t i;
 
     for (i = 0; i < (*rel)->num_tuples; i++) {
-        (*rel)->tuples[i].payload = (int32_t)tables[table_number]->column_indexes[column_number][i];
+        (*rel)->tuples[i].payload = (int32_t) tables[table_number]->column_indexes[column_number][i];
         (*rel)->tuples[i].key = i + 1;
 
     }
 }
-
 
 void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets) {
 
@@ -187,6 +172,15 @@ void printResults(Result *result) {
     } while (current_result != NULL);
 }
 
+void *myMalloc(size_t sizeOfAllocation) {
+
+    void *ptr = malloc(sizeOfAllocation);
+    if (ptr == NULL) {
+        fprintf(stderr, "Malloc failed!\n");
+        exit(EXIT_FAILURE);
+    } else
+        return ptr;
+}
 
 // Taken From: https://www.geeksforgeeks.org/write-your-own-atoi/
 // A simple atoi() function
@@ -203,13 +197,13 @@ int myAtoi(char *str) {
 }
 
 // Source: https://stackoverflow.com/a/15265294
-long int myPow(int x,int n)
-{
-    int i; /* Variable used in loop counter */
+long int myPow(int x, int n) {
+
+    int i;
     int number = 1;
 
     for (i = 0; i < n; ++i)
         number *= x;
 
-    return(number);
+    return (number);
 }
