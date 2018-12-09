@@ -201,3 +201,15 @@ int myAtoi(char *str) {
     // return result.
     return res;
 }
+
+// Source: https://stackoverflow.com/a/15265294
+long int myPow(int x,int n)
+{
+    int i; /* Variable used in loop counter */
+    int number = 1;
+
+    for (i = 0; i < n; ++i)
+        number *= x;
+
+    return(number);
+}

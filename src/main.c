@@ -12,7 +12,7 @@ int main(void) {
     int32_t n = H1_PARAM;
 
     /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
-    int32_t number_of_buckets = (int32_t) pow(2, n);
+    int32_t number_of_buckets = (int32_t) myPow(2, n);
 
     testRHJ();
 

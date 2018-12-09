@@ -3,6 +3,8 @@
 #include "../../../../../src/supportFunctions.h"
 #include "test_support_functions.h"
 
+
+
 //sometimes you may want to get at local data in a module.
 //for example: If you plan to pass by reference, this could be useful
 //however, it should often be avoided
@@ -39,7 +41,6 @@ void test_Check_Histogram(void) {
     }
 
     freeMemory(relation1, relation2, histogram1, histogram2, NULL, NULL);
-
 }
 
 /* Check psum me vash to paradeigma ths ekfwnhshs */
@@ -83,10 +84,10 @@ void test_Partitioned_relation(void) {
 
     Relation *relation1;
     Relation *relation2;
-    Relation *newrelation1 = allocateRelation(numTuples1);
-    Relation *newrelation2 = allocateRelation(numTuples2);
-    Relation *newrelation1FAKE = allocateRelation(numTuples1);
-    Relation *newrelation2FAKE = allocateRelation(numTuples2);
+    Relation *newrelation1 = allocateRelation(numTuples1, TRUE);
+    Relation *newrelation2 = allocateRelation(numTuples2, TRUE);
+    Relation *newrelation1FAKE = allocateRelation(numTuples1, TRUE);
+    Relation *newrelation2FAKE = allocateRelation(numTuples2, TRUE);
 
 
     initializeRelations(&relation1, &relation2);
@@ -102,25 +103,21 @@ void test_Partitioned_relation(void) {
 
     int32_t p_array1[4] = {1, 2, 3, 4};
     int32_t key_array1[4] = {1, 2, 3, 4};
-    int32_t rId_array1[4] = {1, 2, 3, 4};
 
     int32_t p_array2[3] = {1, 1, 3};
-    int32_t key_array2[3] = {1, 1, 3};
-    int32_t rId_array2[3] = {1, 2, 3};
+    int32_t key_array2[3] = {1, 2, 3};
 
 
     /* InitializeFakeRel1 */
     for (i = 0; i < numTuples1; i++) {
         newrelation1FAKE->tuples[i].payload = p_array1[i];
         newrelation1FAKE->tuples[i].key = key_array1[i];
-        newrelation1FAKE->tuples[i].rowID = rId_array1[i];
     }
 
     /* InitializeFakeRel2 */
     for (i = 0; i < numTuples2; i++) {
         newrelation2FAKE->tuples[i].payload = p_array2[i];
         newrelation2FAKE->tuples[i].key = key_array2[i];
-        newrelation2FAKE->tuples[i].rowID = rId_array2[i];
     }
 
 /*    printRelation(relation1, 1);
@@ -131,14 +128,12 @@ void test_Partitioned_relation(void) {
     for (i = 0; i < newrelation1->num_tuples; i++) {
         TEST_ASSERT_EQUAL_INT32(newrelation1->tuples[i].payload, newrelation1FAKE->tuples[i].payload);
         TEST_ASSERT_EQUAL_INT32(newrelation1->tuples[i].key, newrelation1FAKE->tuples[i].key);
-        TEST_ASSERT_EQUAL_INT32(newrelation1->tuples[i].rowID, newrelation1FAKE->tuples[i].rowID);
     }
 
 
     for (i = 0; i < newrelation2->num_tuples; i++) {
         TEST_ASSERT_EQUAL_INT32(newrelation2->tuples[i].payload, newrelation2FAKE->tuples[i].payload);
         TEST_ASSERT_EQUAL_INT32(newrelation2->tuples[i].key, newrelation2FAKE->tuples[i].key);
-        TEST_ASSERT_EQUAL_INT32(newrelation2->tuples[i].rowID, newrelation2FAKE->tuples[i].rowID);
     }
 
     freeMemory(relation1, relation2, histogram1, histogram2, psum1, psum2);
@@ -151,6 +146,4 @@ void test_Partitioned_relation(void) {
     free(newrelation1FAKE);
     free(newrelation2FAKE->tuples);
     free(newrelation2FAKE);
-
-
 }

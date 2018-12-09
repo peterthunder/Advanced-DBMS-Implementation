@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <malloc.h>
-#include <math.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
@@ -88,5 +87,7 @@ void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNe
 void printResults(Result *result);
 
 int myAtoi(char *str);
+
+long int myPow(int x,int n);
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H

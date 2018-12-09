@@ -4,7 +4,7 @@ compiler:
   path: gcc
   source_path:     'src/'
   unit_tests_path: &unit_tests_path 'test/'
-  radixhashjoin_path: &radixhashjoin_path '../../../../'
+  radixhashjoin_path: &radixhashjoin_path '../../../../src/'
   build_path:      &build_path 'build/'
   options:
     - '-c'
@@ -33,7 +33,6 @@ compiler:
 linker:
   path: gcc
   options:
-    - -lm
     - '-m32'
   includes:
     prefix: '-I'
