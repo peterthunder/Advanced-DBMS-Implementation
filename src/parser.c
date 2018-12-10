@@ -6,13 +6,13 @@ Query_Info *parse_query(char *query) {
     int query_parts_count = 0, i;
     char **query_parts;
 
-    Query_Info *query_info = createQueryInfo();    // Allocation-errors are handled internally.
+    Query_Info *query_info = createQueryInfo();
 
     /* Parse the Query Parts*/
-    query_parts = parseQueryParts(query, &query_parts_count);     // Allocation-errors are handled internally.
+    query_parts = parseQueryParts(query, &query_parts_count);
 
     /* Parse the Relation IDs*/
-    parseRelationIDs(query_parts[0], &query_info);    // Allocation-errors are handled internally.
+    parseRelationIDs(query_parts[0], &query_info);
 
     /* Parse the Predicates */
     if ((parsePredicates(query_parts[1], &query_info)) == -1) {
@@ -21,7 +21,7 @@ Query_Info *parse_query(char *query) {
     }
 
     /* Parse the Selections */
-    parseSelections(query_parts[2], &query_info);    // Allocation-errors are handled internally.
+    parseSelections(query_parts[2], &query_info);
 
     // De-allocate temporary memory.
     for (i = 0; i < query_parts_count; i++) {
@@ -33,7 +33,7 @@ Query_Info *parse_query(char *query) {
 }
 
 /* Allocate and Initialize Query Info */
-Query_Info * createQueryInfo(void){
+Query_Info *createQueryInfo(void) {
 
     Query_Info *q = myMalloc(sizeof(Query_Info));
 
@@ -146,17 +146,14 @@ int parsePredicates(char *query_part, Query_Info **q) {
         if ((strstr(token, ">")) != NULL) {
             if (parseFilter(token, GREATER, q, &current_filter) == -1)
                 return -1;
-        }
-        else if ((strstr(token, "<")) != NULL) {
+        } else if ((strstr(token, "<")) != NULL) {
             if (parseFilter(token, LESS, q, &current_filter) == -1)
                 return -1;
-        }
-        else if ((strstr(token, "=")) != NULL) {
+        } else if ((strstr(token, "=")) != NULL) {
             if (isFilter(token)) {
                 if (parseFilter(token, EQUAL, q, &current_filter) == -1)
                     return -1;
-            }
-            else
+            } else
                 parseJoin(token, q, &current_join);
         } else {
             perror("Unknown character!\n");
@@ -169,7 +166,7 @@ int parsePredicates(char *query_part, Query_Info **q) {
 }
 
 /* Parse the selections */
-void parseSelections(char *query_part, Query_Info **q){
+void parseSelections(char *query_part, Query_Info **q) {
 
     int i, current_selection = 0;
     char dummy_string[1024], *token, *saveptr, *token1, *saveptr1;

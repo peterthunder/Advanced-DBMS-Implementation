@@ -26,7 +26,10 @@ Relation* create_intermediate_table(int relation_Id, Entity **entity, Relation *
 int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_table_number, int *column);
 
 /* Filter a relation and return an array with the rowIDs of the relation that satisfy the filter */
+
 int32_t *filterRelation(int operator, int number, Relation *relation, uint32_t *count);
+/* Join 2 Relations */
+void relationJoin(Relation **relation1, Relation **relation2, Entity** entity, int relation_Id1, int relation_Id2, int number_of_buckets);
 
 /* Update a column of an intermediate depending on the relation_id according to the rowIDs */
 void update_intermediate_table(int relation_Id, Entity **entity, int32_t * rowIDs, uint32_t rowId_count);
