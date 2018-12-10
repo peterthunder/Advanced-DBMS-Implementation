@@ -59,14 +59,13 @@ int main(void) {
             continue;
         query_count++;
 
-
         if (query_count == 1)
-            query_info = parse_query("12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0>30&3.0<150&3.0>120&1.2>11000|2.1 0.1 0.2");
+            query_info = parse_query("12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0<90|2.1 0.1 0.2");
         else
             query_info = parse_query(query);    // Allocation-errors are handled internally.
 
         if (query_count == 1)
-            print_query(query_info, "12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0>30&3.0<150&3.0>120&1.2>11000|2.1 0.1 0.2", query_count);
+            print_query(query_info, "12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0<90|2.1 0.1 0.2", query_count);
         else
             print_query(query_info, query, query_count);
 
