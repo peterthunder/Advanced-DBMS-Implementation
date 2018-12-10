@@ -78,6 +78,6 @@ add_executable(Advanced_DBMS_Implementation
         src/radixHashJoin.h
         src/supportFunctions.c
         src/supportFunctions.h
-        UnitTesting/Unity-master/Testing/MyTests/test/test_file_io.c UnitTesting/Unity-master/Testing/MyTests/test/test_file_io.h)
+        UnitTesting/Unity-master/Testing/MyTests/test/test_query_execution.c UnitTesting/Unity-master/Testing/MyTests/test/test_query_execution.h)
 
 target_link_libraries(Advanced_DBMS_Implementation m)
