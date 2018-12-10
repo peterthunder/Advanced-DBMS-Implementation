@@ -24,4 +24,4 @@ script:
   - cd ../extras/fixture/test && rake ci
   - make -s default noStdlibMalloc
   - make -s C89
-  - cd ../RadixHashJoin_Test && rake
+  - cd ../MyTests && rake
