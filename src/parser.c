@@ -20,7 +20,7 @@ Query_Info *parse_query(char *query) {
         return NULL;
     }
 
-    /* Parse the selections */
+    /* Parse the Selections */
     parseSelections(query_parts[2], &query_info);    // Allocation-errors are handled internally.
 
     // De-allocate temporary memory.

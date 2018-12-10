@@ -15,7 +15,7 @@ int main(void) {
     /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
     int32_t number_of_buckets = (int32_t) myPow(2, n);
 
-    testRHJ();
+    //testRHJ();
 
     Table **tables = read_tables(WORKLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables,
                                  &mapped_tables_sizes);
@@ -60,20 +60,17 @@ int main(void) {
         query_count++;
 
 
-
         if (query_count == 1)
-            query_info = parse_query("12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0<33199|2.1 0.1 0.2");
+            query_info = parse_query("12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0>30&3.0<150&3.0>120&1.2>11000|2.1 0.1 0.2");
         else
             query_info = parse_query(query);    // Allocation-errors are handled internally.
 
         if (query_count == 1)
-            print_query(query_info, "12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0<33199|2.1 0.1 0.2", query_count);
+            print_query(query_info, "12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0>30&3.0<150&3.0>120&1.2>11000|2.1 0.1 0.2", query_count);
         else
             print_query(query_info, query, query_count);
 
-
-
-        if ((execute_query(query_info, tables, &relation_array)) == -1) {
+        if ((execute_query(query_info, tables, &relation_array, number_of_buckets)) == -1) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
             exit(-1);
         }
@@ -89,6 +86,7 @@ int main(void) {
     for (i = 0; i < num_of_tables; i++) {
         for (j = 0; j < tables[i]->num_columns; j++) {
             if (relation_array[i][j] != NULL) {
+                printf("Freeing %d.%d\n", i,j);
                 deAllocateRelation(&relation_array[i][j], number_of_buckets);
             }
         }

@@ -1,83 +1,100 @@
 #include "radixHashJoin.h"
 
-int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array) {
+int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array, int number_of_buckets) {
 
     // Create intermediate tables and do the Joins.
 
-    int i, column_number, table_number, j = 0, row_id_count = 0, operator, number;
+    int i, column_number, table_number, j = 0, k = 0, operator, number;
+    uint32_t rowId_count = 0;
     int32_t *rowIDs;
+    Relation *relation;
 
+    /* Entity structure that will hold all the intermediate tables */
     Entity *entity = myMalloc(sizeof(Entity));
-    entity->intermediate_tables_count = 0;
-    entity->intermediate_tables = myMalloc(
-            sizeof(Intermediate_table *) * (query_info->filter_count + query_info->join_count));
+    entity->inter_tables_count = 0;
+    entity->inter_tables = myMalloc(sizeof(Intermediate_table *) * (query_info->filter_count + query_info->join_count));
 
+    /* Filter filter the relations */
     for (i = 0; i < query_info->filter_count; i++) {
 
-        table_number = query_info->relation_IDs[query_info->filters[i][0]];
-        column_number = query_info->filters[i][1];
-        operator = query_info->filters[i][2];
-        number = query_info->filters[i][3];
+        table_number = query_info->relation_IDs[query_info->filters[i][0]]; // number of the table that has the the relation that needs to be filtered
+        column_number = query_info->filters[i][1]; // in which column of that table
+        operator = query_info->filters[i][2]; // what operation is the filter
+        number = query_info->filters[i][3]; // and with what number
 
+        /* If the relation does not exist in the relation array*/
         if ((*relation_array)[table_number][column_number] == NULL) {
-            (*relation_array)[table_number][column_number] = allocateRelation(
-                    (uint32_t) tables[table_number]->num_tuples, TRUE);   // Allocation-errors are handled internally.
+            printf("Creating -> T: %d, C: %d\n", table_number, column_number);
+            /* Create the relation with a TRUE flag, that means it is a full column */
+            (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples, TRUE);
+            /* And fill the relation from the tables array */
             initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
         }
 
-        // if in intermediate
-        create_in_intermediate_table(query_info->filters[i][0], &entity);
-        row_id_count = filterRelation(LESS, 100, (*relation_array)[table_number][column_number], &rowIDs);
-        // else full column
-        row_id_count = filterRelation(LESS, 100, (*relation_array)[table_number][column_number], &rowIDs);
+        /* Check if the relation_id is already in an intermediate table.
+         * If it isn't, create a new intermediate table, filter the relation(full column) and fill the new inter table with the row ids that satisfy the filter.
+         * Otherwise, if the relation exists in an intermediate table, get the relation from it, based on the rowIDs, filter the relation and update the intermediate table. */
+        relation = create_intermediate_table(query_info->filters[i][0], &entity, (*relation_array)[table_number][column_number]);
 
-        // update intermediate
+        if (relation != NULL) {
+            /* Get the rowIDs of the relation that satisfy the filter */
+            rowIDs = filterRelation(operator, number, relation, &rowId_count);
 
-        for (j = 0; j < row_id_count; j++) {
-            printf("Rid: %d\n", rowIDs[j]);
+            /* Update the intermediate table according to those rowIDs */
+            update_intermediate_table(query_info->filters[i][0], &entity, rowIDs, rowId_count);
+
+            /* Free the relation because it isn't needed */
+            deAllocateRelation(&relation, number_of_buckets);
+
+        } else {
+
+            printf("Table count: %d\n", entity->inter_tables_count);
+
+            /* Get the rowIDs of the relation that satisfy the filter */
+            rowIDs = filterRelation(operator, number, (*relation_array)[table_number][column_number], &rowId_count);
+
+            /* Fill the intermediate table according to those rowIDs */
+            entity->inter_tables[entity->inter_tables_count - 1]->num_of_columns = 1;
+            entity->inter_tables[entity->inter_tables_count - 1]->num_of_rows = rowId_count;
+            entity->inter_tables[entity->inter_tables_count - 1]->inter_table = myMalloc(sizeof(int32_t *) * rowId_count);
+
+            for (j = 0; j < rowId_count; j++) {
+                entity->inter_tables[entity->inter_tables_count - 1]->inter_table[j] = myMalloc(sizeof(int32_t) * 1);
+                entity->inter_tables[entity->inter_tables_count - 1]->inter_table[j][0] = rowIDs[j];
+            }
+
+            entity->inter_tables[entity->inter_tables_count - 1]->relationIDS_of_inter_table = myMalloc(sizeof(int) * 1);
+            entity->inter_tables[entity->inter_tables_count - 1]->relationIDS_of_inter_table[0] = query_info->filters[i][0];
+
         }
-
-
+        free(rowIDs);
     }
 
 
-
-    /* while(j!=10){
-         printf("\nP: %d , RID: %d \n", (*relation_array)[table_number][column_number]->tuples[j].payload, (*relation_array)[table_number][column_number]->tuples[j].key);
-         j++;
-     }
-     getchar();
-     */
-
-    //printf("\n");
+    /* Then Join them */
     for (i = 0; i < query_info->join_count; i++) {
-
-        /* 12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0<33199|2.1 0.1 0.2
-         *
-         * 0.2 = 1.0
-         *
-         * Relation 0 -> Table number 12
-         * Relation 1 - > Table number 1
-         *
-         * */
 
         table_number = query_info->relation_IDs[query_info->joins[i][0]];
         column_number = query_info->joins[i][1];
 
         if ((*relation_array)[table_number][column_number] == NULL) {
+            printf("Creating -> T: %d, C: %d - ", table_number, column_number);
             (*relation_array)[table_number][column_number] = allocateRelation(
                     (uint32_t) tables[table_number]->num_tuples, TRUE);    // Allocation-errors are handled internally.
             initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
-        }
+        } else
+            printf("Already Created -> T: %d, C: %d - ", table_number, column_number);
 
         table_number = query_info->relation_IDs[query_info->joins[i][2]];
         column_number = query_info->joins[i][3];
 
         if ((*relation_array)[table_number][column_number] == NULL) {
+            printf("Creating -> T: %d, C: %d\n", table_number, column_number);
             (*relation_array)[table_number][column_number] = allocateRelation(
                     (uint32_t) tables[table_number]->num_tuples, TRUE);    // Allocation-errors are handled internally.
             initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
-        }
+        } else
+            printf("Already Created -> T: %d, C: %d\n", table_number, column_number);
     }
 
 
@@ -106,58 +123,68 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
      */
 
 
+    printEntity(entity);
 
 
-    /*   0 2 4|     0.1=1.2 &   1.0=2.1 &   0.1>3000     |   0.0 1.1    */
+    for (i = 0; i < entity->inter_tables_count; i++) {
 
+        for (j = 0; j < entity->inter_tables[i]->num_of_rows; j++)
+            free(entity->inter_tables[i]->inter_table[j]);
 
+        free(entity->inter_tables[i]->relationIDS_of_inter_table);
+        free(entity->inter_tables[i]->inter_table);
+        free(entity->inter_tables[i]);
+    }
 
-
-    //filters
-
-    // joins
-
+    free(entity->inter_tables);
     free(entity);
 
 
     return 0;
 }
 
+Relation *create_intermediate_table(int relation_Id, Entity **entity, Relation *original_relation) {
 
-int create_in_intermediate_table(int relation_Id, Entity **entity) {
-
-    int inter_table_number, column, i;
+    int inter_table_number, inter_column, i;
     Relation *relation;
+    int rId;
 
-    if (exists_in_intermediate_table(relation_Id, *entity, &inter_table_number, &column) == -1) {
-        //doesnt exist
+    /* Check if the relation_id arg exists in the entity */
+    if (exists_in_intermediate_table(relation_Id, *entity, &inter_table_number, &inter_column) == -1) {
+        /* If it doesn't exist, create a new intermediate table and initialize it */
         printf("Doesn't exist.\n");
-        (*entity)->intermediate_tables[(*entity)->intermediate_tables_count] = myMalloc(sizeof(Intermediate_table));
-        (*entity)->intermediate_tables[(*entity)->intermediate_tables_count]->num_of_rows = 0;
-        (*entity)->intermediate_tables[(*entity)->intermediate_tables_count]->num_of_columns = 0;
-        (*entity)->intermediate_tables[(*entity)->intermediate_tables_count]->intermediate_table = NULL;
-        (*entity)->intermediate_tables[(*entity)->intermediate_tables_count]->relationIDS_of_intermediate_table = NULL;
-        (*entity)->intermediate_tables_count++;
-
+        (*entity)->inter_tables[(*entity)->inter_tables_count] = myMalloc(sizeof(Intermediate_table));
+        (*entity)->inter_tables[(*entity)->inter_tables_count]->num_of_rows = 0;
+        (*entity)->inter_tables[(*entity)->inter_tables_count]->num_of_columns = 0;
+        (*entity)->inter_tables[(*entity)->inter_tables_count]->inter_table = NULL;
+        (*entity)->inter_tables[(*entity)->inter_tables_count]->relationIDS_of_inter_table = NULL;
+        (*entity)->inter_tables_count++;
+        return NULL;
     } else {
-        //exists
-        relation = allocateRelation((*entity)->intermediate_tables[inter_table_number]->num_of_rows, FALSE);
-        for (i = 0; i < (*entity)->intermediate_tables[inter_table_number]->num_of_rows; i++) {
-            relation->tuples[i].payload = (*entity)->intermediate_tables[inter_table_number]->intermediate_table[i][column];
+        /* Else if it exists, we need to create a relation from the intermediate table with the rowIDs and payload of the relation_id */
+        relation = allocateRelation((*entity)->inter_tables[inter_table_number]->num_of_rows, FALSE);
+        for (i = 0; i < (*entity)->inter_tables[inter_table_number]->num_of_rows; i++) {
+            rId = (*entity)->inter_tables[inter_table_number]->inter_table[i][inter_column] - 1; // <- ayto einai to row id-1(oi pinakes 3ekinane apto 0),
+            // oxi to swsto payload ap' ton tables
+            relation->tuples[i].payload = original_relation->tuples[rId].payload; // sto original relation, sayto to rowID einai to swsto payload
             relation->tuples[i].key = i + 1;
         }
+        return relation;
     }
-
-    return -1;
 }
 
 int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_table_number, int *column) {
 
     int i, j;
 
-    for (i = 0; i < entity->intermediate_tables_count; i++) {
-        for (j = 0; j < entity->intermediate_tables[i]->num_of_columns; j++) {
-            if (entity->intermediate_tables[i]->relationIDS_of_intermediate_table[j] == relation_Id) {
+    /* For every intermediate table */
+    for (i = 0; i < entity->inter_tables_count; i++) {
+        /* For every column in the intermediate table */
+        for (j = 0; j < entity->inter_tables[i]->num_of_columns; j++) {
+            /* Check if the current relation_id[j] in the relationIDs is the same as the relation id passed as an arg */
+            if (entity->inter_tables[i]->relationIDS_of_inter_table[j] == relation_Id) {
+                /* If it is the same
+                 * Return the number of the intermediate table(i) and the column(j) */
                 *inter_table_number = i;
                 *column = j;
                 return 0;
@@ -166,7 +193,110 @@ int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_tab
     }
 
     return -1;
+}
 
+int32_t *filterRelation(int operator, int number, Relation *relation, uint32_t *count) {
+
+    int i;
+    int32_t *rowIDs;
+    (*count) = 0;
+
+    switch (operator) {
+        case EQUAL:
+            for (i = 0; i < relation->num_tuples; i++) {
+                if (relation->tuples[i].payload == number) {
+                    (*count)++;
+                }
+            }
+            rowIDs = myMalloc(sizeof(uint32_t) * (*count));
+            (*count) = 0;
+            for (i = 0; i < relation->num_tuples; i++) {
+                if (relation->tuples[i].payload == number) {
+                    rowIDs[(*count)] = relation->tuples[i].key;
+                    (*count)++;
+                }
+            }
+            break;
+        case LESS:
+            for (i = 0; i < relation->num_tuples; i++) {
+                if (relation->tuples[i].payload < number) {
+                    (*count)++;
+                }
+            }
+            rowIDs = myMalloc(sizeof(uint32_t) * (*count));
+            (*count) = 0;
+            for (i = 0; i < relation->num_tuples; i++) {
+                if (relation->tuples[i].payload < number) {
+                    rowIDs[(*count)] = relation->tuples[i].key;
+                    (*count)++;
+                }
+            }
+            break;
+        case GREATER:
+            for (i = 0; i < relation->num_tuples; i++) {
+                if (relation->tuples[i].payload > number) {
+                    (*count)++;
+                }
+            }
+            rowIDs = myMalloc(sizeof(uint32_t) * (*count));
+            (*count) = 0;
+            for (i = 0; i < relation->num_tuples; i++) {
+                if (relation->tuples[i].payload > number) {
+                    rowIDs[(*count)] = relation->tuples[i].key;
+                    (*count)++;
+                }
+            }
+            break;
+        default:
+            fprintf(stderr, "\nInvalid operator found: %d\n\n", operator);
+            exit(EXIT_FAILURE);
+    }
+
+    return rowIDs;
+
+}
+
+void update_intermediate_table(int relation_Id, Entity **entity, int32_t *rowIDs, uint32_t rowId_count) {
+
+    int inter_table_number, inter_column, i;
+
+    /* Get the intermediate table index and the column that the given relationId exists */
+    exists_in_intermediate_table(relation_Id, *entity, &inter_table_number, &inter_column);
+
+    /* Create a new intermediate table and fill it from the old one according to the rowIDs that satisfy the filter */
+    int32_t **new_inter_table = myMalloc(sizeof(int32_t *) * rowId_count);
+    for (i = 0; i < rowId_count; i++) {
+        new_inter_table[i] = myMalloc(sizeof(int32_t) * 1);
+        new_inter_table[i][0] = (*entity)->inter_tables[inter_table_number]->inter_table[rowIDs[i] - 1][inter_column];
+        //printf("rId: %d\n", new_inter_table[i][0]);
+    }
+    /* Free the old intermediate table */
+    for (i = 0; i < (*entity)->inter_tables[inter_table_number]->num_of_rows; i++)
+        free((*entity)->inter_tables[inter_table_number]->inter_table[i]);
+
+    free((*entity)->inter_tables[inter_table_number]->inter_table);
+
+    /* Point to the new intermediate table */
+    (*entity)->inter_tables[inter_table_number]->num_of_rows = rowId_count;
+    (*entity)->inter_tables[inter_table_number]->inter_table = new_inter_table;
+
+}
+
+
+void printEntity(Entity *entity) {
+
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+
+    int i, j, k;
+    for (i = 0; i < entity->inter_tables_count; i++) {
+        for (j = 0; j < entity->inter_tables[i]->num_of_columns; j++) {
+            printf("Relation: %d\n", entity->inter_tables[i]->relationIDS_of_inter_table[j]);
+            for (k = 0; k < entity->inter_tables[i]->num_of_rows; k++) {
+                printf("RowID: %d\n",  entity->inter_tables[i]->inter_table[k][j]);
+            }
+        }
+        printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+    }
 }
 
 void print_query(Query_Info *query_info, char *query, int query_number) {
