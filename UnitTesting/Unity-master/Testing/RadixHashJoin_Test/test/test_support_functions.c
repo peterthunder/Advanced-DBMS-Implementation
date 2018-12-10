@@ -1,6 +1,5 @@
 #include "test_support_functions.h"
 
-int number_of_buckets;
 
 void initializeRelations(Relation **relation1, Relation **relation2) {
 
