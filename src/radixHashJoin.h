@@ -26,8 +26,6 @@ void buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_
 Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex,
                       int32_t **bucket_index, int32_t **chain, int number_of_buckets, bool is_R_relation_first);
 
-int filterRelation(int operator, int number, Relation *relation, int32_t **rowIDs);
-
 /* De-allocate Relation memory */
 void deAllocateRelation(Relation **relation, int number_of_buckets);
 

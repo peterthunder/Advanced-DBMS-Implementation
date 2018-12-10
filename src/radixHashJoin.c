@@ -451,62 +451,6 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
     return result;
 }
 
-
-int filterRelation(int operator, int number, Relation *relation, int32_t **rowIDs) {
-
-    int i;
-    int count =0;
-
-    switch (operator) {
-        case EQUAL:
-            for (i = 0; i < relation->num_tuples; i++) {
-                if (relation->tuples[i].payload == number) {
-                    count++;
-                }
-            }
-            (*rowIDs) = myMalloc(sizeof(uint32_t)* count);
-            for (i = 0; i < relation->num_tuples; i++) {
-                if (relation->tuples[i].payload == number) {
-                    (*rowIDs)[i] =  relation->tuples[i].key;
-                }
-            }
-
-            break;
-        case LESS:
-            for (i = 0; i < relation->num_tuples; i++) {
-                if (relation->tuples[i].payload < number) {
-                    count++;
-                }
-            }
-            (*rowIDs) = myMalloc(sizeof(uint32_t)* count);
-            for (i = 0; i < relation->num_tuples; i++) {
-                if (relation->tuples[i].payload < number) {
-                    (*rowIDs)[i] =  relation->tuples[i].key;
-                }
-            }
-            break;
-        case GREATER:
-            for (i = 0; i < relation->num_tuples; i++) {
-                if (relation->tuples[i].payload > number) {
-                    count++;
-                }
-            }
-            (*rowIDs) = myMalloc(sizeof(uint32_t)* count);
-            for (i = 0; i < relation->num_tuples; i++) {
-                if (relation->tuples[i].payload > number) {
-                    (*rowIDs)[i] =  relation->tuples[i].key;
-                }
-            }
-            break;
-        default:
-            fprintf(stderr, "\nInvalid operator found: %d\n\n", operator);
-            return -1;
-    }
-
-    return count;
-
-}
-
 /* De-allocate Relation memory */
 void deAllocateRelation(Relation **relation, int number_of_buckets) {
 
