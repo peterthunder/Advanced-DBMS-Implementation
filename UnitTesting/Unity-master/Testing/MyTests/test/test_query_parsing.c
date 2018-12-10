@@ -23,5 +23,7 @@ void check_Query_Parsing(void)
 
     qInfo = parse_query(query);
 
+    // The result will be "NULL" since this is not a valid query. So, the following assertion will fail.
+
     TEST_ASSERT_NOT_NULL_MESSAGE(qInfo, "Query-parsing reported error for invalid query-string.");*/
 }

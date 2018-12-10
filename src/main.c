@@ -17,8 +17,7 @@ int main(void) {
 
     //testRHJ();
 
-    Table **tables = read_tables(WORKLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables,
-                                 &mapped_tables_sizes);
+    Table **tables = read_tables(WORKLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
     printf("\nNumber of columns of table 0: %ju\n\n", tables[0]->num_columns);
 

@@ -2,11 +2,13 @@
 #include "../../../../../src/radixHashJoin.h"
 #include "../../../../../src/parser.h"
 #include "../../../../../src/supportFunctions.h"
+#include "../../../../../src/file_io.h"
 #include "../../../../../src/query_functions.h"
 
 #include "test_support_functions.h"
 #include "test_query_parsing.h"
 #include "test_radix_hash_join.h"
+#include "test_file_io.h"
 #include "test_query_execution.h"
 
 
@@ -40,6 +42,10 @@ void test_Check_Partitioned_relation(void) {
 /* Check Query Parsing */
 void test_Check_Query_Parsing(void) {
     check_Query_Parsing();
+}
+
+void test_Check_read_tables(void) {
+    check_read_tables();
 }
 
 void test_Check_filter_relation(void) {
