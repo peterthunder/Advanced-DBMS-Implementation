@@ -10,6 +10,10 @@ Query_Info *parse_query(char *query) {
 
     /* Parse the Query Parts*/
     query_parts = parseQueryParts(query, &query_parts_count);     // Allocation-errors are handled internally.
+    if(query_parts == NULL){
+        perror("Wrong number of query parts!");
+        return NULL;
+    }
 
     /* Parse the Relation IDs*/
     parseRelationIDs(query_parts[0], &query_info);    // Allocation-errors are handled internally.
@@ -64,7 +68,9 @@ char **parseQueryParts(char *query, int *query_parts_count) {
         (*query_parts_count)++;
     }
 
-    assert((*query_parts_count) == 3);
+    if ( *query_parts_count != 3 )
+        return NULL;
+
     /* Get Query Parts */
     query_parts = myMalloc(sizeof(char *) * (3));
 

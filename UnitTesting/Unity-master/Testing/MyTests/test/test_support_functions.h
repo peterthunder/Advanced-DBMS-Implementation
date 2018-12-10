@@ -2,7 +2,6 @@
 #define ADVANCED_DBMS_IMPLEMENTATION_TEST_SUPPORT_FUNCTIONS_H
 
 #include "../../../src/unity.h"
-#include "../../../../../src/supportFunctions.h"
 #include "../../../../../src/radixHashJoin.h"
 
 int number_of_buckets;

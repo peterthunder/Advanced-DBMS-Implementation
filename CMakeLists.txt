@@ -64,6 +64,8 @@ add_executable(Advanced_DBMS_Implementation
         UnitTesting/Unity-master/Testing/MyTests/test/test_support_functions.h
         UnitTesting/Unity-master/Testing/MyTests/test/test_radix_hash_join.c
         UnitTesting/Unity-master/Testing/MyTests/test/test_radix_hash_join.h
+        UnitTesting/Unity-master/Testing/MyTests/test/test_query_parsing.c
+        UnitTesting/Unity-master/Testing/MyTests/test/test_query_parsing.h
         UnitTesting/Unity-master/Testing/MyTests/test/TestProductionCode.c
         src/main.c
         src/file_io.c
@@ -76,6 +78,6 @@ add_executable(Advanced_DBMS_Implementation
         src/radixHashJoin.h
         src/supportFunctions.c
         src/supportFunctions.h
-)
+        UnitTesting/Unity-master/Testing/MyTests/test/test_file_io.c UnitTesting/Unity-master/Testing/MyTests/test/test_file_io.h)
 
 target_link_libraries(Advanced_DBMS_Implementation m)

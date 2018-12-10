@@ -1,8 +1,12 @@
 #include "../../../src/unity.h"
-#include "../../../../../src/supportFunctions.h"
 #include "../../../../../src/radixHashJoin.h"
-#include "test_radix_hash_join.h"
+#include "../../../../../src/parser.h"
+#include "../../../../../src/supportFunctions.h"
+
 #include "test_support_functions.h"
+#include "test_query_parsing.h"
+#include "test_radix_hash_join.h"
+#include "test_file_io.h"
 
 
 //sometimes you may want to get at local data in a module.
@@ -30,4 +34,9 @@ void test_Check_Psum(void) {
 /* Check partitioned relation */
 void test_Check_Partitioned_relation(void) {
     check_Partitioned_relation();
+}
+
+/* Check Query Parsing */
+void test_Check_Query_Parsing(void) {
+    check_Query_Parsing();
 }

@@ -1,6 +1,4 @@
 #include "test_radix_hash_join.h"
-#include "test_support_functions.h"
-
 
 //extern int number_of_buckets;
 
