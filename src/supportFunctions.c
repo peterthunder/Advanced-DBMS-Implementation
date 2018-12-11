@@ -67,6 +67,8 @@ void printRelation(Relation *relation, int choice) {
         printf("\n");
         printf("|%2d|%3d|%3d|%2d|", relation->tuples[i].payload % H1_PARAM, relation->tuples[i].payload % H2_PARAM,
                relation->tuples[i].payload, relation->tuples[i].key);
+
+        if(i==5)break;
     }
 
     printf("\n");
@@ -167,6 +169,7 @@ void printResults(Result *result) {
         printf("[RowIDR|RowIDS]\n");
         for (int i = 0; i < current_result->num_joined_rowIDs; i++) {
             printf("   (%3d|%3d)\n", current_result->joined_rowIDs[i][0], current_result->joined_rowIDs[i][1]);
+            if(i==5)break;
         }
         current_result = current_result->next_result;
     } while (current_result != NULL);

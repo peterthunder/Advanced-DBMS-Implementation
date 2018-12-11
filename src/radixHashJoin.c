@@ -170,6 +170,7 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS, int number_of_buckets) {
 #endif
 
 
+    /* If the relation is not a full column, then we are not going to need it anymore, so free it */
     if ((*reIR)->is_full_column == FALSE) {
         deAllocateRelation(&(*reIR), number_of_buckets);
     }

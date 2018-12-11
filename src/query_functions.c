@@ -14,7 +14,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
     entity->inter_tables_count = 0;
     entity->inter_tables = myMalloc(sizeof(Intermediate_table *) * (query_info->filter_count + query_info->join_count));
 
-    /* Filter filter the relations*/
+    /* Filter filter the relations */
     for (i = 0; i < query_info->filter_count; i++) {
 
         table_number = query_info->relation_IDs[query_info->filters[i][0]]; // number of the table that has the the relation that needs to be filtered
@@ -22,7 +22,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
         operator = query_info->filters[i][2]; // what operation is the filter
         number = query_info->filters[i][3]; // and with what number
 
-        /* If the relation does not exist in the relation array*/
+        /* If the relation does not exist in the relation array */
         if ((*relation_array)[table_number][column_number] == NULL) {
             printf("Creating -> T: %d, C: %d\n", table_number, column_number);
             /*  Create the relation with a TRUE flag, that means it is a full column*/
@@ -97,7 +97,6 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
         relationJoin(&(*relation_array)[table_number1][column_number1], &(*relation_array)[table_number2][column_number2], &entity,
                      query_info->joins[i][0], query_info->joins[i][2], number_of_buckets);
 
-        break;
     }
 
 
@@ -125,7 +124,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
      */
 
 
-    //printEntity(entity);
+    printEntity(entity);
 
 
     for (i = 0; i < entity->inter_tables_count; i++) {
@@ -167,7 +166,7 @@ Relation *create_intermediate_table(int relation_Id, Entity **entity, Relation *
         relation = allocateRelation((*entity)->inter_tables[inter_table_number]->num_of_rows, FALSE);
         for (i = 0; i < (*entity)->inter_tables[inter_table_number]->num_of_rows; i++) {
             rId = (*entity)->inter_tables[inter_table_number]->inter_table[i][inter_column] - 1; // <- ayto einai to row id-1(oi pinakes 3ekinane apto 0),
-                                                                                                // oxi to swsto payload ap' ton tables
+            // oxi to swsto payload ap' ton tables
             relation->tuples[i].payload = original_relation->tuples[rId].payload; // sto original relation, s' ayto to rowID einai to swsto payload
             relation->tuples[i].key = i + 1;
         }
@@ -260,25 +259,119 @@ int32_t *filterRelation(int operator, int number, Relation *relation, uint32_t *
 
 void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, int relation_Id1, int relation_Id2, int number_of_buckets) {
 
-    int ret1, ret2, table_number1, table_number2, column_number1, column_number2;
+    int ret1, ret2, inter_table_number1, inter_table_number2, column_number1, column_number2, i, j, columns = 0;
+    uint32_t result_counter = 0;
     Relation *new_relation1, *new_relation2;
-    Result *result;
+    Result *result, *current_result;
+    int32_t **new_inter_table;
 
-    ret1 = exists_in_intermediate_table(relation_Id1, *entity, &table_number1, &column_number1);
-    ret2 = exists_in_intermediate_table(relation_Id2, *entity, &table_number2, &column_number2);
+    ret1 = exists_in_intermediate_table(relation_Id1, *entity, &inter_table_number1, &column_number1);
+    ret2 = exists_in_intermediate_table(relation_Id2, *entity, &inter_table_number2, &column_number2);
 
     printf("Ret1: %d, Ret2: %d\n", ret1, ret2);
     if (ret1 == -1 && ret2 == -1) {
-        // both not in intermediate tables
-        new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1);
-        if (new_relation1 == NULL) {
-            printf("Inter_t was just created.\n");
-        }
+        /* Create the intermediate table */
+        create_intermediate_table(relation_Id1, entity, *relation1);
         result = RadixHashJoin(relation1, relation2, number_of_buckets);
-        // printResults(result);
+        printResults(result);
+
+        /* Count the number of the results(rows) */
+        current_result = result;
+        do {
+            result_counter = result_counter + current_result->num_joined_rowIDs;
+            printf("\nAll results are: %d\n", result_counter);
+            current_result = current_result->next_result;
+        } while (current_result != NULL);
+
+        /* Fill the number of rows, columns and the relation_ids array */
+        (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->num_of_rows = result_counter;
+        (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->num_of_columns = 2;
+        (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->relationIDS_of_inter_table = myMalloc(sizeof(int *) * 2);
+        (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->relationIDS_of_inter_table[0] = relation_Id1;
+        (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->relationIDS_of_inter_table[1] = relation_Id2;
+
+        /* Create the intermediate table with size (num_of_rows * 2)  */
+        (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->inter_table = myMalloc(sizeof(int32_t *) * result_counter);
+        for (i = 0; i < (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->num_of_rows; i++) {
+            (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->inter_table[i] = myMalloc(sizeof(int32_t) * 2);
+        }
+
+        /* Reset the counter and the current_result pointer */
+        result_counter = 0;
+        current_result = result;
+        do {
+            /* Then do a for from counter until counter+ num_joined_rowIDs of the current result */
+            for (i = 0; i < current_result->num_joined_rowIDs; i++) {
+                (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->inter_table[i + result_counter][0] = current_result->joined_rowIDs[i][0];
+                (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->inter_table[i + result_counter][1] = current_result->joined_rowIDs[i][1];
+            }
+            /* Update the counter */
+            result_counter = result_counter + current_result->num_joined_rowIDs;
+            /* Go to the next result */
+            current_result = current_result->next_result;
+        } while (current_result != NULL);
+
         deAllocateResult(&result);
+
     } else if (ret1 != -1 && ret2 == -1) {
-        printf("lalalalal1\n");
+
+        new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1);
+
+        printRelation(new_relation1, 1);
+
+        result = RadixHashJoin(&new_relation1, relation2, number_of_buckets);
+        printResults(result);
+
+        /* Count the number of the results(rows) */
+        current_result = result;
+        do {
+            result_counter = result_counter + current_result->num_joined_rowIDs;
+            printf("\nAll results are: %d\n", result_counter);
+            current_result = current_result->next_result;
+        } while (current_result != NULL);
+
+        /* Fill the number of rows, columns and the relation_ids array */
+        columns = (*entity)->inter_tables[inter_table_number1]->num_of_columns + 1;
+
+        (*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table = realloc(
+                (*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table,
+                sizeof(int *) * columns);
+        (*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table[columns - 1] = relation_Id2;
+
+        /* Create a new intermediate table with size (num_of_rows * 2) */
+        new_inter_table = myMalloc(sizeof(int32_t *) * result_counter);
+
+        /* Reset the counter and the current_result pointer */
+        result_counter = 0;
+        current_result = result;
+        do {
+
+            /* Then do a for from counter until counter+ num_joined_rowIDs of the current result */
+            for (i = 0; i < current_result->num_joined_rowIDs; i++) {
+                new_inter_table[i + result_counter] = myMalloc(sizeof(int32_t) * columns);
+                for (j = 0; j < columns - 1; j++) {
+                    new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_number1]->inter_table[current_result->joined_rowIDs[i][0] -
+                                                                                                                       1][j];
+                }
+                new_inter_table[i + result_counter][j] = current_result->joined_rowIDs[i][1];
+            }
+            /* Update the counter */
+            result_counter = result_counter + current_result->num_joined_rowIDs;
+            /* Go to the next result */
+            current_result = current_result->next_result;
+        } while (current_result != NULL);
+
+        for (i = 0; i < (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->num_of_rows; i++)
+            free((*entity)->inter_tables[inter_table_number1]->inter_table[i]);
+
+        free((*entity)->inter_tables[inter_table_number1]->inter_table);
+
+        (*entity)->inter_tables[inter_table_number1]->inter_table = new_inter_table;
+        (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->num_of_rows = result_counter;
+        (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->num_of_columns = (*entity)->inter_tables[(*entity)->inter_tables_count - 1]->num_of_columns + 1;
+
+        deAllocateResult(&result);
+
     } else if (ret1 == -1 && ret2 != -1) {
         printf("lalalalala2\n");
     } else {
@@ -324,6 +417,7 @@ void printEntity(Entity *entity) {
             printf("Relation: %d\n", entity->inter_tables[i]->relationIDS_of_inter_table[j]);
             for (k = 0; k < entity->inter_tables[i]->num_of_rows; k++) {
                 printf("RowID: %d\n", entity->inter_tables[i]->inter_table[k][j]);
+                if (k == 5)break;
             }
         }
         printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
