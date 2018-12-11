@@ -4,7 +4,7 @@ compiler:
   path: gcc
   source_path:     'src/'
   unit_tests_path: &unit_tests_path 'test/'
-  radixhashjoin_path: &radixhashjoin_path '../../../../src/'
+  src_path: &src_path '../../../../src/'
   build_path:      &build_path 'build/'
   options:
     - '-c'
@@ -19,7 +19,7 @@ compiler:
       - 'src/'
       - '../../src/'
       - *unit_tests_path
-      - *radixhashjoin_path
+      - *src_path
   defines:
     prefix: '-D'
     items:

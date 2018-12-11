@@ -9,7 +9,11 @@ Query_Info *parse_query(char *query) {
     Query_Info *query_info = createQueryInfo();
 
     /* Parse the Query Parts*/
-    query_parts = parseQueryParts(query, &query_parts_count);
+    query_parts = parseQueryParts(query, &query_parts_count);     // Allocation-errors are handled internally.
+    if(query_parts == NULL){
+        perror("Wrong number of query parts!");
+        return NULL;
+    }
 
     /* Parse the Relation IDs*/
     parseRelationIDs(query_parts[0], &query_info);
@@ -64,7 +68,9 @@ char **parseQueryParts(char *query, int *query_parts_count) {
         (*query_parts_count)++;
     }
 
-    assert((*query_parts_count) == 3);
+    if ( *query_parts_count != 3 )
+        return NULL;
+
     /* Get Query Parts */
     query_parts = myMalloc(sizeof(char *) * (3));
 
@@ -146,10 +152,12 @@ int parsePredicates(char *query_part, Query_Info **q) {
         if ((strstr(token, ">")) != NULL) {
             if (parseFilter(token, GREATER, q, &current_filter) == -1)
                 return -1;
-        } else if ((strstr(token, "<")) != NULL) {
+        }
+        else if ((strstr(token, "<")) != NULL) {
             if (parseFilter(token, LESS, q, &current_filter) == -1)
                 return -1;
-        } else if ((strstr(token, "=")) != NULL) {
+        }
+        else if ((strstr(token, "=")) != NULL) {
             if (isFilter(token)) {
                 if (parseFilter(token, EQUAL, q, &current_filter) == -1)
                     return -1;

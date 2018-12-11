@@ -1,25 +1,8 @@
-#include "../../../src/unity.h"
-#include "../../../../../src/radixHashJoin.h"
-#include "../../../../../src/supportFunctions.h"
-#include "test_support_functions.h"
+#include "test_radix_hash_join.h"
 
+//extern int number_of_buckets;
 
-
-//sometimes you may want to get at local data in a module.
-//for example: If you plan to pass by reference, this could be useful
-//however, it should often be avoided
-extern int number_of_buckets;
-
-void setUp(void) {
-    //This is run before EACH TEST
-    number_of_buckets = 8;
-}
-
-void tearDown(void) {
-}
-
-/* Check histogram me vash to paradeigma ths ekfwnhshs */
-void test_Check_Histogram(void) {
+void check_Histogram(void) {
 
     int i;
     Relation *relation1;
@@ -35,6 +18,7 @@ void test_Check_Histogram(void) {
     printHistogram(histogram1, 1, number_of_buckets);
     printf("Real");
     printHistogram(histogram2, 1, number_of_buckets);*/
+
     /* Compare */
     for (i = 0; i < number_of_buckets; i++) {
         TEST_ASSERT_EQUAL_INT32_ARRAY(histogram1[i], histogram2[i], 2);
@@ -43,8 +27,8 @@ void test_Check_Histogram(void) {
     freeMemory(relation1, relation2, histogram1, histogram2, NULL, NULL);
 }
 
-/* Check psum me vash to paradeigma ths ekfwnhshs */
-void test_Check_Psum(void) {
+
+void check_Psum(void) {
 
     int i;
     Relation *relation1;
@@ -74,8 +58,9 @@ void test_Check_Psum(void) {
     freeMemory(relation1, relation2, histogram1, histogram2, psum1, psum2);
 }
 
+
 /* Check partitioned relation */
-void test_Partitioned_relation(void) {
+void check_Partitioned_relation(void) {
 
     int i;
 

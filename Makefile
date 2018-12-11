@@ -9,7 +9,7 @@ DEBUG:
 	gcc -ggdb -Wall -Wchkp -o radixHashJoin_debug src/main.c src/file_io.c src/parser.c src/query_functions.c src/radixHashJoin.c src/supportFunctions.c -D PRINTING
 
 UNIT_TESTING:
-	cd UnitTesting/Unity-master/Testing/RadixHashJoin_Test && rake
+	cd UnitTesting/Unity-master/Testing/MyTests && rake
 	# Add more UnitTesting directories.
 
 CLEAN_BASIC:

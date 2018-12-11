@@ -251,7 +251,6 @@ int32_t *filterRelation(int operator, int number, Relation *relation, uint32_t *
     }
 
     return rowIDs;
-
 }
 
 void relationFilter(Relation **original_relation, Entity **entity, int relation_Id, int number_of_buckets, int operator, int number) {
@@ -430,7 +429,6 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
         // both in intermediate tables
         printf("lalalalala3\n");
     }
-
 }
 
 void update_intermediate_table(int relation_Id, Entity **entity, int32_t *rowIDs, uint32_t rowId_count) {
@@ -456,7 +454,6 @@ void update_intermediate_table(int relation_Id, Entity **entity, int32_t *rowIDs
     /* Point to the new intermediate table */
     (*entity)->inter_tables[inter_table_number]->num_of_rows = rowId_count;
     (*entity)->inter_tables[inter_table_number]->inter_table = new_inter_table;
-
 }
 
 void printEntity(Entity *entity) {
@@ -540,7 +537,6 @@ void print_query(Query_Info *query_info, char *query, int query_number) {
     }
 
     printf("\n");
-
 }
 
 void free_query(Query_Info *query_info) {

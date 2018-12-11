@@ -10,11 +10,11 @@ include_directories(UnitTesting/Unity-master/src)
 include_directories(UnitTesting/Unity-master/test/expectdata)
 include_directories(UnitTesting/Unity-master/test/testdata)
 include_directories(UnitTesting/Unity-master/Testing)
-include_directories(UnitTesting/Unity-master/Testing/RadixHashJoin_Test/helper)
-include_directories(UnitTesting/Unity-master/Testing/RadixHashJoin_Test/test)
+include_directories(UnitTesting/Unity-master/Testing/MyTests/helper)
+include_directories(UnitTesting/Unity-master/Testing/MyTests/test)
 
 add_executable(Advanced_DBMS_Implementation
-#[[        UnitTesting/Unity-master/extras/fixture/src/unity_fixture.c
+#[[     UnitTesting/Unity-master/extras/fixture/src/unity_fixture.c
         UnitTesting/Unity-master/extras/fixture/src/unity_fixture.h
         UnitTesting/Unity-master/extras/fixture/src/unity_fixture_internals.h
         UnitTesting/Unity-master/extras/fixture/src/unity_fixture_malloc_overrides.h
@@ -24,9 +24,6 @@ add_executable(Advanced_DBMS_Implementation
         UnitTesting/Unity-master/extras/fixture/test/unity_fixture_TestRunner.c
         UnitTesting/Unity-master/extras/fixture/test/unity_output_Spy.c
         UnitTesting/Unity-master/extras/fixture/test/unity_output_Spy.h
-        UnitTesting/Unity-master/src/unity.c
-        UnitTesting/Unity-master/src/unity.h
-        UnitTesting/Unity-master/src/unity_internals.h
         UnitTesting/Unity-master/test/expectdata/testsample_cmd.c
         UnitTesting/Unity-master/test/expectdata/testsample_def.c
         UnitTesting/Unity-master/test/expectdata/testsample_head1.c
@@ -56,13 +53,24 @@ add_executable(Advanced_DBMS_Implementation
         UnitTesting/Unity-master/test/testdata/testRunnerGeneratorWithMocks.c
         UnitTesting/Unity-master/test/tests/testparameterized.c
         UnitTesting/Unity-master/test/tests/testunity.c
-        UnitTesting/Unity-master/Testing/RadixHashJoin_Test/build/TestProductionCode_Runner.c
-        UnitTesting/Unity-master/Testing/RadixHashJoin_Test/helper/UnityHelper.c
-        UnitTesting/Unity-master/Testing/RadixHashJoin_Test/helper/UnityHelper.h
-        UnitTesting/Unity-master/Testing/RadixHashJoin_Test/test/test_support_functions.c
-        UnitTesting/Unity-master/Testing/RadixHashJoin_Test/test/test_support_functions.h
-        UnitTesting/Unity-master/Testing/RadixHashJoin_Test/test/TestProductionCode.c
-        UnitTesting/Unity-master/Testing/unity_config.h]]
+        UnitTesting/Unity-master/Testing/MyTests/build/TestProductionCode_Runner.c
+        UnitTesting/Unity-master/Testing/MyTests/helper/UnityHelper.c
+        UnitTesting/Unity-master/Testing/MyTests/helper/UnityHelper.h]]
+        UnitTesting/Unity-master/src/unity.c
+        UnitTesting/Unity-master/src/unity.h
+        UnitTesting/Unity-master/src/unity_internals.h
+        UnitTesting/Unity-master/Testing/unity_config.h
+        UnitTesting/Unity-master/Testing/MyTests/test/test_support_functions.c
+        UnitTesting/Unity-master/Testing/MyTests/test/test_support_functions.h
+        UnitTesting/Unity-master/Testing/MyTests/test/test_file_io.c
+        UnitTesting/Unity-master/Testing/MyTests/test/test_file_io.h
+        UnitTesting/Unity-master/Testing/MyTests/test/test_radix_hash_join.c
+        UnitTesting/Unity-master/Testing/MyTests/test/test_radix_hash_join.h
+        UnitTesting/Unity-master/Testing/MyTests/test/test_query_parsing.c
+        UnitTesting/Unity-master/Testing/MyTests/test/test_query_parsing.h
+        UnitTesting/Unity-master/Testing/MyTests/test/test_query_execution.c
+        UnitTesting/Unity-master/Testing/MyTests/test/test_query_execution.h
+        UnitTesting/Unity-master/Testing/MyTests/test/TestProductionCode.c
         src/main.c
         src/file_io.c
         src/file_io.h
