@@ -12,6 +12,7 @@ typedef struct intermediate_table_{
 
 /* Entity that holds the intermediate tables */
 typedef struct entity_{
+    int max_count;
     int inter_tables_count;
     Intermediate_table **inter_tables; // The intermediate tables hold the joined and filtered row Ids.
 }Entity;
@@ -20,14 +21,17 @@ typedef struct entity_{
 int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array, int number_of_buckets);
 
 /* Check if a relation id exists in the intermediate_table, if it doesn't create a new table */
-Relation* create_intermediate_table(int relation_Id, Entity **entity, Relation *relation);
+Relation* create_intermediate_table(int relation_Id, Entity **entity, Relation *relation, int *inter_table_number);
 
 /* Check if the relation id exists in an intermediate table */
 int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_table_number, int *column);
 
 /* Filter a relation and return an array with the rowIDs of the relation that satisfy the filter */
-
 int32_t *filterRelation(int operator, int number, Relation *relation, uint32_t *count);
+
+/*Filter a relation */
+void relationFilter(Relation **original_relation, Entity **entity, int relation_Id, int number_of_buckets, int operator, int number);
+
 /* Join 2 Relations */
 void relationJoin(Relation **relation1, Relation **relation2, Entity** entity, int relation_Id1, int relation_Id2, int number_of_buckets);
 
