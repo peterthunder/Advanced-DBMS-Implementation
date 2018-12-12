@@ -18,7 +18,6 @@
 
 
 
-void* myMalloc(size_t sizeOfAllocation);
 
 Relation* allocateRelation(uint32_t num_tuples, bool is_complete);
 
@@ -43,6 +42,14 @@ void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **
 void printChainArray(int32_t **psum, Relation *relationNew, int **chain);
 
 void printResults(Result *result);
+
+/* Print all the intermediate tables of an entity */
+void printEntity(Entity *entity);
+
+/* Print the query */
+void print_query(Query_Info * query_info, char* query, int query_number);
+
+void* myMalloc(size_t sizeOfAllocation);
 
 int myAtoi(char *str);
 

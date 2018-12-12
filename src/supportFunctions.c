@@ -174,6 +174,93 @@ void printResults(Result *result) {
     } while (current_result != NULL);
 }
 
+void printEntity(Entity *entity) {
+
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+
+    int i, j, k;
+    for (i = 0; i < entity->inter_tables_count; i++) {
+        if (entity->inter_tables[i] != NULL) {
+            for (j = 0; j < entity->inter_tables[i]->num_of_columns; j++) {
+                printf("Relation: %d\n", entity->inter_tables[i]->relationIDS_of_inter_table[j]);
+                for (k = 0; k < entity->inter_tables[i]->num_of_rows; k++) {
+                    printf("RowID: %d\n", entity->inter_tables[i]->inter_table[k][j]);
+                    if (k == 5)break;
+                }
+            }
+            printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+        }
+
+
+    }
+}
+
+void print_query(Query_Info *query_info, char *query, int query_number) {
+
+    int i;
+
+    printf("\n----------------------------------------------------------------\n");
+
+    printf("Query[%d]: %s\n", query_number - 1, query);
+
+    printf("\tSELECT ");
+    if (query_info->selections != NULL) {
+        for (i = 0; i < query_info->selection_count; i++) {
+            if (query_info->selections[i] != NULL)
+                printf("SUM(\"%d\".c%d)", query_info->selections[i][0], query_info->selections[i][1]);
+            if (i != query_info->selection_count - 1)
+                printf(", ");
+        }
+    }
+
+    printf("\n\tFROM ");
+    for (i = 0; i < query_info->relationId_count; i++) {
+        printf("r%d \"%d\"", query_info->relation_IDs[i], i);
+        if (i != query_info->relationId_count - 1)
+            printf(", ");
+    }
+
+    printf("\n\tWHERE ");
+
+    if (query_info->joins != NULL) {
+        for (i = 0; i < query_info->join_count; i++) {
+            if (query_info->joins[i] != NULL)
+                printf("%d.c%d=%d.c%d", query_info->joins[i][0], query_info->joins[i][1], query_info->joins[i][2],
+                       query_info->joins[i][3]);
+            if (query_info->filter_count != 0)
+                printf(" and ");
+        }
+    }
+
+    if (query_info->filters != NULL) {
+        for (i = 0; i < query_info->filter_count; i++) {
+            if (query_info->filters[i] != NULL) {
+                switch (query_info->filters[i][2]) {
+                    case EQUAL:
+                        printf("%d.c%d=%d", query_info->filters[i][0], query_info->filters[i][1],
+                               query_info->filters[i][3]);
+                        break;
+                    case LESS:
+                        printf("%d.c%d<%d", query_info->filters[i][0], query_info->filters[i][1],
+                               query_info->filters[i][3]);
+                        break;
+                    case GREATER:
+                        printf("%d.c%d>%d", query_info->filters[i][0], query_info->filters[i][1],
+                               query_info->filters[i][3]);
+                        break;
+                    default:
+                        fprintf(stderr, "\nInvalid operator found: %d\n\n", query_info->filters[i][2]);
+                        return;
+                }
+            }
+            if (i != query_info->filter_count - 1)
+                printf(" and ");
+        }
+    }
+
+    printf("\n");
+}
+
 void *myMalloc(size_t sizeOfAllocation) {
 
     void *ptr = malloc(sizeOfAllocation);
