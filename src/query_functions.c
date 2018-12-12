@@ -438,7 +438,7 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
             exists_in_intermediate_table(relation_Id1, *entity, &inter_table_number1, &column_number1);
             exists_in_intermediate_table(relation_Id2, *entity, &inter_table_number2, &column_number2);
 
-            //printf("Same inter table, so filter them. t1: %d, c1: %d - t2: %d, c2: %d\n", inter_table_number1, column_number1, inter_table_number2, column_number2);
+            printf("Same inter table, so filter them. t1: %d, c1: %d - t2: %d, c2: %d\n", inter_table_number1, column_number1, inter_table_number2, column_number2);
 
             for (i = 0; i < (*entity)->inter_tables[inter_table_number1]->num_of_rows; i++) {
                 if ((*relation1)->tuples[(int)(*entity)->inter_tables[inter_table_number1]->inter_table[i][column_number1]-1].payload
@@ -473,6 +473,8 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
             (*entity)->inter_tables[inter_table_number1]->num_of_rows = counter;
             (*entity)->inter_tables[inter_table_number1]->inter_table = new_inter_table;
 
+            deAllocateRelation(&new_relation1, number_of_buckets);
+            deAllocateRelation(&new_relation2, number_of_buckets);
             free(row_ids);
 
         } else {
@@ -551,7 +553,6 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
             (*entity)->inter_tables[inter_table_number1]->num_of_columns = columns;
 
             deAllocateResult(&result);
-
 
         }
 
