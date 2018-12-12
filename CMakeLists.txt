@@ -82,6 +82,7 @@ add_executable(Advanced_DBMS_Implementation
         src/radixHashJoin.h
         src/supportFunctions.c
         src/supportFunctions.h
+        src/struct_and_const_definitions.h
 )
 
 target_link_libraries(Advanced_DBMS_Implementation m)
