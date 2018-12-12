@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/workloads/small/r0.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r1.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r10.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r11.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r12.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r13.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r2.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r3.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r4.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r5.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r6.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r7.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r8.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/workloads/small/r9.sql" dialect="MySQL" />
+  </component>
+</project>
