@@ -1,6 +1,6 @@
 #include "radixHashJoin.h"
 
-int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array, int number_of_buckets) {
+int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array) {
 
     int i, column_number, table_number, j = 0, operator, number, column_number1, column_number2, table_number1, table_number2;
 
@@ -30,7 +30,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
             initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
         }
 
-        relationFilter(&(*relation_array)[table_number][column_number], &entity, query_info->filters[i][0], number_of_buckets, operator, number);
+        relationFilter(&(*relation_array)[table_number][column_number], &entity, query_info->filters[i][0], operator, number);
     }
 
 
@@ -61,7 +61,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
             printf("Already Created -> T: %d, C: %d\n", table_number2, column_number2);
 
         relationJoin(&(*relation_array)[table_number1][column_number1], &(*relation_array)[table_number2][column_number2],
-                     &entity, query_info->joins[i][0], query_info->joins[i][2], number_of_buckets);
+                     &entity, query_info->joins[i][0], query_info->joins[i][2]);
 
         //  printf("JOIN ROWS: %d\n", entity->inter_tables[0]->num_of_rows);
 
@@ -255,7 +255,7 @@ int32_t *filterRelation(int operator, int number, Relation *relation, uint32_t *
     return rowIDs;
 }
 
-void relationFilter(Relation **original_relation, Entity **entity, int relation_Id, int number_of_buckets, int operator, int number) {
+void relationFilter(Relation **original_relation, Entity **entity, int relation_Id, int operator, int number) {
 
     int i;
     uint32_t rowId_count = 0;
@@ -276,7 +276,7 @@ void relationFilter(Relation **original_relation, Entity **entity, int relation_
         update_intermediate_table(relation_Id, entity, rowIDs, rowId_count);
 
         /*  Free the relation because it isn't needed*/
-        deAllocateRelation(&relation, number_of_buckets);
+        deAllocateRelation(&relation);
 
     } else {
 
@@ -303,7 +303,7 @@ void relationFilter(Relation **original_relation, Entity **entity, int relation_
     free(rowIDs);
 }
 
-void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, int relation_Id1, int relation_Id2, int number_of_buckets) {
+void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, int relation_Id1, int relation_Id2) {
 
     int ret1, ret2, inter_table_number, inter_table_number1, inter_table_number2, column_number1, column_number2, i, j, *row_ids;
     uint32_t result_counter = 0, columns = 0,  counter = 0;
@@ -318,7 +318,7 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
     if (ret1 == -1 && ret2 == -1) {
         /* Create the intermediate table */
         create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_number);
-        result = RadixHashJoin(relation1, relation2, number_of_buckets);
+        result = RadixHashJoin(relation1, relation2);
         printResults(result);
 
         /* Count the number of the results(rows) */
@@ -370,9 +370,9 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
         }
 
         if (ret1 != -1)
-            result = RadixHashJoin(&new_relation1, relation2, number_of_buckets);
+            result = RadixHashJoin(&new_relation1, relation2);
         else
-            result = RadixHashJoin(&new_relation2, relation1, number_of_buckets);
+            result = RadixHashJoin(&new_relation2, relation1);
         printResults(result);
 
         /* Count the number of the results(rows) */
@@ -473,14 +473,14 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
             (*entity)->inter_tables[inter_table_number1]->num_of_rows = counter;
             (*entity)->inter_tables[inter_table_number1]->inter_table = new_inter_table;
 
-            deAllocateRelation(&new_relation1, number_of_buckets);
-            deAllocateRelation(&new_relation2, number_of_buckets);
+            deAllocateRelation(&new_relation1);
+            deAllocateRelation(&new_relation2);
             free(row_ids);
 
         } else {
             printf("Different inter table so join and combine inter tables.\n");
 
-            result = RadixHashJoin(&new_relation1, &new_relation2, number_of_buckets);
+            result = RadixHashJoin(&new_relation1, &new_relation2);
 
             printResults(result);
 

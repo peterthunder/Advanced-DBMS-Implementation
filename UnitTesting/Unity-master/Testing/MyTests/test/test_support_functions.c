@@ -65,7 +65,7 @@ void fillHistograms(int32_t ***histogram1, int32_t ***histogram2, Relation *rela
         (*histogram1)[i][1] = 1;
     }
 
-    *histogram2 = createHistogram(relation1, number_of_buckets);
+    *histogram2 = createHistogram(relation1);
 }
 
 void fillPsums(int32_t ***psum1, int32_t ***psum2, int32_t **histogram2) {
@@ -90,5 +90,5 @@ void fillPsums(int32_t ***psum1, int32_t ***psum2, int32_t **histogram2) {
     (*psum1)[6][1] = 4;
     (*psum1)[7][1] = 4;
 
-    *psum2 = createPsum(number_of_buckets, histogram2);
+    *psum2 = createPsum(histogram2);
 }

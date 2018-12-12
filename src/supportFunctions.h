@@ -25,6 +25,7 @@
 #define TABLES_FILENAME "small.init"
 #define WORKLOAD_FILENAME "small.work"
 
+int32_t number_of_buckets;
 
 /* Type definition for a tuple */
 typedef struct tuple {
@@ -65,24 +66,23 @@ Relation* allocateRelation(uint32_t num_tuples, bool is_complete);
 
 void initializeRelation(Relation **rel, Table **tables, int table_number, int column_number);
 
-void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets);
+void initializeRelationWithRandomNumbers(Relation **rel);
 
 /* Print the relation */
 void printRelation(Relation *relation, int choice);
 
 /* Print the Histogram */
-void printHistogram(int32_t **histogram, int choice, int number_of_buckets);
+void printHistogram(int32_t **histogram, int choice);
 
 /* Print the Psum */
-void printPsum(int32_t **psum, int choice, int number_of_buckets);
+void printPsum(int32_t **psum, int choice);
 
 /* Print everything */
-void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS,
-                          int32_t **psumR, int32_t **psumS, Relation *newReIR, Relation *newReIS,
-                          int number_of_buckets);
+void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS, int32_t **psumR, int32_t **psumS,
+                          Relation *newReIR, Relation *newReIS);
 
 /* Print Chain of every bucket*/
-void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain);
+void printChainArray(int32_t **psum, Relation *relationNew, int **chain);
 
 void printResults(Result *result);
 

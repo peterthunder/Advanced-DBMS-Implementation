@@ -1,6 +1,5 @@
 #include "radixHashJoin.h"
 
-int32_t number_of_buckets;
 
 int main(void) {
 
@@ -70,7 +69,7 @@ int main(void) {
         else
             print_query(query_info, query, query_count);
 
-        if ((execute_query(query_info, tables, &relation_array, number_of_buckets)) == -1) {
+        if ((execute_query(query_info, tables, &relation_array)) == -1) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
             exit(-1);
         }
@@ -87,7 +86,7 @@ int main(void) {
         for (j = 0; j < tables[i]->num_columns; j++) {
             if (relation_array[i][j] != NULL) {
                 printf("Freeing %d.%d\n", i,j);
-                deAllocateRelation(&relation_array[i][j], number_of_buckets);
+                deAllocateRelation(&relation_array[i][j]);
             }
         }
         free(relation_array[i]);

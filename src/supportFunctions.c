@@ -31,7 +31,7 @@ void initializeRelation(Relation **rel, Table **tables, int table_number, int co
     }
 }
 
-void initializeRelationWithRandomNumbers(Relation **rel, int number_of_buckets) {
+void initializeRelationWithRandomNumbers(Relation **rel) {
 
     int32_t i;
 
@@ -74,7 +74,7 @@ void printRelation(Relation *relation, int choice) {
     printf("\n");
 }
 
-void printHistogram(int32_t **histogram, int choice, int number_of_buckets) {
+void printHistogram(int32_t **histogram, int choice) {
 
     int i;
 
@@ -89,7 +89,7 @@ void printHistogram(int32_t **histogram, int choice, int number_of_buckets) {
     printf("\n");
 }
 
-void printPsum(int32_t **psum, int choice, int number_of_buckets) {
+void printPsum(int32_t **psum, int choice) {
 
     int i;
 
@@ -104,24 +104,23 @@ void printPsum(int32_t **psum, int choice, int number_of_buckets) {
     printf("\n");
 }
 
-void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS,
-                          int32_t **psumR, int32_t **psumS, Relation *newReIR, Relation *newReIS,
-                          int number_of_buckets) {
+void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS, int32_t **psumR, int32_t **psumS,
+                          Relation *newReIR, Relation *newReIS) {
 
     switch (choice) {
         case 1:
             printRelation(reIR, 1);
 
-            printHistogram(histogramR, 1, number_of_buckets);
-            printPsum(psumR, 1, number_of_buckets);
+            printHistogram(histogramR, 1);
+            printPsum(psumR, 1);
 
             printRelation(newReIR, 3);
             break;
         case 2:
             printRelation(reIS, 2);
 
-            printHistogram(histogramS, 2, number_of_buckets);
-            printPsum(psumS, 2, number_of_buckets);
+            printHistogram(histogramS, 2);
+            printPsum(psumS, 2);
 
             printRelation(newReIS, 4);
             break;
@@ -129,10 +128,10 @@ void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **
             printRelation(reIR, 1);
             printRelation(reIS, 2);
 
-            printHistogram(histogramR, 1, number_of_buckets);
-            printPsum(psumR, 1, number_of_buckets);
-            printHistogram(histogramS, 2, number_of_buckets);
-            printPsum(psumS, 2, number_of_buckets);
+            printHistogram(histogramR, 1);
+            printPsum(psumR, 1);
+            printHistogram(histogramS, 2);
+            printPsum(psumS, 2);
 
             printRelation(newReIR, 3);
             printRelation(newReIS, 4);
@@ -140,7 +139,7 @@ void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **
 
 }
 
-void printChainArray(int number_of_buckets, int32_t **psum, Relation *relationNew, int **chain) {
+void printChainArray(int32_t **psum, Relation *relationNew, int **chain) {
     int32_t i, j;
     int32_t difference;
 

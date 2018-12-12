@@ -4,7 +4,6 @@
 #include "../../../src/unity.h"
 #include "../../../../../src/radixHashJoin.h"
 
-int number_of_buckets;
 
 void initializeRelations(Relation **relation1, Relation **relation2);
 void freeMemory(Relation *relation1, Relation *relation2, int32_t **histogram1, int32_t **histogram2,  int32_t **psum1, int32_t **psum2);

@@ -15,9 +15,9 @@ void check_Histogram(void) {
     fillHistograms(&histogram1, &histogram2, relation1);
 
 /*    printf("Fake");
-    printHistogram(histogram1, 1, number_of_buckets);
+    printHistogram(histogram1, 1);
     printf("Real");
-    printHistogram(histogram2, 1, number_of_buckets);*/
+    printHistogram(histogram2, 1);*/
 
     /* Compare */
     for (i = 0; i < number_of_buckets; i++) {
@@ -47,9 +47,9 @@ void check_Psum(void) {
 
     /* Compare */
 /*    printf("Fake");
-    printPsum(psum1, 1, number_of_buckets);
+    printPsum(psum1, 1);
     printf("Real");
-    printPsum(psum2, 1, number_of_buckets);*/
+    printPsum(psum2, 1);*/
 
     for (i = 0; i < number_of_buckets; i++) {
         TEST_ASSERT_EQUAL_INT32_ARRAY(psum1[i], psum2[i], 2);
@@ -77,13 +77,13 @@ void check_Partitioned_relation(void) {
 
     initializeRelations(&relation1, &relation2);
 
-    int32_t **histogram1 = createHistogram(relation1, number_of_buckets);
-    int32_t **histogram2 = createHistogram(relation2, number_of_buckets);
-    int32_t **psum1 = createPsum(number_of_buckets, histogram1);
-    int32_t **psum2 = createPsum(number_of_buckets, histogram2);
+    int32_t **histogram1 = createHistogram(relation1);
+    int32_t **histogram2 = createHistogram(relation2);
+    int32_t **psum1 = createPsum(histogram1);
+    int32_t **psum2 = createPsum(histogram2);
 
-    partition(relation1, &newrelation1, number_of_buckets, psum1);
-    partition(relation2, &newrelation2, number_of_buckets, psum2);
+    partition(relation1, &newrelation1, psum1);
+    partition(relation2, &newrelation2, psum2);
 
 
     int32_t p_array1[4] = {1, 2, 3, 4};
