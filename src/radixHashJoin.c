@@ -50,7 +50,7 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
     clock_t start_t, end_t, total_t;
     int i;
 
-    printf("\n# Running RadixHashJoin on Relations R and S.\n");
+    //printf("\n# Running RadixHashJoin on Relations R and S.\n");
     start_t = clock();
 
     /* Certain values to create chains */
@@ -69,7 +69,7 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
     if ((*reIR)->psum == NULL) {
         (*reIR)->psum = createPsum(histogramR);    // Allocation-errors are handled internally.
     } else {
-        printf("   -Psum is already built for Relation R.\n");
+        //printf("   -Psum is already built for Relation R.\n");
     }
 
     /* Create Relation S histogram and psum */
@@ -78,32 +78,32 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
     if ((*reIS)->psum == NULL) {
         (*reIS)->psum = createPsum(histogramS);    // Allocation-errors are handled internally.
     } else {
-        printf("   -Psum is already built for Relation S.\n");
+        //printf("   -Psum is already built for Relation S.\n");
     }
 
     /* Allocate memory for the new relations R' and S'. */
     /* And partition the relations. */
     if ((*reIR)->is_partitioned == FALSE) {
 
-        printf("  -Phase 1: Partitioning the relation R.\n");
+        //printf("  -Phase 1: Partitioning the relation R.\n");
 
         (*reIR)->paritioned_relation = allocateRelation((*reIR)->num_tuples, TRUE);    // Allocation-errors are handled internally.
         partition((*reIR), &(*reIR)->paritioned_relation, (*reIR)->psum);
         (*reIR)->is_partitioned = TRUE;
 
     } else {
-        printf("   -Relation R is already partitioned.\n");
+        //printf("   -Relation R is already partitioned.\n");
     }
 
     if ((*reIS)->is_partitioned == FALSE) {
 
-        printf("  -Phase 1: Partitioning the relation S.\n");
+        //printf("  -Phase 1: Partitioning the relation S.\n");
 
         (*reIS)->paritioned_relation = allocateRelation((*reIS)->num_tuples, TRUE);    // Allocation-errors are handled internally.
         partition((*reIS), &(*reIS)->paritioned_relation, (*reIS)->psum);
         (*reIS)->is_partitioned = TRUE;
     } else {
-        printf("   -Relation S is already partitioned.\n");
+        //printf("   -Relation S is already partitioned.\n");
     }
 
 
@@ -114,14 +114,14 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
 
     /* The bucket and index array of one of the 2 relation already exists */
     if ((*reIR)->is_built == TRUE) {
-        printf("   -Relation R already has an index.\n");
-        printf("  -Phase 3: Joining the relations.\n");
+        //printf("   -Relation R already has an index.\n");
+        //printf("  -Phase 3: Joining the relations.\n");
         result = joinRelations((*reIR)->paritioned_relation, (*reIS)->paritioned_relation, (*reIR)->psum,
                                (*reIS)->psum, (*reIR)->bucket_index, (*reIR)->chain, TRUE);
 
     } else if ((*reIS)->is_built == TRUE) {
-        printf("   -Relation S already has an index.\n");
-        printf("  -Phase 3: Joining the relations.\n");
+        //printf("   -Relation S already has an index.\n");
+        //printf("  -Phase 3: Joining the relations.\n");
         result = joinRelations((*reIS)->paritioned_relation, (*reIR)->paritioned_relation, (*reIS)->psum,
                                (*reIR)->psum, (*reIS)->bucket_index, (*reIS)->chain, FALSE);
     }
@@ -130,26 +130,26 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
 
         allocateAndInitializeBucketIndexAndChain(&(*reIR)->chain, &(*reIR)->bucket_index);    // Allocation-errors are handled internally.
 
-        printf("  -Phase 2: Building index on the smaller relation R.\n");
+        //printf("  -Phase 2: Building index on the smaller relation R.\n");
         buildSmallestPartitionedRelationIndex((*reIR)->paritioned_relation, (*reIR)->psum, &(*reIR)->bucket_index, &(*reIR)->chain);    // Allocation-errors are handled internally.
 
         (*reIR)->is_built = TRUE;
 
         //printChainArray(psumR, relationNewR, chain);
-        printf("  -Phase 3: Joining the relations.\n");
+        //printf("  -Phase 3: Joining the relations.\n");
         result = joinRelations((*reIR)->paritioned_relation, (*reIS)->paritioned_relation, (*reIR)->psum, (*reIS)->psum, (*reIR)->bucket_index, (*reIR)->chain, TRUE);
     } else {
 
         allocateAndInitializeBucketIndexAndChain(&(*reIS)->chain, &(*reIS)->bucket_index);    // Allocation-errors are handled internally.
 
-        printf("  -Phase 2: Building index on the smaller relation S.\n");
+        //printf("  -Phase 2: Building index on the smaller relation S.\n");
         buildSmallestPartitionedRelationIndex((*reIS)->paritioned_relation, (*reIS)->psum, &(*reIS)->bucket_index,
                                               &(*reIS)->chain);    // Allocation-errors are handled internally.
 
         (*reIS)->is_built = TRUE;
 
         //printChainArray(psumS, relationNewS, chain);
-        printf("  -Phase 3: Joining the relations.\n");
+        //printf("  -Phase 3: Joining the relations.\n");
         result = joinRelations((*reIS)->paritioned_relation, (*reIR)->paritioned_relation, (*reIS)->psum, (*reIR)->psum, (*reIS)->bucket_index, (*reIS)->chain, FALSE);
     }
 
@@ -180,7 +180,7 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
     free(histogramS);
 
 
-    printf(" -Join finished.\n");
+    //printf(" -Join finished.\n");
 
     return result;
 }

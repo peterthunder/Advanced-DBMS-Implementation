@@ -20,7 +20,7 @@ int main(void) {
 
     Table **tables = read_tables(WORKLOAD_BASE_PATH, TABLES_FILENAME, &num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
-    printf("\nNumber of columns of table 0: %ju\n\n", tables[0]->num_columns);
+    //printf("\nNumber of columns of table 0: %ju\n\n", tables[0]->num_columns);
 
     workload_path[0] = '\0';
     /* Create the path of the file that contains the workload */
@@ -41,11 +41,15 @@ int main(void) {
 
         relation_array[i] = myMalloc(sizeof(Relation *) * tables[i]->num_columns);
 
-        printf(" Table %d has %ju columns.\n", i, tables[i]->num_columns);
+        //printf(" Table %d has %ju columns.\n", i, tables[i]->num_columns);
         for (j = 0; j < tables[i]->num_columns; j++) {
             relation_array[i][j] = NULL;
         }
     }
+
+    FILE *fp = fopen("results.txt", "wb");
+    if (!fp)
+        perror("Error creating file!\n");
 
     /* Get queries */
     while (!feof(fptr)) {
@@ -59,25 +63,19 @@ int main(void) {
             continue;
         query_count++;
 
-        if (query_count == 1)
-            query_info = parse_query("13 0 2|0.2=1.0&1.0=0.1&1.0=2.2&0.1>4477|2.0 2.3 1.2"); //<-Q53 "12 1 6 12|0.2=1.0&1.0=2.1&0.1=3.2&3.0>85280|2.1 0.1 0.2" - "3 1|0.1=1.0&0.2<3071|0.2 0.2"
-        else
-            query_info = parse_query(query);    // Allocation-errors are handled internally.
+        query_info = parse_query(query);    // Allocation-errors are handled internally.
 
-        if (query_count == 1)
-            print_query(query_info, "13 0 2|0.2=1.0&1.0=0.1&1.0=2.2&0.1>4477|2.0 2.3 1.2", query_count);
-        else
-            print_query(query_info, query, query_count);
+        //printf("\n----------------------------------------------------------------");
 
-        if ((execute_query(query_info, tables, &relation_array)) == -1) {
+        if ((execute_query(query_info, tables, &relation_array, fp)) == -1) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
             exit(-1);
         }
         free_query(query_info);
-        if (query_count == 1)
-            break;
+       /* if (query_count == 17)
+            break;*/
     }
-    printf("----------------------------------------------------------------\n");
+    //printf("\n----------------------------------------------------------------\n");
 
     fclose(fptr);
 
@@ -85,7 +83,7 @@ int main(void) {
     for (i = 0; i < num_of_tables; i++) {
         for (j = 0; j < tables[i]->num_columns; j++) {
             if (relation_array[i][j] != NULL) {
-                printf("Freeing %d.%d\n", i,j);
+                //printf("Freeing %d.%d\n", i,j);
                 deAllocateRelation(&relation_array[i][j]);
             }
         }
@@ -102,6 +100,8 @@ int main(void) {
     free(mapped_tables);
     free(tables);
     free(query);
+
+    printf("\nFinished parsing and executing queries!\n");
 
     return EXIT_SUCCESS;
 }
