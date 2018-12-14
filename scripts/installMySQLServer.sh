@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-sudp apt install -y mysql-server
+sudp apt-get install -y mysql-server
