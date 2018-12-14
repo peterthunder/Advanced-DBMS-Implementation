@@ -18,12 +18,14 @@ void check_Query_Parsing(void)
 
     TEST_ASSERT_EQUAL_INT_MESSAGE(qInfo->relationId_count, 3, "RelationIDs count was wrong!");
 
-    // Enable the following test if you want to see a failing example
-    /*query = "3 0 1|0.2=1.0&0.dvdsddsdsdsd1=2.0&0.2>3499|1.2 0.1| 9 0 0";
+
+    // Test an invalid query-string. Our function should report an error by returning "NULL".
+
+    query = "3 0     1|0.2=1.0&0.dvdsddsdsdsd1=2.0&0.2>3499|1.2 0.1||| 9 0 0";
 
     qInfo = parse_query(query);
 
-    // The result will be "NULL" since this is not a valid query. So, the following assertion will fail.
+    // The result should be "NULL", since this is not a valid query.
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(qInfo, "Query-parsing reported error for invalid query-string.");*/
+    TEST_ASSERT_NULL_MESSAGE(qInfo, "\"parse_query()\" failed to detect an invalid query-string!");
 }
