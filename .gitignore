@@ -1,0 +1,9 @@
+.idea
+cmake-build-debug/
+example.c
+results.txt
+workloads
+build/
+radixHashJoin_basic
+radixHashJoin_debug
+
