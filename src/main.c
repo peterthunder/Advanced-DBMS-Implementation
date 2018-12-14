@@ -13,6 +13,11 @@ int main(void) {
     /* H1_PARAM is the number of the last-n bits of the 32-bit number we wanna keep */
     int32_t n = H1_PARAM;
 
+    clock_t start_t, end_t, total_t;
+
+    printf("\nRunning Advance_DBMS_Implementation..\n");
+    start_t = clock();
+
     /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
     number_of_buckets = (int32_t) myPow(2, n);
 
@@ -101,7 +106,10 @@ int main(void) {
     free(tables);
     free(query);
 
-    printf("\nFinished parsing and executing queries!\n");
+    end_t = clock();
+    total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
+
+    printf("\nFinished parsing and executing queries in %ld seconds!\n", total_t);
 
     return EXIT_SUCCESS;
 }
