@@ -36,7 +36,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
         table_name[strlen(table_name) - 1] = '\0';
 
-        //fprintf(fp_msg, "%s\n", table_name);
+        //fprintf(fp_print, "%s\n", table_name);
 
         if (strcmp(table_name, "Done") == 0 || strcmp(table_name, "\n") == 0 || strlen(table_name) == 0)
             break;
@@ -81,10 +81,10 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         strcpy(table_path, "workloads/small/");
         strcat(table_path, table_names[i]);
 
-        //fprintf(fp_msg, "%s\n", table_path);
+        //fprintf(fp_print, "%s\n", table_path);
 
 #if PRINTING
-        printf("Path of the %d-th mapped_tables: %s\n", current_table, table_path);
+        fprintf(fp_print, "Path of the %d-th mapped_tables: %s\n", i, table_path);
 #endif
         /* Open the mapped_tables */
         if ((fd = open(table_path, O_RDWR, 0)) == -1) {
@@ -104,8 +104,8 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         if ((*mapped_tables)[i] == MAP_FAILED)
             perror("error reading mapped_tables file");
 #if PRINTING
-        printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", current_table,
-               (*mapped_tables)[current_table][0], (*mapped_tables)[current_table][1]);
+        printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", i,
+               (*mapped_tables)[i][0], (*mapped_tables)[i][1]);
 #endif
         /* Initialize each table's variables */
         tables[i]->num_tuples = (*mapped_tables)[i][0];

@@ -11,7 +11,7 @@ compiler:
     - '-m32'
     - '-Wall'
     - '-Wno-address'
-    - '-std=c99'
+    - '-std=gnu99'
     - '-pedantic'
   includes:
     prefix: '-I'
