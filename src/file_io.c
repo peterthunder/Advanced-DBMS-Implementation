@@ -1,42 +1,61 @@
 #include "file_io.h"
 
-Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, uint64_t ***mapped_tables, int **mapped_tables_sizes) {
-    printf("\n# Mmapping tables to memory and initializing structures.\n");
+Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_tables_sizes) {
 
-    FILE *fptr1;
-    int fd, current_table = 0, i;
+    fprintf(fp_print, "\n# Mmapping tables to memory and initializing structures.\n");
+
+    FILE *fptr = NULL;
+    int fd, i, j, table_names_array_size = 2;
     size_t size;
     struct stat st;
     char *table_name = NULL;
-    char init_path[1024], table_path[1024];
+    char table_path[1024];
+
+    char **table_names = malloc(sizeof(char *) * 2);
+    for (i = 0; i < 2; i++) {
+        table_names[i] = malloc(sizeof(char) * 1024);
+    }
+
     /* Init */
     *num_of_tables = 0;
 
-    init_path[0] = '\0';
-    /* Create the path of the file that contains the names of the tables */
-    strcpy(init_path, base_path);
-    strcat(init_path, init_filename);
-
-    printf("  -Path of the file with the mapped_tables names: %s\n", init_path);
-
-    /* Open the file on that path */
-    if ( (fptr1 = fopen(init_path, "r")) == NULL ) {
-        fprintf(stderr, "Error opening file \"%s\": %s!\n", init_path, strerror(errno));
-        return NULL;
+    if (USE_HARNESS == FALSE) {
+        /* Open the file on that path */
+        if ((fptr = fopen("workloads/small/small.init", "r")) == NULL) {
+            fprintf(stderr, "Error opening file workloads/small/small.init: %s!\n", strerror(errno));
+            return NULL;
+        }
+    }else{
+        fptr = stdin;
     }
 
+
     /* Count the number of tables */
-    while (!feof(fptr1)) {
-        getline(&table_name, &size, fptr1);
-        if (strcmp(table_name, "\n") == 0 || strlen(table_name) == 0)
-            continue;
+    while (1) {
+        getline(&table_name, &size, fptr);
+
+        table_name[strlen(table_name) - 1] = '\0';
+
+        //fprintf(fp_msg, "%s\n", table_name);
+
+        if (strcmp(table_name, "Done") == 0 || strcmp(table_name, "\n") == 0 || strlen(table_name) == 0)
+            break;
+
+        strcpy(table_names[*num_of_tables], table_name);
         (*num_of_tables)++;
+
+        if (table_names_array_size == *num_of_tables) {
+            table_names_array_size = table_names_array_size * 2;
+            table_names = realloc(table_names, (size_t) table_names_array_size * sizeof(char *));
+            for (i = *num_of_tables; i < table_names_array_size; i++) {
+                table_names[i] = malloc(sizeof(char) * 1024);
+            }
+        }
         table_name[0] = '\0';
     }
 
-    printf("  -Number of tables: %d\n", *num_of_tables);
-
-    rewind(fptr1);
+    if (USE_HARNESS == FALSE)
+        fclose(fptr);
 
     /* Allocate all the memory needed and initialize all the structures */
     Table **tables = myMalloc(sizeof(Table *) * (*num_of_tables));
@@ -56,20 +75,14 @@ Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, ui
         (*mapped_tables_sizes)[i] = -1;
 
     /* Read the names of the tables line by line */
-    while (!feof(fptr1)) {
-#if PRINTING
-        printf("\n");
-#endif
-        //table_name[0] = '\0';
-        /* Get the name of the mapped_tables file */
-        getline(&table_name, &size, fptr1);
-        /* If you are on the last line, break*/
-        if (strcmp(table_name, "\n") == 0 || strlen(table_name) == 0)
-            continue;
-        table_name[strlen(table_name) - 1] = '\0';
+    for (i = 0; i < *num_of_tables; i++) {
+
         /* Create the path of the mapped_tables */
-        strcpy(table_path, base_path);
-        strcat(table_path, table_name);
+        strcpy(table_path, "workloads/small/");
+        strcat(table_path, table_names[i]);
+
+        //fprintf(fp_msg, "%s\n", table_path);
+
 #if PRINTING
         printf("Path of the %d-th mapped_tables: %s\n", current_table, table_path);
 #endif
@@ -84,36 +97,37 @@ Table **read_tables(char* base_path, char* init_filename, int *num_of_tables, ui
             return NULL;
         }
         size = (size_t) st.st_size;
-        (*mapped_tables_sizes)[current_table] = (int) size;
+        (*mapped_tables_sizes)[i] = (int) size;
 
         /* MAP the whole table to a pointer */
-        (*mapped_tables)[current_table] = mmap(0, size, PROT_READ | PROT_EXEC, MAP_SHARED, fd, 0);
-        if ((*mapped_tables)[current_table] == MAP_FAILED)
+        (*mapped_tables)[i] = mmap(0, size, PROT_READ | PROT_EXEC, MAP_SHARED, fd, 0);
+        if ((*mapped_tables)[i] == MAP_FAILED)
             perror("error reading mapped_tables file");
 #if PRINTING
         printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", current_table,
                (*mapped_tables)[current_table][0], (*mapped_tables)[current_table][1]);
 #endif
         /* Initialize each table's variables */
-        tables[current_table]->num_tuples = (*mapped_tables)[current_table][0];
-        tables[current_table]->num_columns = (*mapped_tables)[current_table][1]; // OR (**mapped_tables + current_table)[1];
-        tables[current_table]->column_indexes = myMalloc(sizeof(uint64_t *) * tables[current_table]->num_columns);
+        tables[i]->num_tuples = (*mapped_tables)[i][0];
+        tables[i]->num_columns = (*mapped_tables)[i][1]; // OR (**mapped_tables + current_table)[1];
+        tables[i]->column_indexes = myMalloc(sizeof(uint64_t *) * tables[i]->num_columns);
 
-        for (i = 0; i < tables[current_table]->num_columns; i++) {
-            tables[current_table]->column_indexes[i] = &(*mapped_tables)[current_table][2 + i * tables[current_table]->num_tuples];
+        for (j = 0; j < tables[i]->num_columns; j++) {
+            tables[i]->column_indexes[j] = &(*mapped_tables)[i][2 + j * tables[i]->num_tuples];
         }
 
         close(fd);
-        current_table++;
 #if PRINTING
         printf("-------------------------------------------------------\n");
 #endif
-        table_name[0] = '\0';
     }
 
-    printf(" -Finished mmapping tables to memory and initializing structures.\n");
+    fprintf(fp_print, " -Finished mmapping tables to memory and initializing structures.\n");
 
-    fclose(fptr1);
+    for(i=0; i<table_names_array_size; i++)
+        free(table_names[i]);
+
+    free(table_names);
     free(table_name);
 
     return tables;

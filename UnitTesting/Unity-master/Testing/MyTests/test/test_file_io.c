@@ -15,7 +15,7 @@ void check_read_tables(void)
 
     //printf("Workload_base_path: %s\n", workload_base_path);   // DEBUG!
 
-    Table** tables = read_tables(workload_base_path, TABLES_FILENAME, &num_of_tables, &mapped_tables, &mapped_tables_sizes);
+/*    Table** tables = read_tables(workload_base_path, TABLES_FILENAME, &num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
-    TEST_ASSERT_NOT_NULL_MESSAGE(tables, "Reading tables failed!");
+    TEST_ASSERT_NOT_NULL_MESSAGE(tables, "Reading tables failed!");*/
 }

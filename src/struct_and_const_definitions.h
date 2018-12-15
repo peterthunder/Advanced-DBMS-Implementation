@@ -1,7 +1,7 @@
 #ifndef ADVANCED_DBMS_IMPLEMENTATION_STRUCT_AND_CONST_DEFINITIONS_H
 #define ADVANCED_DBMS_IMPLEMENTATION_STRUCT_AND_CONST_DEFINITIONS_H
 
-#define H1_PARAM 3 // Number of bits we PRINTING keep after the 1st hash function pass
+#define H1_PARAM 4 // Number of bits we PRINTING keep after the 1st hash function pass
 #define H2_PARAM 101 // The number we use in the 2nd hash function as mod
 #define JOINED_ROWIDS_NUM ((1024 * 1024) / 8)
 #define TRUE true
@@ -10,11 +10,10 @@
 #define GREATER 1
 #define LESS 2
 #define WORKLOAD_BASE_PATH  "workloads/small/"
-#define TABLES_FILENAME "small.init"
-#define WORKLOAD_FILENAME "small.work"
+#define USE_HARNESS false
 
 int32_t number_of_buckets;
-
+FILE *fp_read,*fp_write, *fp_print;
 
 /* Type definition for a tuple */
 typedef struct tuple {
@@ -62,7 +61,6 @@ typedef struct Query_ {
     int join_count;
     int **selections;
     int selection_count;
-
 } Query_Info;
 
 
@@ -81,6 +79,13 @@ typedef struct entity_{
     Intermediate_table **inter_tables; // The intermediate tables hold the joined and filtered row Ids.
 }Entity;
 
+
+typedef struct sum_struct{
+    int full_size;
+    int actual_size;
+    long **sums;
+    int *sums_sizes;
+}Sum_struct;
 
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_STRUCT_AND_CONST_DEFINITIONS_H

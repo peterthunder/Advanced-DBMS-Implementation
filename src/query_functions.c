@@ -1,6 +1,6 @@
 #include "radixHashJoin.h"
 
-int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array, FILE *fp) {
+long * execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array, FILE *fp) {
 
     int i, column_number, table_number, j = 0, operator, number, column_number1, column_number2, table_number1, table_number2;
 
@@ -23,17 +23,13 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
 
         /* If the relation does not exist in the relation array */
         if ((*relation_array)[table_number][column_number] == NULL) {
-            //printf("Creating -> T: %d, C: %d\n", table_number, column_number);
             /*  Create the relation with a TRUE flag, that means it is a full column*/
             (*relation_array)[table_number][column_number] = allocateRelation((uint32_t) tables[table_number]->num_tuples, TRUE);
             /*  And fill the relation from the tables array*/
             initializeRelation(&(*relation_array)[table_number][column_number], tables, table_number, column_number);
         }
-
         relationFilter(&(*relation_array)[table_number][column_number], &entity, query_info->filters[i][0], operator, number);
     }
-
-    int64_t sum, rid;
 
     /* Then Join them */
     for (i = 0; i < query_info->join_count; i++) {
@@ -53,11 +49,9 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
         column_number2 = query_info->joins[i][3];
 
         if ((*relation_array)[table_number2][column_number2] == NULL) {
-            //printf("Creating -> T: %d, C: %d\n", table_number2, column_number2);
             (*relation_array)[table_number2][column_number2] = allocateRelation((uint32_t) tables[table_number2]->num_tuples, TRUE);
             initializeRelation(&(*relation_array)[table_number2][column_number2], tables, table_number2, column_number2);
         } else {
-            //printf("Already Created -> T: %d, C: %d\n", table_number2, column_number2);
         }
 
         relationJoin(&(*relation_array)[table_number1][column_number1], &(*relation_array)[table_number2][column_number2],
@@ -65,10 +59,9 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
 
     }
 
-    calculateSums(entity, query_info, tables, fp);
+    long* sums = calculateSums(entity, query_info, tables, fp);
 
     //printEntity(entity);
-
 
     for (i = 0; i < entity->max_count; i++) {
         if (entity->inter_tables[i] != NULL) {
@@ -85,7 +78,7 @@ int execute_query(Query_Info *query_info, Table **tables, Relation ****relation_
     free(entity);
 
 
-    return 0;
+    return sums;
 }
 
 Relation *create_intermediate_table(int relation_Id, Entity **entity, Relation *original_relation, int *inter_table_number) {
@@ -520,12 +513,15 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
     }
 }
 
-void calculateSums(Entity *entity, Query_Info *query_info, Table **tables, FILE *fp) {
+long* calculateSums(Entity *entity, Query_Info *query_info, Table **tables, FILE *fp) {
 
     //printf("\n");
 
     int64_t sum = 0, rid;
     int i, j, inter_table_number, inter_column_number, ret, table, column;
+
+
+    long* sums = myMalloc(sizeof(long) * query_info->selection_count);
 
 
     for (i = 0; i < query_info->selection_count; i++) {
@@ -541,27 +537,24 @@ void calculateSums(Entity *entity, Query_Info *query_info, Table **tables, FILE 
         }
         if (i == query_info->selection_count - 1)
             if (sum == 0){
-                fprintf(fp, "NULL\n");
-                //printf("NULL\n");
+                sums[i] = 0;
             }
             else{
-                fprintf(fp, "%ld\n", (long) sum);
-                //printf("%ld", (long) sum);
+                sums[i] = (long) sum;
             }
         else {
 
             if (sum == 0){
-                fprintf(fp, "NULL ");
-                //printf("NULL ");
+                sums[i] = 0;
             }
             else{
-                fprintf(fp, "%ld ", (long) sum);
-                //printf("%ld ", (long) sum);
+                sums[i] = (long) sum;
             }
         }
 
     }
 
+    return sums;
 }
 
 
