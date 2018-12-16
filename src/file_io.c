@@ -45,7 +45,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         (*num_of_tables)++;
 
         if (table_names_array_size == *num_of_tables) {
-            table_names_array_size = table_names_array_size * 2;
+            table_names_array_size <<= 1; // fast-multiply by 2
             table_names = realloc(table_names, (size_t) table_names_array_size * sizeof(char *));
             for (i = *num_of_tables; i < table_names_array_size; i++) {
                 table_names[i] = malloc(sizeof(char) * 1024);

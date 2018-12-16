@@ -139,7 +139,7 @@ int main(void) {
         sumStruct->actual_size++;
 
         if (sumStruct->full_size == sumStruct->actual_size) {
-            sumStruct->full_size *= 2;
+            sumStruct->full_size <<= 1; // fast-multiply by 2
             sumStruct->sums = realloc(sumStruct->sums, sumStruct->full_size * sizeof(long *));
             sumStruct->sums_sizes = realloc(sumStruct->sums_sizes, sumStruct->full_size * sizeof(long));
         }
