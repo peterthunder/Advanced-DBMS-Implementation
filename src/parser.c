@@ -10,8 +10,8 @@ Query_Info *parse_query(char *query) {
 
     /* Parse the Query Parts*/
     query_parts = parseQueryParts(query, &query_parts_count);     // Allocation-errors are handled internally.
-    if(query_parts == NULL){
-        perror("Wrong number of query parts!");
+    if ( query_parts == NULL ) {
+        fprintf(stderr, "\nAn error occurred while parsing the query-parts!\n");
         return NULL;
     }
 
@@ -20,7 +20,7 @@ Query_Info *parse_query(char *query) {
 
     /* Parse the Predicates */
     if ((parsePredicates(query_parts[1], &query_info)) == -1) {
-        printf("An error occurred while parsing the predicates!\n");
+        fprintf(stderr, "\nAn error occurred while parsing the predicates!\n");
         return NULL;
     }
 
@@ -68,8 +68,10 @@ char **parseQueryParts(char *query, int *query_parts_count) {
         (*query_parts_count)++;
     }
 
-    if (*query_parts_count != 3)
+    if ( *query_parts_count != 3 ) {
+        fprintf(stderr, "\nWrong number of query parts! Received %d, while expecting 3.\n", *query_parts_count);
         return NULL;
+    }
 
     /* Get Query Parts */
     query_parts = myMalloc(sizeof(char *) * (3));
@@ -164,7 +166,7 @@ int parsePredicates(char *query_part, Query_Info **q) {
             } else
                 parseJoin(token, q, &current_join);
         } else {
-            perror("Unknown character!\n");
+            fprintf(stderr, "\nUnknown character!\n");
             return -1;
         }
         token = strtok_r(NULL, "&", &saveptr);
@@ -236,7 +238,6 @@ int parseFilter(char *token, int operator, Query_Info **q, int *current_filter) 
             token1 = strtok_r(NULL, "<", &saveptr2);
         else
             token1 = strtok_r(NULL, ">", &saveptr2);
-
     }
     return 0;
 }

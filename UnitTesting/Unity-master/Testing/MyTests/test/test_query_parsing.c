@@ -21,7 +21,9 @@ void check_Query_Parsing(void)
 
     // Test an invalid query-string. Our function should report an error by returning "NULL".
 
-    query = "3 0     1|0.2=1.0&0.dvdsddsdsdsd1=2.0&0.2>3499|1.2 0.1||| 9 0 0";
+    query = "3 0     1|0.2=1.0&0.dvds.dds.dsd.sd1=2.0&0.2>3499|1.2 0.1||| 9 0 0";
+
+    fprintf(stderr, "\n\nTesting the invalid query: \"%s\"\n", query);
 
     qInfo = parse_query(query);
 
