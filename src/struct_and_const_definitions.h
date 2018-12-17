@@ -10,7 +10,7 @@
 #define GREATER 1
 #define LESS 2
 #define WORKLOAD_BASE_PATH  "workloads/small/"
-#define USE_HARNESS false
+#define USE_HARNESS true
 
 int32_t number_of_buckets;
 FILE *fp_read,*fp_write, *fp_print;

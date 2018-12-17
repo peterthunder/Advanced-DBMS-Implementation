@@ -78,7 +78,10 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     for (i = 0; i < *num_of_tables; i++) {
 
         /* Create the path of the mapped_tables */
-        strcpy(table_path, "workloads/small/");
+        if (USE_HARNESS == FALSE)
+            strcpy(table_path, "workloads/small/");
+        else
+            strcpy(table_path, "../../workloads/small/");
         strcat(table_path, table_names[i]);
 
         //fprintf(fp_print, "%s\n", table_path);

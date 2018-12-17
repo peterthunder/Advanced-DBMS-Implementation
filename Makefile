@@ -12,6 +12,15 @@ UNIT_TESTING:
 	cd UnitTesting/Unity-master/Testing/MyTests && rake
 	# Add more UnitTesting directories.
 
+HARNESS:
+	rm -rf build && ./compile.sh && ./runTestharness.sh
+
+DRIVER:
+	rm -rf build && ./compile.sh && ./run.sh
+
+EXAMPLE:
+	gcc -o example example.c
+
 CLEAN_BASIC:
 	rm -rf radixHashJoin_basic
 
