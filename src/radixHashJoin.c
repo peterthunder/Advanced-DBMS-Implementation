@@ -53,14 +53,6 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
     //printf("\n# Running RadixHashJoin on Relations R and S.\n");
     start_t = clock();
 
-    /* Certain values to create chains */
-/*
-    (*reIR)->tuples[(*reIR)->num_tuples - 2].payload = 929;
-    (*reIR)->tuples[(*reIR)->num_tuples - 3].payload = 828;
-    (*reIS)->tuples[(*reIS)->num_tuples - 1].payload = 929;
-    (*reIS)->tuples[(*reIS)->num_tuples - 2].payload = 20;
-*/
-
 
      /*     Construct Histograms and Psums      */
     /*   Create Relation R histogram and psum  */

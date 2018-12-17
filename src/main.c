@@ -26,8 +26,6 @@ int main(void) {
     /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
     number_of_buckets = (int32_t) myPow(2, n);
 
-    //testRHJ();
-
     Table **tables = read_tables(&num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
     fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
@@ -64,7 +62,7 @@ int main(void) {
         fp_write = stdout;
 
 
-    Sum_struct *sumStruct = malloc(sizeof(Sum_struct));
+    Sum_struct *sumStruct = myMalloc(sizeof(Sum_struct));
     sumStruct->full_size = 1;
     sumStruct->actual_size = 0;
     sumStruct->sums = myMalloc(sizeof(long *) * 1);

@@ -38,11 +38,8 @@ long * execute_query(Query_Info *query_info, Table **tables, Relation ****relati
         column_number1 = query_info->joins[i][1];
 
         if ((*relation_array)[table_number1][column_number1] == NULL) {
-            //printf("Creating -> T: %d, C: %d - ", table_number1, column_number1);
             (*relation_array)[table_number1][column_number1] = allocateRelation((uint32_t) tables[table_number1]->num_tuples, TRUE);
             initializeRelation(&(*relation_array)[table_number1][column_number1], tables, table_number1, column_number1);
-        } else {
-            //printf("Already Created -> T: %d, C: %d - ", table_number1, column_number1);
         }
 
         table_number2 = query_info->relation_IDs[query_info->joins[i][2]];
@@ -51,7 +48,6 @@ long * execute_query(Query_Info *query_info, Table **tables, Relation ****relati
         if ((*relation_array)[table_number2][column_number2] == NULL) {
             (*relation_array)[table_number2][column_number2] = allocateRelation((uint32_t) tables[table_number2]->num_tuples, TRUE);
             initializeRelation(&(*relation_array)[table_number2][column_number2], tables, table_number2, column_number2);
-        } else {
         }
 
         relationJoin(&(*relation_array)[table_number1][column_number1], &(*relation_array)[table_number2][column_number2],
@@ -231,9 +227,6 @@ void relationFilter(Relation **original_relation, Entity **entity, int relation_
 
     } else {
 
-        //printf("Table count: %d\n", (*entity)->inter_tables_count);
-        //printf("Inter table index: %d\n", inter_number_table);
-
         /* Get the rowIDs of the relation that satisfy the filter*/
         rowIDs = filterRelation(operator, number, *original_relation, &rowId_count);
 
@@ -256,7 +249,7 @@ void relationFilter(Relation **original_relation, Entity **entity, int relation_
 
 void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, int relation_Id1, int relation_Id2) {
 
-    int ret1, ret2, inter_table_number, inter_table_number1, inter_table_number2, column_number1, column_number2, i, j, *row_ids, temp;
+    int ret1, ret2, inter_table_number, inter_table_number1, inter_table_number2, column_number1, column_number2, i, j, *row_ids;
     uint32_t result_counter = 0, columns = 0, counter = 0;
     Relation *new_relation1, *new_relation2;
     Result *result, *current_result;
@@ -265,18 +258,16 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
     ret1 = exists_in_intermediate_table(relation_Id1, *entity, &inter_table_number1, &column_number1);
     ret2 = exists_in_intermediate_table(relation_Id2, *entity, &inter_table_number2, &column_number2);
 
-    //printf("Ret1: %d, Ret2: %d\n", ret1, ret2);
+    /* If none of the relations exists in an intermediate table */
     if (ret1 == -1 && ret2 == -1) {
         /* Create the intermediate table */
         create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_number);
         result = RadixHashJoin(relation1, relation2);
-        //printResults(result);
 
         /* Count the number of the results(rows) */
         current_result = result;
         do {
             result_counter = result_counter + current_result->num_joined_rowIDs;
-            //printf("\nAll results are: %d\n", result_counter);
             current_result = current_result->next_result;
         } while (current_result != NULL);
 
@@ -310,30 +301,26 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
 
         deAllocateResult(&result);
 
-    } else if ((ret1 != -1 && ret2 == -1) || ret1 == -1) {
+    }
+    /* If one of the relations exists in an intermediate table */
+    else if ((ret1 != -1 && ret2 == -1) || ret1 == -1) {
 
         if (ret1 != -1) {
             new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_number);
-            //printRelation(new_relation1, 1);
         } else {
             new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_number);
-            temp = inter_table_number1;
             inter_table_number1 = inter_table_number2;
-            inter_table_number2 = inter_table_number1;
-            //printRelation(new_relation2, 1);
         }
 
         if (ret1 != -1)
             result = RadixHashJoin(&new_relation1, relation2);
         else
             result = RadixHashJoin(&new_relation2, relation1);
-        //printResults(result);
 
         /* Count the number of the results(rows) */
         current_result = result;
         do {
             result_counter = result_counter + current_result->num_joined_rowIDs;
-            //printf("\nAll results are: %d\n", result_counter);
             current_result = current_result->next_result;
         } while (current_result != NULL);
 
@@ -376,30 +363,33 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
 
         free((*entity)->inter_tables[inter_table_number1]->inter_table);
 
-        /* Point to the new intermediate table*/
+        /* Point to the new intermediate table */
         (*entity)->inter_tables[inter_table_number1]->inter_table = new_inter_table;
         (*entity)->inter_tables[inter_table_number1]->num_of_rows = result_counter;
         (*entity)->inter_tables[inter_table_number1]->num_of_columns = (*entity)->inter_tables[inter_table_number1]->num_of_columns + 1;
 
         deAllocateResult(&result);
 
-    } else {
+    }
+    /* If both of the relations exist in the same or a different intermediate table */
+    else {
         new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_number1);
         new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_number2);
 
+        /* If both of the relations are in the same intermediate table, then self join */
         if (inter_table_number1 == inter_table_number2) {
 
             exists_in_intermediate_table(relation_Id1, *entity, &inter_table_number1, &column_number1);
             exists_in_intermediate_table(relation_Id2, *entity, &inter_table_number2, &column_number2);
 
-            //printf("Same inter table, so filter them. t1: %d, c1: %d - t2: %d, c2: %d\n", inter_table_number1, column_number1, inter_table_number2, column_number2);
-
+            /* Find how many elements are the same */
             for (i = 0; i < (*entity)->inter_tables[inter_table_number1]->num_of_rows; i++) {
                 if ((*relation1)->tuples[(int) (*entity)->inter_tables[inter_table_number1]->inter_table[i][column_number1] - 1].payload
                     == (*relation2)->tuples[(int) (*entity)->inter_tables[inter_table_number2]->inter_table[i][column_number2] - 1].payload)
                     counter++;
             }
 
+            /* Allocate an array to save the row_ids of the elements that are the same */
             row_ids = myMalloc(sizeof(int) * counter);
             counter = 0;
             for (i = 0; i < (*entity)->inter_tables[inter_table_number1]->num_of_rows; i++) {
@@ -410,6 +400,7 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
                 }
             }
 
+            /* Create a new intermediate table and fill according to the row_ids array allocated above */
             new_inter_table = myMalloc(sizeof(int *) * counter);
             for (i = 0; i < counter; i++) {
                 new_inter_table[i] = myMalloc(sizeof(int) * (*entity)->inter_tables[inter_table_number1]->num_of_columns);
@@ -418,12 +409,13 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
                 }
             }
 
-
+            /* Free all the structures of the old intermediate table */
             for (i = 0; i < (*entity)->inter_tables[inter_table_number1]->num_of_rows; i++) {
                 free((*entity)->inter_tables[inter_table_number1]->inter_table[i]);
             }
             free((*entity)->inter_tables[inter_table_number1]->inter_table);
 
+            /* Point to the new intermediate table */
             (*entity)->inter_tables[inter_table_number1]->num_of_rows = counter;
             (*entity)->inter_tables[inter_table_number1]->inter_table = new_inter_table;
 
@@ -431,18 +423,16 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
             deAllocateRelation(&new_relation2);
             free(row_ids);
 
-        } else {
-            //printf("Different inter table so join and combine inter tables.\n");
+        }
+        /* Else just join them and combine the 2 intermediate tables */
+        else {
 
             result = RadixHashJoin(&new_relation1, &new_relation2);
-
-            //printResults(result);
 
             /* Count the number of the results(rows) */
             current_result = result;
             do {
                 result_counter = result_counter + current_result->num_joined_rowIDs;
-                //printf("\nAll results are: %d\n", result_counter);
                 current_result = current_result->next_result;
             } while (current_result != NULL);
 
@@ -556,7 +546,6 @@ long* calculateSums(Entity *entity, Query_Info *query_info, Table **tables, FILE
 
     return sums;
 }
-
 
 void update_intermediate_table(int relation_Id, Entity **entity, int32_t *rowIDs, uint32_t rowId_count) {
 

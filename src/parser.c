@@ -68,7 +68,7 @@ char **parseQueryParts(char *query, int *query_parts_count) {
         (*query_parts_count)++;
     }
 
-    if ( *query_parts_count != 3 )
+    if (*query_parts_count != 3)
         return NULL;
 
     /* Get Query Parts */
