@@ -43,6 +43,74 @@ void initializeRelationWithRandomNumbers(Relation **rel) {
     }
 }
 
+Sum_struct * sumStructureAllocationAndInitialization(){
+    Sum_struct *sumStruct = myMalloc(sizeof(Sum_struct));
+    sumStruct->full_size = 1;
+    sumStruct->actual_size = 0;
+    sumStruct->sums = myMalloc(sizeof(long *) * 1);
+    sumStruct->sums_sizes = myMalloc(sizeof(long) * 1);
+    return sumStruct;
+}
+
+void sumStructureUpdate(Sum_struct **sumStruct, Query_Info *query_info, long*sums){
+
+    (*sumStruct)->sums[(*sumStruct)->actual_size] = sums;
+
+    (*sumStruct)->sums_sizes[(*sumStruct)->actual_size] = query_info->selection_count;
+
+    (*sumStruct)->actual_size++;
+
+    if ((*sumStruct)->full_size == (*sumStruct)->actual_size) {
+        (*sumStruct)->full_size <<= 1; // fast-multiply by 2
+        (*sumStruct)->sums = realloc((*sumStruct)->sums, (*sumStruct)->full_size * sizeof(long *));
+        (*sumStruct)->sums_sizes = realloc((*sumStruct)->sums_sizes, (*sumStruct)->full_size * sizeof(long));
+    }
+}
+
+void resetSumStructure(Sum_struct **sumStruct){
+
+    for (int k = 0; k < (*sumStruct)->actual_size; ++k) {
+        free((*sumStruct)->sums[k]);
+    }
+
+    (*sumStruct)->actual_size = 0;
+    (*sumStruct)->full_size = 1;
+
+    (*sumStruct)->sums = realloc((*sumStruct)->sums, sizeof(long *) * 1);
+    (*sumStruct)->sums_sizes = realloc((*sumStruct)->sums_sizes, sizeof(long) * 1);
+}
+
+void writeSumsToStdout(Sum_struct *sumStruct){
+
+    char tempLine[1024];
+    char tempLine1[1024];
+
+    for (int k = 0; k < sumStruct->actual_size; ++k) {
+
+        tempLine[0] = '\0';
+        tempLine1[0] = '\0';
+        for (int l = 0; l < sumStruct->sums_sizes[k]; ++l) {
+
+            if (sumStruct->sums[k][l] == 0) {
+
+                strcat(tempLine, "NULL");
+
+            } else {
+                sprintf(tempLine1, "%ld", sumStruct->sums[k][l]);
+                strcat(tempLine, tempLine1);
+            }
+
+            if (l != sumStruct->sums_sizes[k] - 1)
+                strcat(tempLine, " ");
+        }
+
+        strcat(tempLine, "\n");
+
+        fprintf(fp_print, "%s", tempLine);
+        fputs(tempLine, fp_write);
+    }
+}
+
 void printRelation(Relation *relation, int choice) {
 
     int i;

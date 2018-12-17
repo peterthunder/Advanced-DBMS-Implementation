@@ -21,7 +21,6 @@ int main(void) {
 
 
     fprintf(fp_print, "Running Advance_DBMS_Implementation...\n");
-    start_t = clock();
 
     /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
     number_of_buckets = (int32_t) myPow(2, n);
@@ -62,11 +61,10 @@ int main(void) {
         fp_write = stdout;
 
 
-    Sum_struct *sumStruct = myMalloc(sizeof(Sum_struct));
-    sumStruct->full_size = 1;
-    sumStruct->actual_size = 0;
-    sumStruct->sums = myMalloc(sizeof(long *) * 1);
-    sumStruct->sums_sizes = myMalloc(sizeof(long) * 1);
+    Sum_struct *sumStruct = sumStructureAllocationAndInitialization();
+    long *sums;
+
+    start_t = clock();
 
     /* Get queries */
     while (getline(&query, &size, fp_read) > 0) {
@@ -77,48 +75,13 @@ int main(void) {
 
         if (strcmp(query, "F") == 0) {
 
-            // Print sums before going to next group of queries.
+            // Print the sums to stdout before going to next batch of queries.
+            writeSumsToStdout(sumStruct);
 
-            char tempLine[1024];
-            char tempLine1[1024];
+            // Reset sum_struct
+            resetSumStructure(&sumStruct);
 
-            for (int k = 0; k < sumStruct->actual_size; ++k) {
-
-                tempLine[0] = '\0';
-                tempLine1[0] = '\0';
-                for (int l = 0; l < sumStruct->sums_sizes[k]; ++l) {
-
-                    if (sumStruct->sums[k][l] == 0) {
-
-                        strcat(tempLine, "NULL");
-
-                    } else {
-                        sprintf(tempLine1, "%ld", sumStruct->sums[k][l]);
-                        strcat(tempLine, tempLine1);
-                    }
-
-                    if (l != sumStruct->sums_sizes[k] - 1)
-                        strcat(tempLine, " ");
-                }
-
-                strcat(tempLine, "\n");
-
-                fprintf(fp_print, "%s", tempLine);
-                fputs(tempLine, fp_write);
-            }
-
-            // Re-inialize structures
-
-            for (int k = 0; k < sumStruct->actual_size; ++k) {
-                free(sumStruct->sums[k]);
-            }
-
-            sumStruct->actual_size = 0;
-            sumStruct->full_size = 1;
-
-            sumStruct->sums = realloc(sumStruct->sums, sizeof(long *) * 1);
-            sumStruct->sums_sizes = realloc(sumStruct->sums_sizes, sizeof(long) * 1);
-
+            /* Continue to the next batch of queries */
             continue;
         }
 
@@ -126,21 +89,13 @@ int main(void) {
 
         query_info = parse_query(query);
 
-        if (((sumStruct->sums[sumStruct->actual_size] = execute_query(query_info, tables, &relation_array, stdout))) == NULL) {
+        if (((sums = execute_query(query_info, tables, &relation_array, stdout))) == NULL) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
             exit(-1);
         }
 
-        // Log the size of this query's sums-table.
-        sumStruct->sums_sizes[sumStruct->actual_size] = query_info->selection_count;
-
-        sumStruct->actual_size++;
-
-        if (sumStruct->full_size == sumStruct->actual_size) {
-            sumStruct->full_size <<= 1; // fast-multiply by 2
-            sumStruct->sums = realloc(sumStruct->sums, sumStruct->full_size * sizeof(long *));
-            sumStruct->sums_sizes = realloc(sumStruct->sums_sizes, sumStruct->full_size * sizeof(long));
-        }
+        // Update sum struct
+        sumStructureUpdate(&sumStruct, query_info, sums);
 
         free_query(query_info);
 

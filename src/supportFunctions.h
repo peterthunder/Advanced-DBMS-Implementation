@@ -25,6 +25,14 @@ void initializeRelation(Relation **rel, Table **tables, int table_number, int co
 
 void initializeRelationWithRandomNumbers(Relation **rel);
 
+Sum_struct * sumStructureAllocationAndInitialization();
+
+void sumStructureUpdate(Sum_struct **sumStruct, Query_Info *query_info, long*sums);
+
+void resetSumStructure(Sum_struct **sumStruct);
+
+void writeSumsToStdout(Sum_struct *sumStruct);
+
 /* Print the relation */
 void printRelation(Relation *relation, int choice);
 
