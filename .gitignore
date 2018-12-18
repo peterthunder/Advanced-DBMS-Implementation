@@ -6,4 +6,3 @@ workloads
 build/
 radixHashJoin_basic
 radixHashJoin_debug
-harness.cpp

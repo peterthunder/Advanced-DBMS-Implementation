@@ -19,26 +19,25 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     /* Init */
     *num_of_tables = 0;
 
-    if (USE_HARNESS == FALSE) {
+    if ( USE_HARNESS )
+        fptr = stdin;
+    else {
         /* Open the file on that path */
         if ((fptr = fopen("workloads/small/small.init", "r")) == NULL) {
             fprintf(stderr, "Error opening file workloads/small/small.init: %s!\n", strerror(errno));
             return NULL;
         }
-    }else{
-        fptr = stdin;
     }
 
 
     /* Count the number of tables */
-    while (1) {
-        getline(&table_name, &size, fptr);
+    while ( getline(&table_name, &size, fptr) > 0 ) {
 
         table_name[strlen(table_name) - 1] = '\0';
 
         //fprintf(fp_print, "%s\n", table_name);
 
-        if (strcmp(table_name, "Done") == 0 || strcmp(table_name, "\n") == 0 || strlen(table_name) == 0)
+        if ( strcmp(table_name, "Done") == 0 || strcmp(table_name, "\n") == 0 )
             break;
 
         strcpy(table_names[*num_of_tables], table_name);
@@ -54,8 +53,8 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         table_name[0] = '\0';
     }
 
-    if (USE_HARNESS == FALSE)
-        fclose(fptr);
+    if ( USE_HARNESS == FALSE )
+        fclose(fptr);   // Otherwise, on HARNESS this will be the stdin.
 
     /* Allocate all the memory needed and initialize all the structures */
     Table **tables = myMalloc(sizeof(Table *) * (*num_of_tables));
@@ -78,10 +77,10 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     for (i = 0; i < *num_of_tables; i++) {
 
         /* Create the path of the mapped_tables */
-        if (USE_HARNESS == FALSE)
-            strcpy(table_path, "workloads/small/");
-        else
+        if ( USE_HARNESS )
             strcpy(table_path, "../../workloads/small/");
+        else
+            strcpy(table_path, "workloads/small/");
         strcat(table_path, table_names[i]);
 
         //fprintf(fp_print, "%s\n", table_path);
@@ -105,10 +104,9 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         /* MAP the whole table to a pointer */
         (*mapped_tables)[i] = mmap(0, size, PROT_READ | PROT_EXEC, MAP_SHARED, fd, 0);
         if ((*mapped_tables)[i] == MAP_FAILED)
-            perror("error reading mapped_tables file");
+            fprintf(stderr, "error reading mapped_tables file");
 #if PRINTING
-        printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", i,
-               (*mapped_tables)[i][0], (*mapped_tables)[i][1]);
+        printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", i, (*mapped_tables)[i][0], (*mapped_tables)[i][1]);
 #endif
         /* Initialize each table's variables */
         tables[i]->num_tuples = (*mapped_tables)[i][0];

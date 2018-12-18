@@ -27,7 +27,6 @@ void initializeRelation(Relation **rel, Table **tables, int table_number, int co
     for (i = 0; i < (*rel)->num_tuples; i++) {
         (*rel)->tuples[i].payload = (int32_t) tables[table_number]->column_indexes[column_number][i];
         (*rel)->tuples[i].key = i + 1;
-
     }
 }
 
@@ -39,7 +38,6 @@ void initializeRelationWithRandomNumbers(Relation **rel) {
     for (i = 0; i < (*rel)->num_tuples; i++) {
         (*rel)->tuples[i].payload = rand() % 199;
         (*rel)->tuples[i].key = i + 1;
-
     }
 }
 
@@ -204,7 +202,6 @@ void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **
             printRelation(newReIR, 3);
             printRelation(newReIS, 4);
     }
-
 }
 
 void printChainArray(int32_t **psum, Relation *relationNew, int **chain) {
@@ -227,6 +224,7 @@ void printChainArray(int32_t **psum, Relation *relationNew, int **chain) {
 }
 
 void printResults(Result *result) {
+
     Result *current_result;
 
     printf("\n\n");

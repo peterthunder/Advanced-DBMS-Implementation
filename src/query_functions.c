@@ -1,5 +1,6 @@
 #include "radixHashJoin.h"
 
+
 long * execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array, FILE *fp) {
 
     int i, column_number, table_number, j = 0, operator, number, column_number1, column_number2, table_number1, table_number2;
@@ -52,7 +53,6 @@ long * execute_query(Query_Info *query_info, Table **tables, Relation ****relati
 
         relationJoin(&(*relation_array)[table_number1][column_number1], &(*relation_array)[table_number2][column_number2],
                      &entity, query_info->joins[i][0], query_info->joins[i][2]);
-
     }
 
     long* sums = calculateSums(entity, query_info, tables, fp);
@@ -72,7 +72,6 @@ long * execute_query(Query_Info *query_info, Table **tables, Relation ****relati
 
     free(entity->inter_tables);
     free(entity);
-
 
     return sums;
 }
@@ -300,7 +299,6 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
         } while (current_result != NULL);
 
         deAllocateResult(&result);
-
     }
     /* If one of the relations exists in an intermediate table */
     else if ((ret1 != -1 && ret2 == -1) || ret1 == -1) {
@@ -342,7 +340,6 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
         result_counter = 0;
         current_result = result;
         do {
-
             /* Then do a for from counter until counter+ num_joined_rowIDs of the current result */
             for (i = 0; i < current_result->num_joined_rowIDs; i++) {
                 new_inter_table[i + result_counter] = myMalloc(sizeof(int32_t) * columns);
@@ -369,7 +366,6 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
         (*entity)->inter_tables[inter_table_number1]->num_of_columns = (*entity)->inter_tables[inter_table_number1]->num_of_columns + 1;
 
         deAllocateResult(&result);
-
     }
     /* If both of the relations exist in the same or a different intermediate table */
     else {
@@ -422,11 +418,9 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
             deAllocateRelation(&new_relation1);
             deAllocateRelation(&new_relation2);
             free(row_ids);
-
         }
         /* Else just join them and combine the 2 intermediate tables */
         else {
-
             result = RadixHashJoin(&new_relation1, &new_relation2);
 
             /* Count the number of the results(rows) */
@@ -457,7 +451,6 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
             result_counter = 0;
             current_result = result;
             do {
-
                 /* Then do a for from counter until counter+ num_joined_rowIDs of the current result */
                 for (i = 0; i < current_result->num_joined_rowIDs; i++) {
                     new_inter_table[i + result_counter] = myMalloc(sizeof(int32_t) * columns);
@@ -465,8 +458,7 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
                         if (j < (*entity)->inter_tables[inter_table_number1]->num_of_columns)
                             new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_number1]->inter_table[current_result->joined_rowIDs[i][0] - 1][j];
                         else
-                            new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_number2]->inter_table[current_result->joined_rowIDs[i][1] - 1][j -
-                                                                                                                                                                        (*entity)->inter_tables[inter_table_number1]->num_of_columns];
+                            new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_number2]->inter_table[current_result->joined_rowIDs[i][1] - 1][j - (*entity)->inter_tables[inter_table_number1]->num_of_columns];
                     }
                 }
                 /* Update the counter */
@@ -497,9 +489,7 @@ void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, i
             (*entity)->inter_tables[inter_table_number1]->num_of_columns = columns;
 
             deAllocateResult(&result);
-
         }
-
     }
 }
 
@@ -541,7 +531,6 @@ long* calculateSums(Entity *entity, Query_Info *query_info, Table **tables, FILE
                 sums[i] = (long) sum;
             }
         }
-
     }
 
     return sums;

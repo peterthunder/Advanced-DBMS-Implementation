@@ -14,10 +14,10 @@ int main(void) {
     clock_t start_t, end_t, total_t;
 
 
-    if (USE_HARNESS == FALSE) {
-        fp_print = stdout;
-    } else
+    if ( USE_HARNESS ) {
         fp_print = stderr;
+    } else
+        fp_print = stdout;
 
 
     fprintf(fp_print, "Running Advance_DBMS_Implementation...\n");
@@ -29,14 +29,16 @@ int main(void) {
 
     fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
 
-    if (USE_HARNESS == false) {
+    if ( USE_HARNESS )
+        fp_read = stdin;
+    else {
         /* Open the file on that path */
         if ((fp_read = fopen("workloads/small/small.work", "r")) == NULL) {
             fprintf(stderr, "Error opening file \"%s\": %s!\n", workload_path, strerror(errno));
             return -1;
         }
-    } else
-        fp_read = stdin;
+    }
+
 
     Relation ***relation_array;
 
@@ -51,14 +53,15 @@ int main(void) {
     }
 
 
-    if (USE_HARNESS == FALSE) {
+    if ( USE_HARNESS )
+        fp_write = stdout;
+    else {
         fp_write = fopen("results.txt", "wb");
         if (!fp_write) {
-            perror("Error creating file!\n");
+            fprintf(stderr, "Error opening file \"results.txt\": %s!\n", strerror(errno));
             exit(1);
         }
-    } else
-        fp_write = stdout;
+    }
 
 
     Sum_struct *sumStruct = sumStructureAllocationAndInitialization();
@@ -98,10 +101,11 @@ int main(void) {
         sumStructureUpdate(&sumStruct, query_info, sums);
 
         free_query(query_info);
-
     }
-    if (USE_HARNESS == FALSE)
-        fclose(fp_read);
+
+    if ( USE_HARNESS == FALSE )
+        fclose(fp_read);    // Otherwise, on Harness-run this will be the stdin which we do not close.
+
     fclose(fp_write);
 
     /* De-allocate memory */
