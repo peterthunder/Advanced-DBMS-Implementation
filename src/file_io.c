@@ -2,7 +2,7 @@
 
 Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_tables_sizes) {
 
-    fprintf(fp_print, "\n# Mmapping tables to memory and initializing structures.\n");
+    //fprintf(fp_print, "\n# Mmapping tables to memory and initializing structures.\n");
 
     FILE *fptr = NULL;
     int fd, i, j, table_names_array_size = 2;
@@ -123,7 +123,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 #endif
     }
 
-    fprintf(fp_print, " -Finished mmapping tables to memory and initializing structures.\n");
+    //fprintf(fp_print, " -Finished mmapping tables to memory and initializing structures.\n");
 
     for(i=0; i<table_names_array_size; i++)
         free(table_names[i]);

@@ -33,6 +33,7 @@ compiler:
 linker:
   path: gcc
   options:
+    - '-O3'
     - '-m32'
   includes:
     prefix: '-I'

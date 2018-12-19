@@ -76,6 +76,9 @@ void resetSumStructure(Sum_struct **sumStruct){
 
     (*sumStruct)->sums = realloc((*sumStruct)->sums, sizeof(long *) * 1);
     (*sumStruct)->sums_sizes = realloc((*sumStruct)->sums_sizes, sizeof(long) * 1);
+
+    /* Flush stdout to clear the output buffer */
+    fflush(stdout);
 }
 
 void writeSumsToStdout(Sum_struct *sumStruct){
@@ -104,7 +107,7 @@ void writeSumsToStdout(Sum_struct *sumStruct){
 
         strcat(tempLine, "\n");
 
-        fprintf(fp_print, "%s", tempLine);
+        //fprintf(fp_print, "%s", tempLine);
         fputs(tempLine, fp_write);
     }
 }

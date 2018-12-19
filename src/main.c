@@ -14,22 +14,22 @@ int main(void) {
     clock_t start_t, end_t, total_t;
 
 
-    if ( USE_HARNESS ) {
+    if (USE_HARNESS) {
         fp_print = stderr;
     } else
         fp_print = stdout;
 
 
-    fprintf(fp_print, "Running Advance_DBMS_Implementation...\n");
+    //fprintf(fp_print, "Running Advance_DBMS_Implementation...\n");
 
     /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
     number_of_buckets = (int32_t) myPow(2, n);
 
     Table **tables = read_tables(&num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
-    fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
+    //fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
 
-    if ( USE_HARNESS )
+    if (USE_HARNESS)
         fp_read = stdin;
     else {
         /* Open the file on that path */
@@ -53,7 +53,7 @@ int main(void) {
     }
 
 
-    if ( USE_HARNESS )
+    if (USE_HARNESS)
         fp_write = stdout;
     else {
         fp_write = fopen("results.txt", "wb");
@@ -74,7 +74,7 @@ int main(void) {
 
         query[strlen(query) - 1] = '\0';
 
-        fprintf(fp_print, "Query[%d]: %s\n", query_count, query);
+        //fprintf(fp_print, "Query[%d]: %s\n", query_count, query);
 
         if (strcmp(query, "F") == 0) {
 
@@ -92,7 +92,7 @@ int main(void) {
 
         query_info = parse_query(query);
 
-        if (((sums = execute_query(query_info, tables, &relation_array, stdout))) == NULL) {
+        if (((sums = execute_query(query_info, tables, &relation_array))) == NULL) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
             exit(-1);
         }
@@ -103,7 +103,7 @@ int main(void) {
         free_query(query_info);
     }
 
-    if ( USE_HARNESS == FALSE )
+    if (USE_HARNESS == FALSE)
         fclose(fp_read);    // Otherwise, on Harness-run this will be the stdin which we do not close.
 
     fclose(fp_write);
@@ -137,7 +137,8 @@ int main(void) {
     end_t = clock();
     total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
 
-    fprintf(fp_print, "\nFinished parsing and executing queries in %ld seconds!\n", total_t);
+    if (USE_HARNESS == FALSE)
+        fprintf(fp_print, "\nFinished parsing and executing queries in %ld seconds!\n", total_t);
 
     return EXIT_SUCCESS;
 }

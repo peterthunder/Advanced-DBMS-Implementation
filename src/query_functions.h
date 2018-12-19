@@ -4,7 +4,7 @@
 #include "file_io.h"
 
 /* Execute the query */
-long * execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array, FILE *fp);
+long * execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array);
 
 /* Check if a relation id exists in the intermediate_table, if it doesn't create a new table */
 Relation* create_intermediate_table(int relation_Id, Entity **entity, Relation *relation, int *inter_table_number);
@@ -16,13 +16,13 @@ int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_tab
 int32_t *filterRelation(int operator, int number, Relation *relation, uint32_t *count);
 
 /*Filter a relation */
-void relationFilter(Relation **original_relation, Entity **entity, int relation_Id, int operator, int number);
+void handleRelationFilter(Relation **original_relation, Entity **entity, int relation_Id, int operator, int number);
 
 /* Join 2 Relations */
-void relationJoin(Relation **relation1, Relation **relation2, Entity **entity, int relation_Id1, int relation_Id2);
+void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **entity, int relation_Id1, int relation_Id2);
 
 /* Calculate and print the sums of a query */
-long * calculateSums(Entity *entity, Query_Info *query_info, Table **tables, FILE *fp);
+long * calculateSums(Entity *entity, Query_Info *query_info, Table **tables);
 
 /* Update a column of an intermediate depending on the relation_id according to the rowIDs */
 void update_intermediate_table(int relation_Id, Entity **entity, int32_t * rowIDs, uint32_t rowId_count);
