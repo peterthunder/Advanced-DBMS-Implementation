@@ -114,7 +114,6 @@ int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_tab
     for (i = 0; i < entity->max_count; i++) {
         /* Check if the inter table exists*/
         if (entity->inter_tables[i] != NULL) {
-            //printf("In here - i: %d\n", i);
             /* For every column in the intermediate table */
             for (j = 0; j < entity->inter_tables[i]->num_of_columns; j++) {
                 /* Check if the current relation_id[j] in the relationIDs is the same as the relation id passed as an arg */
@@ -133,7 +132,6 @@ int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_tab
     for (i = 0; i < entity->max_count; i++) {
         if (entity->inter_tables[i] == NULL) {
             *inter_table_number = i;
-            //printf("In here2 - i: %d\n", i);
             break;
         }
     }
@@ -325,8 +323,8 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
         /* Fill the number of rows, columns and the relation_ids array */
         columns = (*entity)->inter_tables[inter_table_number1]->num_of_columns + 1;
 
-        (*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table = realloc(
-                (*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table, sizeof(int *) * columns);
+        (*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table
+            = realloc((*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table, sizeof(int *) * columns);
 
         if (ret1 != -1)
             (*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table[columns - 1] = relation_Id2;
@@ -434,8 +432,8 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
             /* Fill the number of rows, columns and the relation_ids array */
             columns = (*entity)->inter_tables[inter_table_number1]->num_of_columns + (*entity)->inter_tables[inter_table_number2]->num_of_columns;
 
-            (*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table = realloc((*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table,
-                                                                                               sizeof(int *) * columns);
+            (*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table
+                = realloc((*entity)->inter_tables[inter_table_number1]->relationIDS_of_inter_table, sizeof(int *) * columns);
 
             for (i = 0; i < (*entity)->inter_tables[inter_table_number2]->num_of_columns; i++) {
 

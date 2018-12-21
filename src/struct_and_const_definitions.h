@@ -70,7 +70,7 @@ typedef struct intermediate_table_{
     uint32_t num_of_columns; // number of Relation IDs in the intermediate table
     int32_t **inter_table; // array that holds the row IDS
     int *relationIDS_of_inter_table; // array that tells us which relation id refers to which column of the inter_table
-}Intermediate_table;
+} Intermediate_table;
 
 
 /* Entity that holds the intermediate tables */
@@ -78,7 +78,7 @@ typedef struct entity_{
     int max_count;
     int inter_tables_count;
     Intermediate_table **inter_tables; // The intermediate tables hold the joined and filtered row Ids.
-}Entity;
+} Entity;
 
 
 typedef struct sum_struct{
@@ -86,7 +86,7 @@ typedef struct sum_struct{
     int actual_size;
     long **sums;
     int *sums_sizes;
-}Sum_struct;
+} Sum_struct;
 
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_STRUCT_AND_CONST_DEFINITIONS_H

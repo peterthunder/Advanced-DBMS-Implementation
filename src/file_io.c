@@ -10,9 +10,9 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     char *table_name = NULL;
     char table_path[1024];
 
-    char **table_names = malloc(sizeof(char *) * 2);
+    char **table_names = myMalloc(sizeof(char *) * 2);
     for (i = 0; i < 2; i++) {
-        table_names[i] = malloc(sizeof(char) * 1024);
+        table_names[i] = myMalloc(sizeof(char) * 1024);
     }
 
     /* Init */
@@ -35,7 +35,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
             table_names_array_size <<= 1; // fast-multiply by 2
             table_names = realloc(table_names, (size_t) table_names_array_size * sizeof(char *));
             for (i = *num_of_tables; i < table_names_array_size; i++) {
-                table_names[i] = malloc(sizeof(char) * 1024);
+                table_names[i] = myMalloc(sizeof(char) * 1024);
             }
         }
         table_name[0] = '\0';
@@ -92,13 +92,13 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         /* MAP the whole table to a pointer */
         (*mapped_tables)[i] = mmap(0, size, PROT_READ | PROT_EXEC, MAP_SHARED, fd, 0);
         if ((*mapped_tables)[i] == MAP_FAILED)
-            fprintf(stderr, "error reading mapped_tables file");
+            fprintf(stderr, "Error reading mapped_tables file!\n");
 #if PRINTING
         printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", i, (*mapped_tables)[i][0], (*mapped_tables)[i][1]);
 #endif
         /* Initialize each table's variables */
         tables[i]->num_tuples = (*mapped_tables)[i][0];
-        tables[i]->num_columns = (*mapped_tables)[i][1]; // OR (**mapped_tables + current_table)[1];
+        tables[i]->num_columns = (*mapped_tables)[i][1];
         tables[i]->column_indexes = myMalloc(sizeof(uint64_t *) * tables[i]->num_columns);
 
         for (j = 0; j < tables[i]->num_columns; j++) {

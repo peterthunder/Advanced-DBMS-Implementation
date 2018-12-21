@@ -405,5 +405,5 @@ long int myPow(int x, int n) {
     for (i = 0; i < n; ++i)
         number *= x;
 
-    return (number);
+    return number;
 }
