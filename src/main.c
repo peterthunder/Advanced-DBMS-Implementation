@@ -29,7 +29,8 @@ int main(void) {
     Sum_struct *sumStruct = sumStructureAllocationAndInitialization();
     long *sums;
 
-    start_t = clock();
+    if (USE_HARNESS == FALSE)
+        start_t = clock();
 
     /* Get queries */
     while (getline(&query, &size, fp_read_queries) > 0) {
@@ -65,8 +66,13 @@ int main(void) {
         free_query(query_info);
     }
 
-    if (USE_HARNESS == FALSE)
+
+    if (USE_HARNESS == FALSE) {
+        end_t = clock();
+        total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
+        fprintf(fp_print, "\nFinished parsing and executing queries in %ld seconds!\n", total_t);
         fclose(fp_read_queries);    // Otherwise, on Harness-run this will be the stdin which we do not close.
+    }
 
     fclose(fp_write);
 
@@ -95,12 +101,6 @@ int main(void) {
     free(tables);
 
     free(query);
-
-    end_t = clock();
-    total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
-
-    if (USE_HARNESS == FALSE)
-        fprintf(fp_print, "\nFinished parsing and executing queries in %ld seconds!\n", total_t);
 
     return EXIT_SUCCESS;
 }
