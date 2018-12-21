@@ -7,16 +7,16 @@
 long * execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array);
 
 /* Check if a relation id exists in the intermediate_table, if it doesn't create a new table */
-Relation* create_intermediate_table(int relation_Id, Entity **entity, Relation *relation, int *inter_table_number);
+Relation* create_intermediate_table(int relation_Id, Entity **entity, Relation *relation, int *inter_table_num);
 
 /* Check if the relation id exists in an intermediate table */
-int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_table_number, int *column);
+int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_table_num, int *column);
 
 /* Filter a relation and return an array with the rowIDs of the relation that satisfy the filter */
-int32_t *filterRelation(int operator, int number, Relation *relation, uint32_t *count);
+int32_t *filterRelation(int operator, int num_filter, Relation *relation, uint32_t *count);
 
 /*Filter a relation */
-void handleRelationFilter(Relation **original_relation, Entity **entity, int relation_Id, int operator, int number);
+void handleRelationFilter(Relation **original_relation, Entity **entity, int relation_Id, int operator, int num_filter);
 
 /* Join 2 Relations */
 void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **entity, int relation_Id1, int relation_Id2);

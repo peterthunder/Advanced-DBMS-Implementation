@@ -5,7 +5,7 @@ int main(void) {
     size_t size;
     int query_count = 0, num_of_tables, i, j, *mapped_tables_sizes;
     char *query = NULL;
-    uint64_t **mapped_tables;
+    uint64_t **mapped_tables;   // Used for mapping and un-mapping the tables in/from memory.
     Query_Info *query_info;
 
     /* H1_PARAM is the number of the last-n bits of the 32-bit number we wanna keep */
