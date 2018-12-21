@@ -14,7 +14,7 @@
 
 
 int32_t number_of_buckets;
-FILE *fp_read,*fp_write, *fp_print;
+FILE *fp_read_tables, *fp_read_queries, *fp_write, *fp_print;
 
 /* Type definition for a tuple */
 typedef struct tuple {

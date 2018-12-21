@@ -4,7 +4,6 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     //fprintf(fp_print, "\n# Mmapping tables to memory and initializing structures.\n");
 
-    FILE *fptr = NULL;
     int fd, i, j, table_names_array_size = 2;
     size_t size;
     struct stat st;
@@ -19,21 +18,10 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     /* Init */
     *num_of_tables = 0;
 
-    if ( USE_HARNESS )
-        fptr = stdin;
-    else {
-        /* Open the file on that path */
-        if ((fptr = fopen("workloads/small/small.init", "r")) == NULL) {
-            fprintf(stderr, "Error opening file workloads/small/small.init: %s!\n", strerror(errno));
-            return NULL;
-        }
-    }
-
-
     /* Count the number of tables */
-    while ( getline(&table_name, &size, fptr) > 0 ) {
+    while ( getline(&table_name, &size, fp_read_tables) > 0 ) {
 
-        table_name[strlen(table_name) - 1] = '\0';
+        table_name[strlen(table_name) - 1] = '\0';    // Remove "newLine"-character.
 
         //fprintf(fp_print, "%s\n", table_name);
 
@@ -54,7 +42,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     }
 
     if ( USE_HARNESS == FALSE )
-        fclose(fptr);   // Otherwise, on HARNESS this will be the stdin.
+        fclose(fp_read_tables);   // Otherwise, on HARNESS this will be the stdin.
 
     /* Allocate all the memory needed and initialize all the structures */
     Table **tables = myMalloc(sizeof(Table *) * (*num_of_tables));

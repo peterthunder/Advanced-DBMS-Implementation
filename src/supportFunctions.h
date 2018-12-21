@@ -17,7 +17,9 @@
 #include "parser.h"
 
 
+void setIOStreams(FILE **fp_read_tables, FILE **fp_read_queries, FILE **fp_write, FILE **fp_print);
 
+Relation *** allocateAndInitializeRelationArray(Table **tables, int num_of_tables);
 
 Relation* allocateRelation(uint32_t num_tuples, bool is_complete);
 

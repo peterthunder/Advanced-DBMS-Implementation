@@ -1,5 +1,46 @@
 #include "supportFunctions.h"
 
+
+void setIOStreams(FILE **fp_read_tables, FILE **fp_read_queries, FILE **fp_write, FILE **fp_print) {
+
+    if ( USE_HARNESS ) {
+        *fp_read_tables = stdin;
+        *fp_read_queries = stdin;
+        *fp_write = stdout;
+        *fp_print = stderr;
+    }
+    else {
+        /* Open the file on that path */
+        if ( (*fp_read_tables = fopen("workloads/small/small.init", "r")) == NULL ) {
+            fprintf(stderr, "Error opening file workloads/small/small.init: %s!\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        /* Open the file on that path */
+        if ( (*fp_read_queries = fopen("workloads/small/small.work", "r")) == NULL ) {
+            fprintf(stderr, "Error opening file \"workloads/small/small.work\": %s!\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        if ( (*fp_write = fopen("results.txt", "wb")) == NULL ) {
+            fprintf(stderr, "Error opening file \"results.txt\": %s!\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        *fp_print = stdout;
+    }
+}
+
+Relation *** allocateAndInitializeRelationArray(Table **tables, int num_of_tables) {
+
+    Relation ***relation_array = myMalloc(sizeof(Relation **) * num_of_tables);
+
+    for (int i = 0; i < num_of_tables; i++) {
+        relation_array[i] = myMalloc(sizeof(Relation *) * tables[i]->num_columns);
+        for (int j = 0; j < tables[i]->num_columns; j++) {
+            relation_array[i][j] = NULL;
+        }
+    }
+    return relation_array;
+}
+
 Relation *allocateRelation(uint32_t num_tuples, bool is_complete) {
 
     Relation *rel = myMalloc(sizeof(Relation));
@@ -41,7 +82,8 @@ void initializeRelationWithRandomNumbers(Relation **rel) {
     }
 }
 
-Sum_struct * sumStructureAllocationAndInitialization(){
+Sum_struct * sumStructureAllocationAndInitialization() {
+
     Sum_struct *sumStruct = myMalloc(sizeof(Sum_struct));
     sumStruct->full_size = 1;
     sumStruct->actual_size = 0;
