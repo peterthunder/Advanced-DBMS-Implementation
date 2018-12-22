@@ -1,4 +1,5 @@
 #include "radixHashJoin.h"
+#include "statistics_functions.h"
 
 int main(void) {
 
@@ -23,6 +24,11 @@ int main(void) {
     Table **tables = read_tables(&num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
     //fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
+
+
+    // Gather statistics for each column of each table. Later, these will optimize the queries-execution.
+    gatherInitialStatistics(&tables, num_of_tables);
+
 
     Relation ***relation_array = allocateAndInitializeRelationArray(tables, num_of_tables);
 

@@ -59,6 +59,9 @@ void printEntity(Entity *entity);
 /* Print the query */
 void print_query(Query_Info * query_info, char* query, int query_number);
 
+/* Print the statistics for each column of each table */
+void printStatistics(Table **tables, int num_of_tables);
+
 void* myMalloc(size_t sizeOfAllocation);
 
 int myAtoi(char *str);

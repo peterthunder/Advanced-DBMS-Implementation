@@ -372,6 +372,21 @@ void print_query(Query_Info *query_info, char *query, int query_number) {
     printf("\n");
 }
 
+void printStatistics(Table **tables, int num_of_tables) {
+
+    fprintf(fp_print, "\nStatistics:\n");
+    for ( int i = 0; i < num_of_tables ; i++ )
+    {
+        fprintf(fp_print, "\nTable[%d]:\n", i);
+        for ( int j = 0 ; j < tables[i]->num_columns ; j++ )
+        {
+            fprintf(fp_print, "Column[%d]: l = %4ju, u = %6ju, f = %ju, d = %ju\n",
+                    j, tables[i]->column_statistics[j]->l, tables[i]->column_statistics[j]->u, tables[i]->column_statistics[j]->f, tables[i]->column_statistics[j]->d);
+        }
+    }
+    fprintf(fp_print, "\n");
+}
+
 void *myMalloc(size_t sizeOfAllocation) {
 
     void *ptr = malloc(sizeOfAllocation);

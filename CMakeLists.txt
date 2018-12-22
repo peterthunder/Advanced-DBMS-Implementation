@@ -37,7 +37,9 @@ add_library(database
         src/radixHashJoin.h
         src/supportFunctions.c
         src/supportFunctions.h
-        src/struct_and_const_definitions.h)
+        src/struct_and_const_definitions.h
+        src/statistics_functions.c
+        src/statistics_functions.h)
 
 target_include_directories(database PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

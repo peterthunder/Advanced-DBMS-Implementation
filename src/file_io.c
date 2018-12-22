@@ -52,6 +52,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         tables[i]->num_tuples = 0;
         tables[i]->num_columns = 0;
         tables[i]->column_indexes = NULL;
+        tables[i]->column_statistics = NULL;
     }
 
     *mapped_tables = myMalloc(sizeof(uint64_t *) * (*num_of_tables));
@@ -100,9 +101,15 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         tables[i]->num_tuples = (*mapped_tables)[i][0];
         tables[i]->num_columns = (*mapped_tables)[i][1];
         tables[i]->column_indexes = myMalloc(sizeof(uint64_t *) * tables[i]->num_columns);
+        tables[i]->column_statistics = myMalloc(sizeof(ColumnStats) * tables[i]->num_columns);
 
         for (j = 0; j < tables[i]->num_columns; j++) {
             tables[i]->column_indexes[j] = &(*mapped_tables)[i][2 + j * tables[i]->num_tuples];
+            tables[i]->column_statistics[j] = myMalloc(sizeof(ColumnStats));
+            tables[i]->column_statistics[j]->l = 999999;    // ~1 million
+            tables[i]->column_statistics[j]->u = 0;
+            tables[i]->column_statistics[j]->f = 0;
+            tables[i]->column_statistics[j]->d = 0;
         }
 
         close(fd);

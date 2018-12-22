@@ -14,7 +14,7 @@ long *execute_query(Query_Info *query_info, Table **tables, Relation ****relatio
         entity->inter_tables[i] = NULL;
     }
 
-    /* Filter filter the relations */
+    /* Filter the relations */
     for (i = 0; i < query_info->filter_count; i++) {
 
         table_num = query_info->relation_IDs[query_info->filters[i][0]]; // number of the table that has the the relation that needs to be filtered

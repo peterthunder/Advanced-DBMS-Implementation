@@ -1,6 +1,7 @@
 #ifndef ADVANCED_DBMS_IMPLEMENTATION_STRUCT_AND_CONST_DEFINITIONS_H
 #define ADVANCED_DBMS_IMPLEMENTATION_STRUCT_AND_CONST_DEFINITIONS_H
 
+#define MAX_BOOL_TABLE_NUM 50000000 // 50 millions
 #define H1_PARAM 4 // Number of bits we PRINTING keep after the 1st hash function pass
 #define H2_PARAM 101 // The number we use in the 2nd hash function as mod
 #define JOINED_ROWIDS_NUM ((1024 * 1024) / 8)
@@ -45,11 +46,20 @@ typedef struct result {
 } Result;
 
 
+typedef struct column_stats {
+    uint64_t l; // lower_value
+    uint64_t u; // upper_value
+    uint64_t f; // count_of_all_the_values
+    uint64_t d; // count_of_the_distinct_values
+} ColumnStats;
+
+
 /* Struct that holds the information of all the columns of a single table */
 typedef struct table_{
     uint64_t num_tuples;
     uint64_t num_columns;
     uint64_t **column_indexes;
+    ColumnStats **column_statistics;    // Array of columns with their statistics.
 } Table;
 
 
