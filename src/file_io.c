@@ -74,7 +74,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
         //fprintf(fp_print, "%s\n", table_path);
 
-#if PRINTING
+#if PRINTING || DEEP_PRINTING
         fprintf(fp_print, "Path of the %d-th mapped_tables: %s\n", i, table_path);
 #endif
         /* Open the mapped_tables */
@@ -94,7 +94,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         (*mapped_tables)[i] = mmap(0, size, PROT_READ | PROT_EXEC, MAP_SHARED, fd, 0);
         if ((*mapped_tables)[i] == MAP_FAILED)
             fprintf(stderr, "Error reading mapped_tables file!\n");
-#if PRINTING
+#if PRINTING || DEEP_PRINTING
         printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", i, (*mapped_tables)[i][0], (*mapped_tables)[i][1]);
 #endif
         /* Initialize each table's variables */
@@ -113,7 +113,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         }
 
         close(fd);
-#if PRINTING
+#if PRINTING || DEEP_PRINTING
         printf("-------------------------------------------------------\n");
 #endif
     }

@@ -80,7 +80,7 @@ void gatherInitialStatistics(Table ***tables, int num_of_tables) {
     total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
     fprintf(fp_print, "\nFinished gathering initial statistics in %ld seconds!\n", total_t);
 
-#if PRINTING
+#if PRINTING || DEEP_PRINTING
     printStatistics((*tables), num_of_tables);
 #endif
 }

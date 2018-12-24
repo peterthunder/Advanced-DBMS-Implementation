@@ -8,6 +8,11 @@ DEBUG:
 	@echo "Compile main...";
 	gcc -O3 -ggdb -Wall -Wchkp -o radixHashJoin_debug src/main.c src/file_io.c src/parser.c src/query_functions.c src/radixHashJoin.c src/statistics_functions.c src/supportFunctions.c -D PRINTING
 
+DEEP_DEBUG:
+	make CLEAN_DEEP_DEBUG
+	@echo "Compile main...";
+	gcc -O3 -ggdb -Wall -Wchkp -o radixHashJoin_deep_debug src/main.c src/file_io.c src/parser.c src/query_functions.c src/radixHashJoin.c src/statistics_functions.c src/supportFunctions.c -D DEEP_PRINTING
+
 UNIT_TESTING:
 	cd UnitTesting/Unity-master/Testing/MyTests && rake
 	# Add more UnitTesting directories.
@@ -29,6 +34,9 @@ CLEAN_BASIC:
 
 CLEAN_DEBUG:
 	rm -rf radixHashJoin_debug
+
+CLEAN_DEEP_DEBUG:
+	rm -rf radixHashJoin_deep_debug
 
 CLEAN_ALL:
 	rm -rf radixHashJoin_basic
