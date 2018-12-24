@@ -24,7 +24,7 @@ DRIVER:
 	rm -rf build && ./compile.sh && ./run.sh
 
 PROFILER:
-	rm -rf profiler_output.txt && make BASIC && gprof radixHashJoin_basic > profiler_output.txt && head -28 profiler_output.txt
+	rm -rf profiler_output.txt && make BASIC && ./radixHashJoin_basic && gprof radixHashJoin_basic gmon.out > profiler_output.txt && head -28 profiler_output.txt
 
 EXAMPLE:
 	gcc -o example example.c
