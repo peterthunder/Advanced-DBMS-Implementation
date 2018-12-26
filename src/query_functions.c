@@ -205,12 +205,12 @@ void handleRelationFilter(Relation **original_relation, Entity **entity, int rel
     uint32_t rowId_count = 0;
     int32_t *rowIDs;
     Relation *relation;
-    int inter_num_table;
+    int inter_table_num;
 
     /* Check if the relation_id is already in an intermediate table.
         * If it isn't, create a new intermediate table, filter the relation(full column) and fill the new inter table with the row ids that satisfy the filter.
         * Otherwise, if the relation exists in an intermediate table, get the relation from it, based on the rowIDs, filter the relation and update the intermediate table.*/
-    relation = create_intermediate_table(relation_Id, entity, *original_relation, &inter_num_table);
+    relation = create_intermediate_table(relation_Id, entity, *original_relation, &inter_table_num);
 
     if (relation != NULL) {
         /* Get the rowIDs of the relation that satisfy the filter*/
@@ -228,17 +228,17 @@ void handleRelationFilter(Relation **original_relation, Entity **entity, int rel
         rowIDs = filterRelation(operator, num_filter, *original_relation, &rowId_count);
 
         /* Fill the intermediate table according to those rowIDs*/
-        (*entity)->inter_tables[inter_num_table]->num_of_columns = 1;
-        (*entity)->inter_tables[inter_num_table]->num_of_rows = rowId_count;
-        (*entity)->inter_tables[inter_num_table]->inter_table = myMalloc(sizeof(int32_t *) * rowId_count);
+        (*entity)->inter_tables[inter_table_num]->num_of_columns = 1;
+        (*entity)->inter_tables[inter_table_num]->num_of_rows = rowId_count;
+        (*entity)->inter_tables[inter_table_num]->inter_table = myMalloc(sizeof(int32_t *) * rowId_count);
 
         for (i = 0; i < rowId_count; i++) {
-            (*entity)->inter_tables[inter_num_table]->inter_table[i] = myMalloc(sizeof(int32_t) * 1);
-            (*entity)->inter_tables[inter_num_table]->inter_table[i][0] = rowIDs[i];
+            (*entity)->inter_tables[inter_table_num]->inter_table[i] = myMalloc(sizeof(int32_t) * 1);
+            (*entity)->inter_tables[inter_table_num]->inter_table[i][0] = rowIDs[i];
         }
 
-        (*entity)->inter_tables[inter_num_table]->relationIDS_of_inter_table = myMalloc(sizeof(int) * 1);
-        (*entity)->inter_tables[inter_num_table]->relationIDS_of_inter_table[0] = relation_Id;
+        (*entity)->inter_tables[inter_table_num]->relationIDS_of_inter_table = myMalloc(sizeof(int) * 1);
+        (*entity)->inter_tables[inter_table_num]->relationIDS_of_inter_table[0] = relation_Id;
 
     }
     free(rowIDs);
@@ -298,7 +298,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
         deAllocateResult(&result);
     }
-        /* If one of the relations exists in an intermediate table */
+    /* If one of the relations exists in an intermediate table */
     else if ((ret1 != -1 && ret2 == -1) || ret1 == -1) {
 
         if (ret1 != -1) {
@@ -365,7 +365,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
         deAllocateResult(&result);
     }
-        /* If both of the relations exist in the same or a different intermediate table */
+    /* If both of the relations exist in the same or a different intermediate table */
     else {
         new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1);
         new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_num2);
@@ -417,7 +417,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
             deAllocateRelation(&new_relation2);
             free(row_ids);
         }
-            /* Else just join them and combine the 2 intermediate tables */
+        /* Else just join them and combine the 2 intermediate tables */
         else {
             result = RadixHashJoin(&new_relation1, &new_relation2);
 
@@ -505,11 +505,11 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
         sum = 0;
         exists_in_intermediate_table(query_info->selections[i][0], entity, &inter_table_num, &inter_column_num);
         for (j = 0; j < entity->inter_tables[inter_table_num]->num_of_rows; j++) {
-            rid = (int32_t) entity->inter_tables[inter_table_num]->inter_table[j][inter_column_num] - 1;
             table = query_info->relation_IDs[query_info->selections[i][0]];
             column = query_info->selections[i][1];
-            //printf("Sum on t: %d and c: %d\n", table, column);
-            sum = sum + tables[table]->column_indexes[column][rid];
+            rid = (int32_t) entity->inter_tables[inter_table_num]->inter_table[j][inter_column_num] - 1;
+            sum += tables[table]->column_indexes[column][rid];
+            //printf("Sum on t: %d and c: %d\n", table, column);    // DEBUG!
         }
         sums[i] = (long) sum;
     }

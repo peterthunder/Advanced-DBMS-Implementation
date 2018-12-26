@@ -1,14 +1,18 @@
 #include "statistics_functions.h"
 
 
+/**
+ * For every column of every table we retrieve: {l, u, f, d}
+ * l = lower_value, u = upper_value, f = count_of_all_the_values, d = count_of_the_distinct_values
+ * @param tables
+ * @param num_of_tables
+ */
 void gatherInitialStatistics(Table ***tables, int num_of_tables) {
-
-    // For every column of every table we retrieve: {l, u, f, d}
-    // l = lower_value, u = upper_value, f = count_of_all_the_values, d = count_of_the_distinct_values
 
     clock_t start_t, end_t, total_t;
 
-    start_t = clock();
+    if ( USE_HARNESS == FALSE )
+        start_t = clock();
 
     // Get l, u, f, d
 
@@ -76,9 +80,11 @@ void gatherInitialStatistics(Table ***tables, int num_of_tables) {
         }// end of-each-column
     }// end of-each-table
 
-    end_t = clock();
-    total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
-    fprintf(fp_print, "\nFinished gathering initial statistics in %ld seconds!\n", total_t);
+    if ( USE_HARNESS == FALSE ) {
+        end_t = clock();
+        total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
+        fprintf(fp_print, "\nFinished gathering initial statistics in %ld seconds!\n", total_t);
+    }
 
 #if PRINTING || DEEP_PRINTING
     printStatistics((*tables), num_of_tables);

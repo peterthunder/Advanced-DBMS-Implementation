@@ -274,8 +274,12 @@ bool isFilter(char *predicate) {
         memcpy(pred, pred + 1, strlen(pred + 1) + 1);
     }
 
-    if (dots_count >= 2)
-        return FALSE;
-    else
+    if ( dots_count < 2 )
         return TRUE;
+    // If we want to handle the "filter": 0.1=0.2
+    // In this case we have to use 5 cells in our "filters"-table to store the filter-members
+    /*else if ( dots_count == 2 &&   tableNum is the same in both sides  )
+      return TRUE;*/
+    else
+        return FALSE;
 }
