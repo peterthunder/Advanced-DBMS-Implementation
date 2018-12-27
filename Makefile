@@ -29,7 +29,9 @@ DRIVER:
 	rm -rf build && ./compile.sh && ./run.sh
 
 PROFILER:
-	rm -rf profiler_output.txt && make BASIC_FOR_PROFILER && ./radixHashJoin_basic_for_profiler && gprof radixHashJoin_basic_for_profiler gmon.out > profiler_output.txt && head -45 profiler_output.txt
+	rm -rf profiler_output.txt
+	make BASIC_FOR_PROFILER
+	./radixHashJoin_basic_for_profiler && gprof radixHashJoin_basic_for_profiler gmon.out > profiler_output.txt && head -45 profiler_output.txt
 
 EXAMPLE:
 	gcc -o example example.c
@@ -47,5 +49,7 @@ CLEAN_DEEP_DEBUG:
 	rm -rf radixHashJoin_deep_debug
 
 CLEAN_ALL:
-	rm -rf radixHashJoin_basic
-	rm -rf radixHashJoin_debug
+	make CLEAN_BASIC
+	make CLEAN_BASIC_FOR_PROFILER
+	make CLEAN_DEBUG
+	make CLEAN_DEEP_DEBUG
