@@ -34,10 +34,10 @@ void gatherInitialStatistics(Table ***tables, int num_of_tables) {
                 // Get u
                 if ( (*tables)[table_num]->column_indexes[col_num][value_index] > (*tables)[table_num]->column_statistics[col_num]->u )
                     (*tables)[table_num]->column_statistics[col_num]->u = (*tables)[table_num]->column_indexes[col_num][value_index];
-
-                // Get f
-                (*tables)[table_num]->column_statistics[col_num]->f ++;
             }
+
+            // Get f
+            (*tables)[table_num]->column_statistics[col_num]->f = (*tables)[table_num]->num_tuples;
 
             // Get d
             // Create the boolean-array for d-computation
