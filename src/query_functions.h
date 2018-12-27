@@ -7,7 +7,8 @@
 long * execute_query(Query_Info *query_info, Table **tables, Relation ****relation_array);
 
 /* Check if a relation id exists in the intermediate_table, if it doesn't create a new table */
-Relation* create_intermediate_table(int relation_Id, Entity **entity, Relation *relation, int *inter_table_num);
+Relation *
+create_intermediate_table(int relation_Id, Entity **entity, Relation *original_relation, int *inter_table_num, bool shouldCheckIfExists, int exists_value, int inter_column);
 
 /* Check if the relation id exists in an intermediate table */
 int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_table_num, int *column);
