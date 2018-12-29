@@ -187,9 +187,7 @@ void partition(Relation *relation, Relation **relationNew, int32_t **psum) {
     /* Fill out the new Relation using the psum */
     for (i = 0; i < number_of_buckets; i++) {
 
-        currHashCounter = 0;
-
-        /* If this is the last bucket, find the number of occurrences*/
+        /* If this is the last bucket, find the number of occurrences */
         if (i == number_of_buckets - 1)
             currHashAppearances = relation->num_tuples - psum[i][1];
         else
@@ -198,19 +196,19 @@ void partition(Relation *relation, Relation **relationNew, int32_t **psum) {
         if (currHashAppearances == 0)
             continue;
 
+        currHashCounter = 0;
+
         /* Search occurrences of this bucket's key inside the relation table. */
         for (j = 0; j < relation->num_tuples; j++) {
-
-            /* If all occurrences have been found, go to the next bucket.*/
-            if (currHashCounter == currHashAppearances)
-                break;
-
             /*If we find the current bucket's key in relation-table, append the relation-table's data to the new relation-table. */
             if (relation->tuples[j].payload % number_of_buckets == psum[i][0]) {
                 (*relationNew)->tuples[indexOfNewR].key = relation->tuples[j].key;
                 (*relationNew)->tuples[indexOfNewR].payload = relation->tuples[j].payload;
                 indexOfNewR++;
                 currHashCounter++;
+                /* If all occurrences have been found, go to the next bucket.*/
+                if (currHashCounter == currHashAppearances)
+                    break;
             }
         }
     }
