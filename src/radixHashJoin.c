@@ -268,9 +268,8 @@ int32_t **createPsum(int32_t **histogram) {
         psum[i][1] = 0;
     }
 
-    for (i = 0; i < number_of_buckets; i++)
-        if (i != 0)
-            psum[i][1] = psum[i - 1][1] + histogram[i - 1][1];
+    for (i = 1; i < number_of_buckets; i++)
+        psum[i][1] = psum[i - 1][1] + histogram[i - 1][1];
 
     return psum;
 }
