@@ -89,30 +89,34 @@ int main(void) {
     }
 
     /* De-allocate memory */
-    free(sumStruct->sums_sizes);
-    free(sumStruct->sums);
-    free(sumStruct);
-
-    for (i = 0; i < num_of_tables; i++) {
-        for (j = 0; j < tables[i]->num_columns; j++) {
+    for (i = 0; i < num_of_tables; i++)
+    {
+        for (j = 0; j < tables[i]->num_columns; j++)
+        {
             if (relation_array[i][j] != NULL) {
                 deAllocateRelation(&relation_array[i][j]);
             }
+            free(tables[i]->column_statistics[j]->d_array);
+            free(tables[i]->column_statistics[j]);
         }
         free(relation_array[i]);
+
+        munmap(mapped_tables[i], (size_t) mapped_tables_sizes[i]);
+        free(tables[i]->column_indexes);
+        free(tables[i]->column_statistics);
+        free(tables[i]);
     }
     free(relation_array);
 
-    for (i = 0; i < num_of_tables; i++) {
-        munmap(mapped_tables[i], (size_t) mapped_tables_sizes[i]);
-        free(tables[i]->column_indexes);
-        free(tables[i]);
-    }
     free(mapped_tables_sizes);
     free(mapped_tables);
     free(tables);
 
     free(query);
+
+    free(sumStruct->sums_sizes);
+    free(sumStruct->sums);
+    free(sumStruct);
 
     return EXIT_SUCCESS;
 }

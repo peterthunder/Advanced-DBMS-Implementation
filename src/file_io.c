@@ -38,7 +38,6 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
                 table_names[i] = myMalloc(sizeof(char) * 1024);
             }
         }
-        table_name[0] = '\0';
     }
 
     if ( USE_HARNESS == FALSE ) {
@@ -105,15 +104,18 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         tables[i]->num_tuples = (*mapped_tables)[i][0];
         tables[i]->num_columns = (*mapped_tables)[i][1];
         tables[i]->column_indexes = myMalloc(sizeof(uint64_t *) * tables[i]->num_columns);
-        tables[i]->column_statistics = myMalloc(sizeof(ColumnStats) * tables[i]->num_columns);
+        tables[i]->column_statistics = myMalloc(sizeof(ColumnStats *) * tables[i]->num_columns);
 
         for (j = 0; j < tables[i]->num_columns; j++) {
             tables[i]->column_indexes[j] = &(*mapped_tables)[i][2 + j * tables[i]->num_tuples];
             tables[i]->column_statistics[j] = myMalloc(sizeof(ColumnStats));
-            tables[i]->column_statistics[j]->l = 999999;    // ~1 million
+            tables[i]->column_statistics[j]->l = 999999;    // Set it to ~1 million, to make sure it will be decreased later.
             tables[i]->column_statistics[j]->u = 0;
             tables[i]->column_statistics[j]->f = 0;
             tables[i]->column_statistics[j]->d = 0;
+            tables[i]->column_statistics[j]->d_array = NULL;
+            tables[i]->column_statistics[j]->d_array_size = 0;
+            tables[i]->column_statistics[j]->initialSizeExcededSize = FALSE;
         }
 
         if ( close(fd) == -1 ) {
@@ -127,11 +129,12 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     //fprintf(fp_print, " -Finished mmapping tables to memory and initializing structures.\n");
 
-    for(i=0; i<table_names_array_size; i++)
+    for( i=0; i < table_names_array_size; i++ )
         free(table_names[i]);
 
     free(table_names);
-    free(table_name);
+
+    free(table_name);   // "getline()" allocates space internally, which WE have to free.
 
     return tables;
 }
