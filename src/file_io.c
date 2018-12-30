@@ -21,12 +21,12 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     /* Count the number of tables */
     while ( getline(&table_name, &size, fp_read_tables) > 0 ) {
 
+        if ( strcmp(table_name, "Done\n") == 0 || strcmp(table_name, "\n") == 0 )
+            break;
+
         table_name[strlen(table_name) - 1] = '\0';    // Remove "newLine"-character.
 
         //fprintf(fp_print, "%s\n", table_name);
-
-        if ( strcmp(table_name, "Done") == 0 || strcmp(table_name, "\n") == 0 )
-            break;
 
         strcpy(table_names[*num_of_tables], table_name);
         (*num_of_tables)++;
