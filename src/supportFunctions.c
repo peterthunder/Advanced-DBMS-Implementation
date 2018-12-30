@@ -375,6 +375,12 @@ void printStatistics(Table **tables, int num_of_tables) {
         {
             fprintf(fp_print, "Column[%d]: l = %4ju, u = %6ju, f = %ju, d = %ju\n",
                     j, tables[i]->column_statistics[j]->l, tables[i]->column_statistics[j]->u, tables[i]->column_statistics[j]->f, tables[i]->column_statistics[j]->d);
+#ifndef DEEP_PRINTING
+            fprintf(fp_print, "Boolean d_array:\n");
+            for (int k = 0 ; k < tables[i]->column_statistics[j]->d_array_size ; k++)
+                fprintf(fp_print, "%d", tables[i]->column_statistics[j]->d_array[k]);
+            fprintf(fp_print, "\n");
+#endif
         }
     }
     fprintf(fp_print, "\n");
