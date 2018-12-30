@@ -41,8 +41,12 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         table_name[0] = '\0';
     }
 
-    if ( USE_HARNESS == FALSE )
-        fclose(fp_read_tables);   // Otherwise, on HARNESS this will be the stdin.
+    if ( USE_HARNESS == FALSE ) {
+        if ( fclose(fp_read_tables) == EOF ) {   // Otherwise, on HARNESS this will be the stdin.
+            fprintf(stderr, "Error closing \"fp_read_tables\" without HARNESS: %s!\n", strerror(errno));
+            return NULL;
+        }
+    }
 
     /* Allocate all the memory needed and initialize all the structures */
     Table **tables = myMalloc(sizeof(Table *) * (*num_of_tables));
@@ -112,7 +116,10 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
             tables[i]->column_statistics[j]->d = 0;
         }
 
-        close(fd);
+        if ( close(fd) == -1 ) {
+            fprintf(stderr, "Error closing file \"%s\": %s!\n", table_path, strerror(errno));
+            return NULL;
+        }
 #if PRINTING || DEEP_PRINTING
         printf("-------------------------------------------------------\n");
 #endif
