@@ -1,7 +1,7 @@
 #ifndef ADVANCED_DBMS_IMPLEMENTATION_STATISTICS_FUNCTIONS_H
 #define ADVANCED_DBMS_IMPLEMENTATION_STATISTICS_FUNCTIONS_H
 
-#include "supportFunctions.h"
+#include "radixHashJoin.h"
 
 void gatherInitialStatistics(Table ***tables, int num_of_tables);
 

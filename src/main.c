@@ -1,4 +1,3 @@
-#include "radixHashJoin.h"
 #include "statistics_functions.h"
 
 int main(void) {
@@ -11,6 +10,10 @@ int main(void) {
 
     /* H1_PARAM is the number of the last-n bits of the 32-bit number we wanna keep */
     int32_t n = H1_PARAM;
+    
+/*    testRHJ();
+    
+    return 0;*/
 
     clock_t start_t, end_t, total_t;
 
@@ -21,14 +24,14 @@ int main(void) {
 
     setIOStreams(&fp_read_tables, &fp_read_queries, &fp_write, &fp_print);
 
+    threadpool = threadpool_init(number_of_buckets);
+
     Table **tables = read_tables(&num_of_tables, &mapped_tables, &mapped_tables_sizes);
 
     //fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
 
-
     // Gather statistics for each column of each table. Later, these will optimize the queries-execution.
     gatherInitialStatistics(&tables, num_of_tables);
-
 
     Relation ***relation_array = allocateAndInitializeRelationArray(tables, num_of_tables);
 
@@ -107,6 +110,9 @@ int main(void) {
     free(tables);
 
     free(query);
+
+    threadpool_destroy(threadpool);
+    fflush(fp_print);
 
     return EXIT_SUCCESS;
 }

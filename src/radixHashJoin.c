@@ -1,6 +1,5 @@
 #include "radixHashJoin.h"
 
-
 void testRHJ() {
     // n  = cache size / maxsizeofbucket;
 
@@ -13,8 +12,10 @@ void testRHJ() {
     /* So we are going to use mod(%2^n) to get the last n bits, where 2^n is also the number of buckets */
     number_of_buckets = (int32_t) myPow(2, n);
 
+    threadpool = threadpool_init(number_of_buckets);
+
     Relation **relations = myMalloc(sizeof(Relation *) * 10);
-    uint32_t relation_size[10] = {20, 10, 30, 10, 10, 10, 10, 10, 10, 10};
+    uint32_t relation_size[10] = {200, 100, 30, 10, 10, 10, 10, 10, 10, 10};
 
     /* Allocate the relations and initialize them with random numbers from 0-200 */
     for (i = 0; i < 10; i++) {
@@ -24,16 +25,12 @@ void testRHJ() {
 
     /* Do Radix Hash Join on the conjunction of the relations */
     result = RadixHashJoin(&relations[0], &relations[1]);
-
-#if PRINTING
     printResults(result);
+#if PRINTING
+
 #endif
 
-    deAllocateResult(&result);
-
-    relations[2]->is_full_column = FALSE;
-
-    result = RadixHashJoin(&relations[1], &relations[2]);
+    threadpool_destroy(threadpool);
 
     for (i = 0; i < 10; i++)
         if (relations[i] != NULL)
@@ -47,17 +44,25 @@ void testRHJ() {
 Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
 
     Result *result;
-    clock_t start_t, end_t, total_t;
     int i;
 
     //printf("\n# Running RadixHashJoin on Relations R and S.\n");
+#if PRINTING
+    clock_t start_t, end_t, total_t;
     start_t = clock();
+#endif
 
+/*    *//* Certain values to create chains *//*
+    (*reIR)->tuples[(*reIR)->num_tuples - 2].payload = 929;
+    (*reIR)->tuples[(*reIR)->num_tuples - 3].payload = 828;
+    (*reIS)->tuples[(*reIS)->num_tuples - 1].payload = 929;
+    (*reIS)->tuples[(*reIS)->num_tuples - 2].payload = 20;*/
 
-     /*     Construct Histograms and Psums      */
+    /*     Construct Histograms and Psums      */
     /*   Create Relation R histogram and psum  */
     int32_t **histogramR = createHistogram((*reIR));    // Allocation-errors are handled internally.
 
+    //printHistogram(histogramR, 1);
     if ((*reIR)->psum == NULL) {
         (*reIR)->psum = createPsum(histogramR);    // Allocation-errors are handled internally.
     } else {
@@ -79,7 +84,8 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
 
         //printf("  -Phase 1: Partitioning the relation R.\n");
 
-        (*reIR)->paritioned_relation = allocateRelation((*reIR)->num_tuples, TRUE);    // Allocation-errors are handled internally.
+        (*reIR)->paritioned_relation = allocateRelation((*reIR)->num_tuples,
+                                                        TRUE);    // Allocation-errors are handled internally.
         partition((*reIR), &(*reIR)->paritioned_relation, (*reIR)->psum);
         (*reIR)->is_partitioned = TRUE;
 
@@ -91,13 +97,13 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
 
         //printf("  -Phase 1: Partitioning the relation S.\n");
 
-        (*reIS)->paritioned_relation = allocateRelation((*reIS)->num_tuples, TRUE);    // Allocation-errors are handled internally.
+        (*reIS)->paritioned_relation = allocateRelation((*reIS)->num_tuples,
+                                                        TRUE);    // Allocation-errors are handled internally.
         partition((*reIS), &(*reIS)->paritioned_relation, (*reIS)->psum);
         (*reIS)->is_partitioned = TRUE;
     } else {
         //printf("   -Relation S is already partitioned.\n");
     }
-
 
 #if PRINTING
     printAllForPartition(4, (*reIR), (*reIS), histogramR, histogramS, (*reIR)->psum, (*reIR)->psum, (*reIR)->paritioned_relation, (*reIS)->paritioned_relation);
@@ -120,19 +126,23 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
         /* Build the bucket_index and the chain arrays of the smaller relation */
     else if ((*reIR)->num_tuples <= (*reIS)->num_tuples) {
 
-        allocateAndInitializeBucketIndexAndChain(&(*reIR)->chain, &(*reIR)->bucket_index);    // Allocation-errors are handled internally.
+        allocateAndInitializeBucketIndexAndChain(&(*reIR)->chain,
+                                                 &(*reIR)->bucket_index);    // Allocation-errors are handled internally.
 
         //printf("  -Phase 2: Building index on the smaller relation R.\n");
-        buildSmallestPartitionedRelationIndex((*reIR)->paritioned_relation, (*reIR)->psum, &(*reIR)->bucket_index, &(*reIR)->chain);    // Allocation-errors are handled internally.
+        buildSmallestPartitionedRelationIndex((*reIR)->paritioned_relation, (*reIR)->psum, &(*reIR)->bucket_index,
+                                              &(*reIR)->chain);    // Allocation-errors are handled internally.
 
         (*reIR)->is_built = TRUE;
 
         //printChainArray(psumR, relationNewR, chain);
         //printf("  -Phase 3: Joining the relations.\n");
-        result = joinRelations((*reIR)->paritioned_relation, (*reIS)->paritioned_relation, (*reIR)->psum, (*reIS)->psum, (*reIR)->bucket_index, (*reIR)->chain, TRUE);
+        result = joinRelations((*reIR)->paritioned_relation, (*reIS)->paritioned_relation, (*reIR)->psum, (*reIS)->psum,
+                               (*reIR)->bucket_index, (*reIR)->chain, TRUE);
     } else {
 
-        allocateAndInitializeBucketIndexAndChain(&(*reIS)->chain, &(*reIS)->bucket_index);    // Allocation-errors are handled internally.
+        allocateAndInitializeBucketIndexAndChain(&(*reIS)->chain,
+                                                 &(*reIS)->bucket_index);    // Allocation-errors are handled internally.
 
         //printf("  -Phase 2: Building index on the smaller relation S.\n");
         buildSmallestPartitionedRelationIndex((*reIS)->paritioned_relation, (*reIS)->psum, &(*reIS)->bucket_index,
@@ -142,13 +152,15 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
 
         //printChainArray(psumS, relationNewS, chain);
         //printf("  -Phase 3: Joining the relations.\n");
-        result = joinRelations((*reIS)->paritioned_relation, (*reIR)->paritioned_relation, (*reIS)->psum, (*reIR)->psum, (*reIS)->bucket_index, (*reIS)->chain, FALSE);
+        result = joinRelations((*reIS)->paritioned_relation, (*reIR)->paritioned_relation, (*reIS)->psum, (*reIR)->psum,
+                               (*reIS)->bucket_index, (*reIS)->chain, FALSE);
     }
 
-    end_t = clock();
 
-    total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
+
 #if PRINTING
+    end_t = clock();
+    total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
     printf("  -Total time taken by CPU for RadixHashJoin: %f seconds.\n", (double) total_t);
 #endif
 
@@ -177,12 +189,39 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
     return result;
 }
 
+void thread_partition(Partition_struct **partition_struct) {
+
+    int j;
+    int indexOfNewR = (*partition_struct)->start;
+    int currHashCounter = 0;
+
+    for (j = 0; j < (*partition_struct)->relation->num_tuples; j++) {
+        /*If we find the current bucket's key in relation-table, append the relation-table's data to the new relation-table. */
+        if ((*partition_struct)->relation->tuples[j].payload % number_of_buckets == (*partition_struct)->hashValue) {
+            (*partition_struct)->newRelation->tuples[indexOfNewR].key = (*partition_struct)->relation->tuples[j].key;
+            (*partition_struct)->newRelation->tuples[indexOfNewR].payload = (*partition_struct)->relation->tuples[j].payload;
+            indexOfNewR++;
+            currHashCounter++;
+            /* If all occurrences have been found, go to the next bucket.*/
+            if (currHashCounter == (*partition_struct)->hashApperances)
+                break;
+        }
+    }
+
+    /* Increment the jobs_done var and signal the main process */
+    pthread_mutex_lock(&threadpool->jobs_done_mtx);
+    threadpool->jobs_done++;
+    pthread_cond_signal(&threadpool->all_jobs_done);
+    pthread_mutex_unlock(&threadpool->jobs_done_mtx);
+}
+
 /* Partition Relation */
 void partition(Relation *relation, Relation **relationNew, int32_t **psum) {
 
-    int i, j;
+    int i = 0, j = 0, partition_struct_created = FALSE, jobs_added_to_queue = 0;
     unsigned int indexOfNewR = 0;
     int32_t currHashAppearances = 0, currHashCounter = 0;
+    Partition_struct **partition_struct = NULL;
 
     /* Fill out the new Relation using the psum */
     for (i = 0; i < number_of_buckets; i++) {
@@ -198,20 +237,52 @@ void partition(Relation *relation, Relation **relationNew, int32_t **psum) {
 
         currHashCounter = 0;
 
+        //printf("Bucket: %d, Psum start: %d, index of new R: %d\n", i, psum[i][1], indexOfNewR);
+
         /* Search occurrences of this bucket's key inside the relation table. */
-        for (j = 0; j < relation->num_tuples; j++) {
-            /*If we find the current bucket's key in relation-table, append the relation-table's data to the new relation-table. */
-            if (relation->tuples[j].payload % number_of_buckets == psum[i][0]) {
-                (*relationNew)->tuples[indexOfNewR].key = relation->tuples[j].key;
-                (*relationNew)->tuples[indexOfNewR].payload = relation->tuples[j].payload;
-                indexOfNewR++;
-                currHashCounter++;
-                /* If all occurrences have been found, go to the next bucket.*/
-                if (currHashCounter == currHashAppearances)
-                    break;
+        if (0/*relation->num_tuples < number_of_buckets * 10*/) {
+            for (j = 0; j < relation->num_tuples; j++) {
+                /*If we find the current bucket's key in relation-table, append the relation-table's data to the new relation-table. */
+                if (relation->tuples[j].payload % number_of_buckets == psum[i][0]) {
+                    (*relationNew)->tuples[indexOfNewR].key = relation->tuples[j].key;
+                    (*relationNew)->tuples[indexOfNewR].payload = relation->tuples[j].payload;
+                    indexOfNewR++;
+                    currHashCounter++;
+                    /* If all occurrences have been found, go to the next bucket.*/
+                    if (currHashCounter == currHashAppearances)
+                        break;
+                }
             }
+        } else {
+            if (partition_struct_created == FALSE) {
+                partition_struct = myMalloc(sizeof(Partition_struct *) * number_of_buckets);
+                for (j = 0; j < number_of_buckets; j++) {
+                    partition_struct[j] = myMalloc(sizeof(Partition_struct));
+                }
+                partition_struct_created = TRUE;
+            }
+            partition_struct[i]->start = psum[i][1];
+            partition_struct[i]->hashValue = psum[i][0];
+            partition_struct[i]->hashApperances = currHashAppearances;
+            partition_struct[i]->relation = relation;
+            partition_struct[i]->newRelation = *relationNew;
+            threadpool_add_job(threadpool, (void *) thread_partition, &partition_struct[i]);
+            jobs_added_to_queue++;
         }
     }
+
+    while (threadpool->jobs_done != jobs_added_to_queue) {
+        pthread_cond_wait(&threadpool->all_jobs_done, &threadpool->jobs_done_mtx);
+    }
+    threadpool->jobs_done = 0;
+    if(partition_struct_created == TRUE){
+        for (j = 0; j < number_of_buckets; j++) {
+            if (partition_struct[j] != NULL)
+                free(partition_struct[j]);
+        }
+        free(partition_struct);
+    }
+
 }
 
 void allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index) {
@@ -230,9 +301,21 @@ void allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index)
 }
 
 /* Create histogram of Relation */
+void thread_histogram(Histogram_struct **histogram_struct) {
+    for (int i = (*histogram_struct)->start; i < (*histogram_struct)->end; i++)
+        (*histogram_struct)->histogram[(*histogram_struct)->relation->tuples[i].payload % number_of_buckets]++;
+
+    /* Increment the jobs_done var and signal the main process */
+    pthread_mutex_lock(&threadpool->jobs_done_mtx);
+    threadpool->jobs_done++;
+    pthread_cond_signal(&threadpool->all_jobs_done);
+    pthread_mutex_unlock(&threadpool->jobs_done_mtx);
+}
+
+/* Create histogram of Relation */
 int32_t **createHistogram(Relation *relation) {
 
-    int i;
+    int i, j, chunk_size, bonus, start, end;
 
     /*Allocate memory for an Histogram-2dArray with size (number_of_buckets * 2) */
     int32_t **histogram = myMalloc(sizeof(int32_t *) * number_of_buckets);
@@ -244,9 +327,56 @@ int32_t **createHistogram(Relation *relation) {
         histogram[i][1] = 0;
     }
 
-    /* Fill out the histogram according to the hash values*/
-    for (i = 0; i < relation->num_tuples; i++) {
-        histogram[relation->tuples[i].payload % number_of_buckets][1]++;
+    /* If the number of threads is 8 for example,
+     * then only use multithreading if number of tuples of the relation is more than 80(threshold)*/
+    if (relation->num_tuples < number_of_buckets * 10) {
+        /* Fill out the histogram according to the hash values */
+        for (i = 0; i < relation->num_tuples; i++) {
+            histogram[relation->tuples[i].payload % number_of_buckets][1]++;
+        }
+    } else {
+        Histogram_struct **histogram_struct = myMalloc(sizeof(Histogram_struct *) * number_of_buckets);
+        chunk_size = relation->num_tuples / number_of_buckets;
+        bonus = relation->num_tuples - chunk_size * number_of_buckets;  // i.e. remainder
+        for (i = 0, start = 0, end = chunk_size;
+             start < relation->num_tuples;
+             start = end, end = start + chunk_size, i++) {
+
+            if (bonus) {
+                end++;
+                bonus--;
+            }
+            //printf("la: Start: %d, End: %d, Bonus: %d, i: %d \n", start, end, bonus, i);
+
+            /* Create a histogram struct to be passed to each thread */
+            histogram_struct[i] = myMalloc(sizeof(Histogram_struct));
+            histogram_struct[i]->histogram = myMalloc(sizeof(int32_t) * number_of_buckets);
+            for (j = 0; j < number_of_buckets; j++)
+                histogram_struct[i]->histogram[j] = 0;
+            histogram_struct[i]->start = start;
+            histogram_struct[i]->end = end;
+            histogram_struct[i]->relation = relation;
+            /* do something with array slice over [start, end) interval */
+            threadpool_add_job(threadpool, (void *) thread_histogram, &histogram_struct[i]);
+        }
+
+        while (threadpool->jobs_done != number_of_buckets) {
+            pthread_cond_wait(&threadpool->all_jobs_done, &threadpool->jobs_done_mtx);
+        }
+
+        for (i = 0; i < number_of_buckets; i++) {
+            for (j = 0; j < number_of_buckets; j++) {
+                histogram[i][1] += histogram_struct[j]->histogram[i];
+            }
+        }
+        for (i = 0; i < number_of_buckets; i++) {
+            free(histogram_struct[i]->histogram);
+            free(histogram_struct[i]);
+        }
+
+        free(histogram_struct);
+
+        threadpool->jobs_done = 0;
     }
 
     return histogram;
@@ -268,9 +398,8 @@ int32_t **createPsum(int32_t **histogram) {
         psum[i][1] = 0;
     }
 
-    for (i = 0; i < number_of_buckets; i++)
-        if (i != 0)
-            psum[i][1] = psum[i - 1][1] + histogram[i - 1][1];
+    for (i = 1; i < number_of_buckets; i++)
+        psum[i][1] = psum[i - 1][1] + histogram[i - 1][1];
 
     return psum;
 }
@@ -323,7 +452,8 @@ void buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_
  * RelWithIndex: The index of this relation will be used for the comparison and the join.
  * RelNoIndex: This relation might or might not have index and we will use the index of the other relation to compare and join.
  * */
-Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex, int32_t **bucket_index, int32_t **chain,
+Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex,
+                      int32_t **bucket_index, int32_t **chain,
                       bool is_R_relation_first) {
 
     int i, j, num_tuples_of_currBucket, currentIndex;
