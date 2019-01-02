@@ -27,7 +27,7 @@ void setIOStreams(FILE **fp_read_tables, FILE **fp_read_queries, FILE **fp_write
     }
 }
 
-Relation ***allocateAndInitializeRelationArray(Table **tables, int num_of_tables) {
+Relation *** allocateAndInitializeRelationArray(Table **tables, int num_of_tables) {
 
     Relation ***relation_array = myMalloc(sizeof(Relation **) * num_of_tables);
 
@@ -81,7 +81,7 @@ void initializeRelationWithRandomNumbers(Relation **rel) {
     }
 }
 
-Sum_struct *sumStructureAllocationAndInitialization() {
+Sum_struct * sumStructureAllocationAndInitialization() {
 
     Sum_struct *sumStruct = myMalloc(sizeof(Sum_struct));
     sumStruct->full_size = 1;
@@ -91,7 +91,7 @@ Sum_struct *sumStructureAllocationAndInitialization() {
     return sumStruct;
 }
 
-void sumStructureUpdate(Sum_struct **sumStruct, Query_Info *query_info, long *sums) {
+void sumStructureUpdate(Sum_struct **sumStruct, Query_Info *query_info, long*sums){
 
     (*sumStruct)->sums[(*sumStruct)->actual_size] = sums;
 
@@ -106,7 +106,7 @@ void sumStructureUpdate(Sum_struct **sumStruct, Query_Info *query_info, long *su
     }
 }
 
-void resetSumStructure(Sum_struct **sumStruct) {
+void resetSumStructure(Sum_struct **sumStruct){
 
     for (int k = 0; k < (*sumStruct)->actual_size; ++k) {
         free((*sumStruct)->sums[k]);
@@ -122,7 +122,7 @@ void resetSumStructure(Sum_struct **sumStruct) {
     fflush(stdout);
 }
 
-void writeSumsToStdout(Sum_struct *sumStruct) {
+void writeSumsToStdout(Sum_struct *sumStruct){
 
     char tempLine[1024];
     char tempLine1[1024];
@@ -178,7 +178,7 @@ void printRelation(Relation *relation, int choice) {
         printf("|%2d|%3d|%3d|%2d|", relation->tuples[i].payload % H1_PARAM, relation->tuples[i].payload % H2_PARAM,
                relation->tuples[i].payload, relation->tuples[i].key);
 
-        if (i == 5)break;
+        if(i==5)break;
     }
 
     printf("\n");
@@ -214,8 +214,7 @@ void printPsum(int32_t **psum, int choice) {
     printf("\n");
 }
 
-void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS,
-                          int32_t **psumR, int32_t **psumS,
+void printAllForPartition(int choice, Relation *reIR, Relation *reIS, int32_t **histogramR, int32_t **histogramS, int32_t **psumR, int32_t **psumS,
                           Relation *newReIR, Relation *newReIS) {
 
     switch (choice) {
@@ -279,7 +278,7 @@ void printResults(Result *result) {
         printf("[RowIDR|RowIDS]\n");
         for (int i = 0; i < current_result->num_joined_rowIDs; i++) {
             printf("   (%3d|%3d)\n", current_result->joined_rowIDs[i][0], current_result->joined_rowIDs[i][1]);
-            if (i == 5)break;
+            if(i==5)break;
         }
         current_result = current_result->next_result;
     } while (current_result != NULL);
@@ -334,8 +333,7 @@ void print_query(Query_Info *query_info, char *query, int query_number) {
     if (query_info->joins != NULL) {
         for (i = 0; i < query_info->join_count; i++) {
             if (query_info->joins[i] != NULL)
-                printf("%d.c%d=%d.c%d", query_info->joins[i][0], query_info->joins[i][1], query_info->joins[i][2],
-                       query_info->joins[i][3]);
+                printf("%d.c%d=%d.c%d", query_info->joins[i][0], query_info->joins[i][1], query_info->joins[i][2], query_info->joins[i][3]);
             if (query_info->filter_count != 0)
                 printf(" and ");
         }
@@ -346,16 +344,13 @@ void print_query(Query_Info *query_info, char *query, int query_number) {
             if (query_info->filters[i] != NULL) {
                 switch (query_info->filters[i][2]) {
                     case EQUAL:
-                        printf("%d.c%d=%d", query_info->filters[i][0], query_info->filters[i][1],
-                               query_info->filters[i][3]);
+                        printf("%d.c%d=%d", query_info->filters[i][0], query_info->filters[i][1], query_info->filters[i][3]);
                         break;
                     case LESS:
-                        printf("%d.c%d<%d", query_info->filters[i][0], query_info->filters[i][1],
-                               query_info->filters[i][3]);
+                        printf("%d.c%d<%d", query_info->filters[i][0], query_info->filters[i][1], query_info->filters[i][3]);
                         break;
                     case GREATER:
-                        printf("%d.c%d>%d", query_info->filters[i][0], query_info->filters[i][1],
-                               query_info->filters[i][3]);
+                        printf("%d.c%d>%d", query_info->filters[i][0], query_info->filters[i][1], query_info->filters[i][3]);
                         break;
                     default:
                         fprintf(stderr, "\nInvalid operator found: %d\n\n", query_info->filters[i][2]);
@@ -372,12 +367,19 @@ void print_query(Query_Info *query_info, char *query, int query_number) {
 void printStatistics(Table **tables, int num_of_tables) {
 
     fprintf(fp_print, "\nStatistics:\n");
-    for (int i = 0; i < num_of_tables; i++) {
+    for ( int i = 0; i < num_of_tables ; i++ )
+    {
         fprintf(fp_print, "\nTable[%d]:\n", i);
-        for (int j = 0; j < tables[i]->num_columns; j++) {
+        for ( int j = 0 ; j < tables[i]->num_columns ; j++ )
+        {
             fprintf(fp_print, "Column[%d]: l = %4ju, u = %6ju, f = %ju, d = %ju\n",
-                    j, tables[i]->column_statistics[j]->l, tables[i]->column_statistics[j]->u,
-                    tables[i]->column_statistics[j]->f, tables[i]->column_statistics[j]->d);
+                    j, tables[i]->column_statistics[j]->l, tables[i]->column_statistics[j]->u, tables[i]->column_statistics[j]->f, tables[i]->column_statistics[j]->d);
+#ifndef DEEP_PRINTING
+            fprintf(fp_print, "Boolean d_array:\n");
+            for (int k = 0 ; k < tables[i]->column_statistics[j]->d_array_size ; k++)
+                fprintf(fp_print, "%d", tables[i]->column_statistics[j]->d_array[k]);
+            fprintf(fp_print, "\n");
+#endif
         }
     }
     fprintf(fp_print, "\n");

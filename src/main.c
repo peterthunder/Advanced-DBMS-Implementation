@@ -10,9 +10,9 @@ int main(void) {
 
     /* H1_PARAM is the number of the last-n bits of the 32-bit number we wanna keep */
     int32_t n = H1_PARAM;
-    
+
 /*    testRHJ();
-    
+
     return 0;*/
 
     clock_t start_t, end_t, total_t;
@@ -46,7 +46,7 @@ int main(void) {
 
         query[strlen(query) - 1] = '\0';    // Remove "newLine"-character.
 
-        //fprintf(fp_print, "Query[%d]: %s\n", query_count, query);
+        fprintf(fp_print, "Query[%d]: %s\n", query_count, query);
 
         if (strcmp(query, "F") == 0) {
 
@@ -80,39 +80,48 @@ int main(void) {
         end_t = clock();
         total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
         fprintf(fp_print, "\nFinished parsing and executing queries in %ld seconds!\n", total_t);
-        fclose(fp_read_queries);    // Otherwise, on Harness-run this will be the stdin which we do not close.
+        if ( fclose(fp_read_queries) == EOF ) {    // Otherwise, on Harness-run this will be the stdin which we do not close.
+            fprintf(stderr, "Error closing \"fp_read_queries\" without HARNESS: %s!\n", strerror(errno));
+            return EXIT_FAILURE;
+        }
     }
 
-    fclose(fp_write);
+    if ( fclose(fp_write) == EOF ) {
+        fprintf(stderr, "Error closing \"fp_write\": %s!\n", strerror(errno));
+        return EXIT_FAILURE;
+    }
 
     /* De-allocate memory */
-    free(sumStruct->sums_sizes);
-    free(sumStruct->sums);
-    free(sumStruct);
-
-    for (i = 0; i < num_of_tables; i++) {
-        for (j = 0; j < tables[i]->num_columns; j++) {
+    for (i = 0; i < num_of_tables; i++)
+    {
+        for (j = 0; j < tables[i]->num_columns; j++)
+        {
             if (relation_array[i][j] != NULL) {
                 deAllocateRelation(&relation_array[i][j]);
             }
+            free(tables[i]->column_statistics[j]->d_array);
+            free(tables[i]->column_statistics[j]);
         }
         free(relation_array[i]);
+
+        munmap(mapped_tables[i], (size_t) mapped_tables_sizes[i]);
+        free(tables[i]->column_indexes);
+        free(tables[i]->column_statistics);
+        free(tables[i]);
     }
     free(relation_array);
 
-    for (i = 0; i < num_of_tables; i++) {
-        munmap(mapped_tables[i], (size_t) mapped_tables_sizes[i]);
-        free(tables[i]->column_indexes);
-        free(tables[i]);
-    }
     free(mapped_tables_sizes);
     free(mapped_tables);
     free(tables);
 
     free(query);
 
+    free(sumStruct->sums_sizes);
+    free(sumStruct->sums);
+    free(sumStruct);
+
     threadpool_destroy(threadpool);
-    fflush(fp_print);
 
     return EXIT_SUCCESS;
 }

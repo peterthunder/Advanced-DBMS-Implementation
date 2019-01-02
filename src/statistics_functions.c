@@ -10,6 +10,7 @@
 void gatherInitialStatistics(Table ***tables, int num_of_tables) {
 
     clock_t start_t, end_t, total_t;
+    u_int64_t indexOfValueToSetTrue;
 
     if ( USE_HARNESS == FALSE )
         start_t = clock();
@@ -45,19 +46,20 @@ void gatherInitialStatistics(Table ***tables, int num_of_tables) {
             bool isSizeLargerThanAccepted = FALSE;
 
             if ( sizeOfArray > MAX_BOOL_TABLE_NUM ) {
-                sizeOfArray = MAX_BOOL_TABLE_NUM;
                 isSizeLargerThanAccepted = TRUE;
+                sizeOfArray = MAX_BOOL_TABLE_NUM;
             }
 
-            bool d_array[sizeOfArray];
+            (*tables)[table_num]->column_statistics[col_num]->initialSizeExcededSize = isSizeLargerThanAccepted;
+            (*tables)[table_num]->column_statistics[col_num]->d_array_size = sizeOfArray;
+            (*tables)[table_num]->column_statistics[col_num]->d_array = myMalloc(sizeof(bool) * sizeOfArray);
+
             for ( int i = 0 ; i < sizeOfArray ; i++ ) {
-                d_array[i] = FALSE;
+                (*tables)[table_num]->column_statistics[col_num]->d_array[i] = FALSE;
             }
 
             // Set the distinct values equal to the sum of all of the values. Later, we will decrement it each time we re-access the same value.
             (*tables)[table_num]->column_statistics[col_num]->d = (*tables)[table_num]->column_statistics[col_num]->f;
-
-            u_int64_t indexOfValueToSetTrue;
 
             // Do another pass on the values of this column to
             for ( int value_index = 0 ; value_index < (*tables)[table_num]->num_tuples ; value_index++ ) {
@@ -71,10 +73,10 @@ void gatherInitialStatistics(Table ***tables, int num_of_tables) {
                         table_num, col_num, value_index, (*tables)[table_num]->column_indexes[col_num][value_index], indexOfValueToSetTrue);  // DEBUG!
               */
 
-                if ( d_array[indexOfValueToSetTrue] == TRUE )   // We re-access the same value.
+                if ( (*tables)[table_num]->column_statistics[col_num]->d_array[indexOfValueToSetTrue] == TRUE )   // We re-access the same value.
                     (*tables)[table_num]->column_statistics[col_num]->d --; // So we have one less value to be distinct.
                 else
-                    d_array[indexOfValueToSetTrue] = TRUE;
+                    (*tables)[table_num]->column_statistics[col_num]->d_array[indexOfValueToSetTrue] = TRUE;
 
             }// end of-each-value
         }// end of-each-column
