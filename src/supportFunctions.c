@@ -3,24 +3,23 @@
 
 void setIOStreams(FILE **fp_read_tables, FILE **fp_read_queries, FILE **fp_write, FILE **fp_print) {
 
-    if ( USE_HARNESS ) {
+    if (USE_HARNESS) {
         *fp_read_tables = stdin;
         *fp_read_queries = stdin;
         *fp_write = stdout;
         *fp_print = stderr;
-    }
-    else {
+    } else {
         /* Open the file on that path */
-        if ( (*fp_read_tables = fopen("workloads/small/small.init", "r")) == NULL ) {
+        if ((*fp_read_tables = fopen("workloads/small/small.init", "r")) == NULL) {
             fprintf(stderr, "Error opening file workloads/small/small.init: %s!\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
         /* Open the file on that path */
-        if ( (*fp_read_queries = fopen("workloads/small/small.work", "r")) == NULL ) {
+        if ((*fp_read_queries = fopen("workloads/small/small.work", "r")) == NULL) {
             fprintf(stderr, "Error opening file \"workloads/small/small.work\": %s!\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
-        if ( (*fp_write = fopen("results.txt", "wb")) == NULL ) {
+        if ((*fp_write = fopen("results.txt", "wb")) == NULL) {
             fprintf(stderr, "Error opening file \"results.txt\": %s!\n", strerror(errno));
             exit(EXIT_FAILURE);
         }

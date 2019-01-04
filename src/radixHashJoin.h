@@ -2,14 +2,39 @@
 #define ADVANCED_DBMS_IMPLEMENTATION_RADIXHASHJOIN_H
 
 #include "query_functions.h"
+#include "threadpool.h"
+
+Threadpool *threadpool;
+
+typedef struct partition_struct {
+    int32_t start;
+    int32_t hashValue;
+    int hashApperances;
+    Relation *relation;
+    Relation *newRelation;
+} Partition_struct;
+
+
+typedef struct histo_struct {
+    int start;
+    int end;
+    int32_t *histogram;
+    Relation *relation;
+} Histogram_struct;
 
 void testRHJ();
 
 /* Radix Hash Join */
 Result *RadixHashJoin(Relation **reIR, Relation **reIS);
 
+/*Thread function for partition of each bucket*/
+void thread_partition(Partition_struct **partition_struct);
+
 /* Partition Relation */
 void partition(Relation *relation, Relation **relationNew, int32_t **psum);
+
+/* Thread function for histogram creation */
+void thread_histogram(Histogram_struct **histogram_struct);
 
 /* Create histogram of Relation */
 int32_t **createHistogram(Relation *relation);
@@ -23,7 +48,8 @@ void allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index)
 void buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t ***bucket_index, int32_t ***chain);
 
 /* Join two relations and return the result. */
-Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex, int32_t **bucket_index, int32_t **chain,
+Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex,
+                      int32_t **bucket_index, int32_t **chain,
                       bool is_R_relation_first);
 
 /* De-allocate Relation memory */

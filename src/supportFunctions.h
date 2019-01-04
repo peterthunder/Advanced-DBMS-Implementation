@@ -10,8 +10,10 @@
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
-
-
+#include <pthread.h>
+#include <sys/types.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "struct_and_const_definitions.h"
 #include "parser.h"

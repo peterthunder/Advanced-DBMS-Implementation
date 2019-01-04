@@ -7,8 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 # set(CMAKE_C_COMPILER /usr/local/bin/gcc)
 # set(CMAKE_CXX_COMPILER /usr/local/bin/g++)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -fsanitize=address -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -fsanitize=address -Wall -pthread")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+find_package (Threads)
 
 include_directories(include)
 
@@ -40,7 +41,9 @@ add_library(database
         src/supportFunctions.h
         src/struct_and_const_definitions.h
         src/statistics_functions.c
-        src/statistics_functions.h)
+        src/statistics_functions.h
+        src/threadpool.c
+        src/threadpool.h)
 
 target_include_directories(database PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -48,7 +51,7 @@ target_include_directories(database PUBLIC
         PRIVATE src)
 
 add_executable(Driver src/main.c)
-target_link_libraries(Driver database)
+target_link_libraries(Driver database ${CMAKE_THREAD_LIBS_INIT})
 
 # Test harness
 add_executable(harness harness.cpp)
