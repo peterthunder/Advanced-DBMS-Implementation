@@ -30,9 +30,6 @@ int main(void) {
 
     //fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
 
-    // Gather statistics for each column of each table. Later, these will optimize the queries-execution.
-    gatherInitialStatistics(&tables, num_of_tables);
-
     Relation ***relation_array = allocateAndInitializeRelationArray(tables, num_of_tables);
 
     Sum_struct *sumStruct = sumStructureAllocationAndInitialization();
