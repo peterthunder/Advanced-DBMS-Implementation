@@ -240,7 +240,7 @@ void partition(Relation *relation, Relation **relationNew, int32_t **psum) {
         //printf("Bucket: %d, Psum start: %d, index of new R: %d\n", i, psum[i][1], indexOfNewR);
 
         /* Search occurrences of this bucket's key inside the relation table. */
-        if (0/*relation->num_tuples < number_of_buckets * 10*/) {
+        if (MULTITHREADING == FALSE/*relation->num_tuples < number_of_buckets * 10*/) {
             for (j = 0; j < relation->num_tuples; j++) {
                 /*If we find the current bucket's key in relation-table, append the relation-table's data to the new relation-table. */
                 if (relation->tuples[j].payload % number_of_buckets == psum[i][0]) {
@@ -329,7 +329,7 @@ int32_t **createHistogram(Relation *relation) {
 
     /* If the number of threads is 8 for example,
      * then only use multithreading if number of tuples of the relation is more than 80(threshold)*/
-    if (relation->num_tuples < number_of_buckets * 10) {
+    if (relation->num_tuples < number_of_buckets * 10 || MULTITHREADING == FALSE) {
         /* Fill out the histogram according to the hash values */
         for (i = 0; i < relation->num_tuples; i++) {
             histogram[relation->tuples[i].payload % number_of_buckets][1]++;

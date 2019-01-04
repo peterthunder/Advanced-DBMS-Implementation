@@ -6,6 +6,18 @@
 
 Threadpool *threadpool;
 
+typedef struct sum_calc_struct{
+    int start;
+    int end;
+    int selection_num;
+    long sum;
+    int inter_table_num;
+    int inter_column_num;
+    Entity *entity;
+    Query_Info *query_info;
+    Table **tables;
+}Sum_calc_struct;
+
 typedef struct partition_struct {
     int32_t start;
     int32_t hashValue;
@@ -23,6 +35,8 @@ typedef struct histo_struct {
 } Histogram_struct;
 
 void testRHJ();
+
+void thread_calculate_sums(Sum_calc_struct **sum_calc_struct);
 
 /* Radix Hash Join */
 Result *RadixHashJoin(Relation **reIR, Relation **reIS);
