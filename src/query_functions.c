@@ -485,8 +485,7 @@ handleRelationJoin(Relation **relation1, Relation **relation2, Entity **entity, 
                     for (j = 0; j < columns; j++) {
                         if (j < (*entity)->inter_tables[inter_table_num1]->num_of_columns)
                             new_inter_table[i + result_counter][j] =
-                                    (*entity)->  inter_tables[inter_table_num1]->
-                                    inter_table[current_result->joined_rowIDs[i][0] - 1][j];
+                                    (*entity)->inter_tables[inter_table_num1]->inter_table[current_result->joined_rowIDs[i][0] - 1][j];
                         else
                             new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_num2]->
                                     inter_table[current_result->joined_rowIDs[i][1] - 1]

@@ -31,7 +31,7 @@ DRIVER:
 PROFILER:
 	rm -rf profiler_output.txt
 	make BASIC_FOR_PROFILER
-	./radixHashJoin_basic_for_profiler && gprof radixHashJoin_basic_for_profiler gmon.out > profiler_output.txt && head -45 profiler_output.txt
+	./radixHashJoin_basic_for_profiler && gprof radixHashJoin_basic_for_profiler gmon.out > profiler_output.txt && head -65 profiler_output.txt
 
 EXAMPLE:
 	gcc -o example example.c

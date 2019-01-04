@@ -13,8 +13,7 @@ void jobqueue_push(void (*function)(void *), void *arg, Jobqueue *jobqueue);
 static Job *jobqueue_pull(Jobqueue *jobqueue);
 
 /* Implementations */
-Threadpool *
-threadpool_init(int num_of_threads) {
+Threadpool * threadpool_init(int num_of_threads) {
 
     //fprintf(fp_print, "Running threadpool_init()...\n");
 
@@ -69,7 +68,6 @@ threadpool_init(int num_of_threads) {
     }
 
     return threadpool;
-
 }
 
 void threadpool_add_job(Threadpool *threadpool, void (*function)(void *), void *arg) {
@@ -136,14 +134,11 @@ void threadpool_destroy(Threadpool *threadpool) {
     pthread_mutex_destroy(&threadpool->jobs_done_mtx);
 
     free(threadpool);
-
-
 }
 
 void thread_do(thread *thread_) {
 
     Threadpool *threadpool = thread_->threadpool;
-    int i;
     /* Lock and unlock mutex when accessing threadpool argument*/
     pthread_mutex_lock(&threadpool->threadmtx);
     //fprintf(fp_print, "I am server thread and i am alive!\n");
@@ -185,7 +180,6 @@ void thread_do(thread *thread_) {
     pthread_mutex_unlock(&threadpool->threadmtx);
 
     //fprintf(fp_print, "I am thread %d and i am done!\n", thread_->num);
-
 }
 
 void jobqueue_init(Jobqueue *jobqueue) {
@@ -206,13 +200,11 @@ void jobqueue_init(Jobqueue *jobqueue) {
 
     /* Condition to wait on when jobqueue is empty*/
     pthread_cond_init(&(jobqueue->empty), NULL);
-
 }
 
 void jobqueue_push(void (*function)(void *), void *arg, Jobqueue *jobqueue) {
 
     //printf("Pushing a job to the queue...\n");
-
 
     /* Create a new job with the passed variables */
     Job *job = myMalloc(sizeof(Job));
@@ -248,7 +240,6 @@ void jobqueue_push(void (*function)(void *), void *arg, Jobqueue *jobqueue) {
 
     /* Unlock the mutex */
     pthread_mutex_unlock(&jobqueue->rw_jobmtx);
-
 }
 
 static Job *jobqueue_pull(Jobqueue *jobqueue) {
