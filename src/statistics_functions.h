@@ -3,7 +3,6 @@
 
 #include "radixHashJoin.h"
 
-
 void gatherInitialStatisticsForTable(Table **table);
 
 void gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count);

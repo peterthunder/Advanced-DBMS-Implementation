@@ -5,25 +5,24 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     //fprintf(fp_print, "\n# Mmapping tables to memory and initializing structures.\n");
 
-    clock_t start_t, end_t, total_t;
 
     int fd, i, table_names_array_size;
     size_t size;
     struct stat st;
     char basePath[30];
     char table_path[1024];
+    struct timeval start;
 
     char **table_names = getTableNames(num_of_tables, &table_names_array_size);
 
-    if ( USE_HARNESS == FALSE ) {
-        if ( fclose(fp_read_tables) == EOF ) {   // Otherwise, on HARNESS this will be the stdin.
+    if (USE_HARNESS == FALSE) {
+        if (fclose(fp_read_tables) == EOF) {   // Otherwise, on HARNESS this will be the stdin.
             fprintf(stderr, "Error closing \"fp_read_tables\" without HARNESS: %s!\n", strerror(errno));
             return NULL;
         }
-        start_t = clock();
+        gettimeofday(&start, NULL);
         strcpy(basePath, "workloads/small/");
-    }
-    else {
+    } else {
         strcpy(basePath, "../../workloads/small/");
     }
 
@@ -71,7 +70,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 #endif
         initializeTable(&tables[i], (*mapped_tables)[i]);
 
-        if ( close(fd) == -1 ) {
+        if (close(fd) == -1) {
             fprintf(stderr, "Error closing file \"%s\": %s!\n", table_path, strerror(errno));
             return NULL;
         }
@@ -86,15 +85,17 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     //fprintf(fp_print, " -Finished mmapping tables to memory and initializing structures.\n");
 
-    for( i=0; i < table_names_array_size; i++ )
+    for (i = 0; i < table_names_array_size; i++)
         free(table_names[i]);
 
     free(table_names);
 
-    if ( USE_HARNESS == FALSE ) {
-        end_t = clock();
-        total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
-        fprintf(fp_print, "\nFinished mapping tables and gathering initial statistics in %ld seconds!\n", total_t);
+    if (USE_HARNESS == FALSE) {
+        struct timeval end;
+        gettimeofday(&end, NULL);
+        double elapsed_sec = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
+        fprintf(fp_print, "\nFinished mapping tables and gathering initial statistics in %.f milliseconds!\n",
+                elapsed_sec * 1000);
     }
 
 #if PRINTING || DEEP_PRINTING
@@ -105,8 +106,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 }
 
 
-char **getTableNames(int *num_of_tables, int *table_names_array_size)
-{
+char **getTableNames(int *num_of_tables, int *table_names_array_size) {
     int i;
     size_t size;
     char *table_name = NULL;
@@ -121,9 +121,9 @@ char **getTableNames(int *num_of_tables, int *table_names_array_size)
     *table_names_array_size = 2;
 
     /* Count the number of tables */
-    while ( getline(&table_name, &size, fp_read_tables) > 0 ) {
+    while (getline(&table_name, &size, fp_read_tables) > 0) {
 
-        if ( strcmp(table_name, "Done\n") == 0 || strcmp(table_name, "\n") == 0 )
+        if (strcmp(table_name, "Done\n") == 0 || strcmp(table_name, "\n") == 0)
             break;
 
         table_name[strlen(table_name) - 1] = '\0';    // Remove "newLine"-character.
@@ -133,7 +133,7 @@ char **getTableNames(int *num_of_tables, int *table_names_array_size)
         strcpy(table_names[*num_of_tables], table_name);
         (*num_of_tables)++;
 
-        if ( (*table_names_array_size) == *num_of_tables ) {
+        if ((*table_names_array_size) == *num_of_tables) {
             (*table_names_array_size) <<= 1; // fast-multiply by 2
             table_names = realloc(table_names, (size_t) (*table_names_array_size) * sizeof(char *));
             for (i = *num_of_tables; i < (*table_names_array_size); i++) {
@@ -148,8 +148,7 @@ char **getTableNames(int *num_of_tables, int *table_names_array_size)
 }
 
 
-void initializeTable(Table** table, uint64_t *mapped_table)
-{
+void initializeTable(Table **table, uint64_t *mapped_table) {
     (*table) = myMalloc(sizeof(Table));
 
     /* Initialize each table's variables */
@@ -158,7 +157,7 @@ void initializeTable(Table** table, uint64_t *mapped_table)
     (*table)->column_indexes = myMalloc(sizeof(uint64_t *) * (*table)->num_columns);
     (*table)->column_statistics = myMalloc(sizeof(ColumnStats *) * (*table)->num_columns);
 
-    for ( int j = 0; j < (*table)->num_columns; j++ ) {
+    for (int j = 0; j < (*table)->num_columns; j++) {
         (*table)->column_indexes[j] = &mapped_table[2 + j * (*table)->num_tuples];
         (*table)->column_statistics[j] = myMalloc(sizeof(ColumnStats));
         (*table)->column_statistics[j]->l = 999999;    // Set it to ~1 million, to make sure it will be decreased later.

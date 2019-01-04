@@ -99,7 +99,7 @@ void gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int 
 
 
 
-    // Change Joins' order inside Query-info so that execute_query() will execute the Jois in their best order.
+    // Change Joins' order inside Query-info so that execute_query() will execute the Joins in their best order.
 
 
 

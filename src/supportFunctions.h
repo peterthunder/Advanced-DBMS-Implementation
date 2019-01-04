@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include "struct_and_const_definitions.h"
 #include "parser.h"

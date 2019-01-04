@@ -105,10 +105,10 @@ create_intermediate_table(int relation_Id, Entity **entity, Relation *original_r
         /* Else if it exists, we need to create a relation from the intermediate table with the rowIDs and payload of the relation_id */
         relation = allocateRelation((*entity)->inter_tables[*inter_table_num]->num_of_rows, FALSE);
         for (i = 0; i < (*entity)->inter_tables[*inter_table_num]->num_of_rows; i++) {
-            rId = (*entity)->inter_tables[*inter_table_num]->inter_table[i][inter_column] -
-                  1; // <- ayto einai to row id-1(oi pinakes 3ekinane apto 0),
-            // oxi to swsto payload ap' ton tables
-            relation->tuples[i].payload = original_relation->tuples[rId].payload; // sto original relation, s' ayto to rowID einai to swsto payload
+            /* Get the row Id of the tuple from the intermediate table */
+            rId = (*entity)->inter_tables[*inter_table_num]->inter_table[i][inter_column] - 1;
+            /* And then go to the original relation, to the row Id from above and get the payload */
+            relation->tuples[i].payload = original_relation->tuples[rId].payload;
             relation->tuples[i].key = i + 1;
         }
         return relation;
@@ -484,14 +484,13 @@ handleRelationJoin(Relation **relation1, Relation **relation2, Entity **entity, 
                     new_inter_table[i + result_counter] = myMalloc(sizeof(int32_t) * columns);
                     for (j = 0; j < columns; j++) {
                         if (j < (*entity)->inter_tables[inter_table_num1]->num_of_columns)
-                            new_inter_table[i +
-                                            result_counter][j] = (*entity)->inter_tables[inter_table_num1]->inter_table[
-                                    current_result->joined_rowIDs[i][0] - 1][j];
+                            new_inter_table[i + result_counter][j] =
+                                    (*entity)->  inter_tables[inter_table_num1]->
+                                    inter_table[current_result->joined_rowIDs[i][0] - 1][j];
                         else
-                            new_inter_table[i +
-                                            result_counter][j] = (*entity)->inter_tables[inter_table_num2]->inter_table[
-                                    current_result->joined_rowIDs[i][1] - 1][j -
-                                                                             (*entity)->inter_tables[inter_table_num1]->num_of_columns];
+                            new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_num2]->
+                                    inter_table[current_result->joined_rowIDs[i][1] - 1]
+                                    [j - (*entity)->inter_tables[inter_table_num1]->num_of_columns];
                     }
                 }
                 /* Update the counter */

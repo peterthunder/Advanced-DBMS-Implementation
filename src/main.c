@@ -7,6 +7,7 @@ int main(void) {
     char *query = NULL;
     uint64_t **mapped_tables;   // Used for mapping and un-mapping the tables in/from memory.
     Query_Info *query_info;
+    struct timeval start;
 
     /* H1_PARAM is the number of the last-n bits of the 32-bit number we wanna keep */
     int32_t n = H1_PARAM;
@@ -15,7 +16,6 @@ int main(void) {
 
     return 0;*/
 
-    clock_t start_t, end_t, total_t;
 
     //fprintf(fp_print, "Running Advance_DBMS_Implementation...\n");
 
@@ -27,7 +27,7 @@ int main(void) {
     threadpool = threadpool_init(number_of_buckets);
 
     Table **tables = read_tables(&num_of_tables, &mapped_tables, &mapped_tables_sizes);
-    if ( tables == NULL )
+    if (tables == NULL)
         exit(EXIT_FAILURE); // The related-error-message is printed inside "read_tables()".
 
     //fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
@@ -38,7 +38,8 @@ int main(void) {
     long *sums;
 
     if (USE_HARNESS == FALSE)
-        start_t = clock();
+        gettimeofday(&start, NULL);
+
 
     /* Get queries */
     while (getline(&query, &size, fp_read_queries) > 0) {
@@ -105,10 +106,12 @@ int main(void) {
 
 
     if (USE_HARNESS == FALSE) {
-        end_t = clock();
-        total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
-        fprintf(fp_print, "\nFinished parsing and executing queries in %ld seconds!\n", total_t);
-        if (fclose(fp_read_queries) ==  EOF) {    // Otherwise, on Harness-run this will be the stdin which we do not close.
+        struct timeval end;
+        gettimeofday(&end, NULL);
+        double elapsed_sec = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
+        fprintf(fp_print, "\nFinished parsing and executing queries in %.f milliseconds!\n", elapsed_sec * 1000);
+        if (fclose(fp_read_queries) ==
+            EOF) {    // Otherwise, on Harness-run this will be the stdin which we do not close.
             fprintf(stderr, "Error closing \"fp_read_queries\" without HARNESS: %s!\n", strerror(errno));
             return EXIT_FAILURE;
         }
