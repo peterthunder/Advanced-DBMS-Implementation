@@ -1,8 +1,11 @@
 #include "file_io.h"
+#include "statistics_functions.h"
 
 Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_tables_sizes) {
 
     //fprintf(fp_print, "\n# Mmapping tables to memory and initializing structures.\n");
+
+    clock_t start_t, end_t, total_t;
 
     int fd, i, j, table_names_array_size = 2;
     size_t size;
@@ -45,6 +48,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
             fprintf(stderr, "Error closing \"fp_read_tables\" without HARNESS: %s!\n", strerror(errno));
             return NULL;
         }
+        start_t = clock();
     }
 
     /* Allocate all the memory needed and initialize all the structures */
@@ -65,14 +69,17 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     for (i = 0; i < (*num_of_tables); i++)
         (*mapped_tables_sizes)[i] = -1;
 
+    char basePath[30];
+    if ( USE_HARNESS )
+        strcpy(basePath, "../../workloads/small/");
+    else
+        strcpy(basePath, "workloads/small/");
+
     /* Read the names of the tables line by line */
     for (i = 0; i < *num_of_tables; i++) {
 
         /* Create the path of the mapped_tables */
-        if ( USE_HARNESS )
-            strcpy(table_path, "../../workloads/small/");
-        else
-            strcpy(table_path, "workloads/small/");
+        strcpy(table_path, basePath);
         strcat(table_path, table_names[i]);
 
         //fprintf(fp_print, "%s\n", table_path);
@@ -122,6 +129,10 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
             fprintf(stderr, "Error closing file \"%s\": %s!\n", table_path, strerror(errno));
             return NULL;
         }
+
+        // Gather statistics for each column of this table. Later, these will optimize the execution of the queries.
+        gatherInitialStatisticsForTable(&tables[i]);
+
 #if PRINTING || DEEP_PRINTING
         printf("-------------------------------------------------------\n");
 #endif
@@ -135,6 +146,16 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     free(table_names);
 
     free(table_name);   // "getline()" allocates space internally, which WE have to free.
+
+    if ( USE_HARNESS == FALSE ) {
+        end_t = clock();
+        total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
+        fprintf(fp_print, "\nFinished mapping tables and gathering initial statistics in %ld seconds!\n", total_t);
+    }
+
+#if PRINTING || DEEP_PRINTING
+    printInitialStatistics((*tables), num_of_tables);
+#endif
 
     return tables;
 }

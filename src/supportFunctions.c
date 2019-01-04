@@ -309,7 +309,7 @@ void print_query(Query_Info *query_info, char *query, int query_number) {
 
     printf("\n----------------------------------------------------------------\n");
 
-    printf("Query[%d]: %s\n", query_number - 1, query);
+    printf("Query_%d: %s\n", query_number, query);
 
     printf("\tSELECT ");
     if (query_info->selections != NULL) {
@@ -364,17 +364,20 @@ void print_query(Query_Info *query_info, char *query, int query_number) {
     printf("\n");
 }
 
-void printStatistics(Table **tables, int num_of_tables) {
+void printInitialStatistics(Table **tables, int num_of_tables) {
 
-    fprintf(fp_print, "\nStatistics:\n");
+    fprintf(fp_print, "\nInitial statistics:\n");
     for ( int i = 0; i < num_of_tables ; i++ )
     {
+        /*if ( i != 5 ) // For debug.
+            continue;*/
+
         fprintf(fp_print, "\nTable[%d]:\n", i);
         for ( int j = 0 ; j < tables[i]->num_columns ; j++ )
         {
             fprintf(fp_print, "Column[%d]: l = %4ju, u = %6ju, f = %ju, d = %ju\n",
                     j, tables[i]->column_statistics[j]->l, tables[i]->column_statistics[j]->u, tables[i]->column_statistics[j]->f, tables[i]->column_statistics[j]->d);
-#ifndef DEEP_PRINTING
+#if DEEP_PRINTING
             fprintf(fp_print, "Boolean d_array:\n");
             for (int k = 0 ; k < tables[i]->column_statistics[j]->d_array_size ; k++)
                 fprintf(fp_print, "%d", tables[i]->column_statistics[j]->d_array[k]);
@@ -384,6 +387,23 @@ void printStatistics(Table **tables, int num_of_tables) {
     }
     fprintf(fp_print, "\n");
 }
+
+
+void printPredicatesStatistics(QueryTableStatistics **statistic_tables, int numOfStatisticsTables) {
+
+    fprintf(fp_print, "\nPredicates statistics:\n");
+    for ( int i = 0 ; i < numOfStatisticsTables ; i++ )
+    {
+        fprintf(fp_print, "\nTable[%d]:\n", statistic_tables[i]->realNumOfTable);
+        for ( int j = 0 ; j < statistic_tables[i]->num_columns ; j++ )
+        {
+            fprintf(fp_print, "Column[%d]: l' = %4ju, u' = %6ju, f' = %ju, d' = %ju\n",
+                    j, statistic_tables[i]->column_statistics[j]->l, statistic_tables[i]->column_statistics[j]->u, statistic_tables[i]->column_statistics[j]->f,
+                    statistic_tables[i]->column_statistics[j]->d);
+        }
+    }
+}
+
 
 void *myMalloc(size_t sizeOfAllocation) {
 
@@ -414,6 +434,17 @@ long int myPow(int x, int n) {
 
     int i;
     int number = 1;
+
+    for (i = 0; i < n; ++i)
+        number *= x;
+
+    return number;
+}
+
+uint64_t myPow_uint64_t(uint64_t x, uint64_t n) {
+
+    uint64_t i;
+    uint64_t number = 1;
 
     for (i = 0; i < n; ++i)
         number *= x;

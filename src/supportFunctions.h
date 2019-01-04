@@ -62,13 +62,17 @@ void printEntity(Entity *entity);
 void print_query(Query_Info * query_info, char* query, int query_number);
 
 /* Print the statistics for each column of each table */
-void printStatistics(Table **tables, int num_of_tables);
+void printInitialStatistics(Table **tables, int num_of_tables);
+
+void printPredicatesStatistics(QueryTableStatistics **statistic_tables, int numOfStatisticsTables);
 
 void* myMalloc(size_t sizeOfAllocation);
 
 int myAtoi(char *str);
 
 long int myPow(int x,int n);
+
+uint64_t myPow_uint64_t(uint64_t x, uint64_t n);
 
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H

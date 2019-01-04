@@ -649,15 +649,16 @@ void update_intermediate_table(int relation_Id, Entity **entity, int32_t *rowIDs
         new_inter_table[i] = myMalloc(sizeof(int32_t) * 1);
         new_inter_table[i][0] = (*entity)->inter_tables[inter_table_num]->inter_table[rowIDs[i] - 1][inter_column];
     }
-    /* Free the old intermediate table */
-    for (i = 0; i < (*entity)->inter_tables[inter_table_num]->num_of_rows; i++)
-        free((*entity)->inter_tables[inter_table_num]->inter_table[i]);
 
+    /* Free the old intermediate table */
+    for (i = 0; i < (*entity)->inter_tables[inter_table_num]->num_of_rows; i++) {
+        free((*entity)->inter_tables[inter_table_num]->inter_table[i]);
+    }
     free((*entity)->inter_tables[inter_table_num]->inter_table);
 
     /* Point to the new intermediate table */
-    (*entity)->inter_tables[inter_table_num]->num_of_rows = rowId_count;
     (*entity)->inter_tables[inter_table_num]->inter_table = new_inter_table;
+    (*entity)->inter_tables[inter_table_num]->num_of_rows = rowId_count;
 }
 
 void free_query(Query_Info *query_info) {

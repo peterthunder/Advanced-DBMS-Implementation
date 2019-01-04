@@ -35,6 +35,7 @@ linker:
   options:
     - '-O3'
     - '-m32'
+    - '-pthread'
   includes:
     prefix: '-I'
   object_files:

@@ -11,8 +11,8 @@ int main(void) {
     /* H1_PARAM is the number of the last-n bits of the 32-bit number we wanna keep */
     int32_t n = H1_PARAM;
 
-/*  testRHJ();
- *
+/*    testRHJ();
+
     return 0;*/
 
     clock_t start_t, end_t, total_t;
@@ -30,9 +30,6 @@ int main(void) {
 
     //fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
 
-    // Gather statistics for each column of each table. Later, these will optimize the queries-execution.
-    gatherInitialStatistics(&tables, num_of_tables);
-
     Relation ***relation_array = allocateAndInitializeRelationArray(tables, num_of_tables);
 
     Sum_struct *sumStruct = sumStructureAllocationAndInitialization();
@@ -45,8 +42,6 @@ int main(void) {
     while (getline(&query, &size, fp_read_queries) > 0) {
 
         query[strlen(query) - 1] = '\0';    // Remove "newLine"-character.
-
-        //fprintf(fp_print, "Query[%d]: %s\n", query_count, query);
 
         if (strcmp(query, "F") == 0) {
 
@@ -62,7 +57,38 @@ int main(void) {
 
         query_count++;
 
+        //fprintf(fp_print, "Query_%d: %s\n", query_count, query);
+
         query_info = parse_query(query);
+
+#if PRINTING || DEEP_PRINTING
+        fprintf(fp_print, "Original Query:");
+        print_query(query_info, query, query_count);    // See the original query.
+#endif
+
+/*
+        // DEBUG CODE:
+        int queryWeWant = 17;
+        if ( query_count < queryWeWant )
+            continue;
+        else if ( query_count > queryWeWant ) {
+            free_query(query_info);
+            break;
+        }
+        else {
+            print_query(query_info, query, query_count);
+            gatherPredicatesStatisticsForQuery(&query_info, tables);
+        }
+*/
+
+        gatherPredicatesStatisticsForQuery(&query_info, tables, query_count);
+
+
+#if PRINTING || DEEP_PRINTING
+        fprintf(fp_print, "\nChanged Query, after gathering the statistics and reordering the joins:");
+        print_query(query_info, query, query_count);    // See the changed query after gathering the statistics and reordering the joins.
+#endif
+
 
         if (((sums = execute_query(query_info, tables, &relation_array))) == NULL) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
@@ -73,7 +99,6 @@ int main(void) {
         sumStructureUpdate(&sumStruct, query_info, sums);
 
         free_query(query_info);
-
     }
 
 
