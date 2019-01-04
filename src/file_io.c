@@ -72,8 +72,11 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
         /* MAP the whole table to a pointer */
         (*mapped_tables)[i] = mmap(0, size, PROT_READ | PROT_EXEC, MAP_SHARED, fd, 0);
-        if ((*mapped_tables)[i] == MAP_FAILED)
+        if ((*mapped_tables)[i] == MAP_FAILED) {
             fprintf(stderr, "Error reading mapped_tables file!\n");
+            return NULL;
+        }
+
 #if PRINTING || DEEP_PRINTING
         printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", i, (*mapped_tables)[i][0], (*mapped_tables)[i][1]);
 #endif

@@ -27,6 +27,8 @@ int main(void) {
     threadpool = threadpool_init(number_of_buckets);
 
     Table **tables = read_tables(&num_of_tables, &mapped_tables, &mapped_tables_sizes);
+    if ( tables == NULL )
+        exit(EXIT_FAILURE); // The related-error-message is printed inside "read_tables()".
 
     //fprintf(fp_print, "\nNumber of tables: %d\n\n", num_of_tables);
 
