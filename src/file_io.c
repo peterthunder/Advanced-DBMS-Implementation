@@ -7,41 +7,13 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     clock_t start_t, end_t, total_t;
 
-    int fd, i, j, table_names_array_size = 2;
+    int fd, i, table_names_array_size;
     size_t size;
     struct stat st;
-    char *table_name = NULL;
+    char basePath[30];
     char table_path[1024];
 
-    char **table_names = myMalloc(sizeof(char *) * 2);
-    for (i = 0; i < 2; i++) {
-        table_names[i] = myMalloc(sizeof(char) * 1024);
-    }
-
-    /* Init */
-    *num_of_tables = 0;
-
-    /* Count the number of tables */
-    while ( getline(&table_name, &size, fp_read_tables) > 0 ) {
-
-        if ( strcmp(table_name, "Done\n") == 0 || strcmp(table_name, "\n") == 0 )
-            break;
-
-        table_name[strlen(table_name) - 1] = '\0';    // Remove "newLine"-character.
-
-        //fprintf(fp_print, "%s\n", table_name);
-
-        strcpy(table_names[*num_of_tables], table_name);
-        (*num_of_tables)++;
-
-        if (table_names_array_size == *num_of_tables) {
-            table_names_array_size <<= 1; // fast-multiply by 2
-            table_names = realloc(table_names, (size_t) table_names_array_size * sizeof(char *));
-            for (i = *num_of_tables; i < table_names_array_size; i++) {
-                table_names[i] = myMalloc(sizeof(char) * 1024);
-            }
-        }
-    }
+    char **table_names = getTableNames(num_of_tables, &table_names_array_size);
 
     if ( USE_HARNESS == FALSE ) {
         if ( fclose(fp_read_tables) == EOF ) {   // Otherwise, on HARNESS this will be the stdin.
@@ -49,31 +21,20 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
             return NULL;
         }
         start_t = clock();
+        strcpy(basePath, "workloads/small/");
+    }
+    else {
+        strcpy(basePath, "../../workloads/small/");
     }
 
     /* Allocate all the memory needed and initialize all the structures */
     Table **tables = myMalloc(sizeof(Table *) * (*num_of_tables));
 
-    for (i = 0; i < *num_of_tables; i++) {
-        tables[i] = myMalloc(sizeof(Table));
-        tables[i]->num_tuples = 0;
-        tables[i]->num_columns = 0;
-        tables[i]->column_indexes = NULL;
-        tables[i]->column_statistics = NULL;
-    }
-
     *mapped_tables = myMalloc(sizeof(uint64_t *) * (*num_of_tables));
 
     *mapped_tables_sizes = myMalloc(sizeof(int) * (*num_of_tables));
-
     for (i = 0; i < (*num_of_tables); i++)
         (*mapped_tables_sizes)[i] = -1;
-
-    char basePath[30];
-    if ( USE_HARNESS )
-        strcpy(basePath, "../../workloads/small/");
-    else
-        strcpy(basePath, "workloads/small/");
 
     /* Read the names of the tables line by line */
     for (i = 0; i < *num_of_tables; i++) {
@@ -81,8 +42,6 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         /* Create the path of the mapped_tables */
         strcpy(table_path, basePath);
         strcat(table_path, table_names[i]);
-
-        //fprintf(fp_print, "%s\n", table_path);
 
 #if PRINTING || DEEP_PRINTING
         fprintf(fp_print, "Path of the %d-th mapped_tables: %s\n", i, table_path);
@@ -102,28 +61,15 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
         /* MAP the whole table to a pointer */
         (*mapped_tables)[i] = mmap(0, size, PROT_READ | PROT_EXEC, MAP_SHARED, fd, 0);
-        if ((*mapped_tables)[i] == MAP_FAILED)
+        if ((*mapped_tables)[i] == MAP_FAILED) {
             fprintf(stderr, "Error reading mapped_tables file!\n");
+            return NULL;
+        }
+
 #if PRINTING || DEEP_PRINTING
         printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", i, (*mapped_tables)[i][0], (*mapped_tables)[i][1]);
 #endif
-        /* Initialize each table's variables */
-        tables[i]->num_tuples = (*mapped_tables)[i][0];
-        tables[i]->num_columns = (*mapped_tables)[i][1];
-        tables[i]->column_indexes = myMalloc(sizeof(uint64_t *) * tables[i]->num_columns);
-        tables[i]->column_statistics = myMalloc(sizeof(ColumnStats *) * tables[i]->num_columns);
-
-        for (j = 0; j < tables[i]->num_columns; j++) {
-            tables[i]->column_indexes[j] = &(*mapped_tables)[i][2 + j * tables[i]->num_tuples];
-            tables[i]->column_statistics[j] = myMalloc(sizeof(ColumnStats));
-            tables[i]->column_statistics[j]->l = 999999;    // Set it to ~1 million, to make sure it will be decreased later.
-            tables[i]->column_statistics[j]->u = 0;
-            tables[i]->column_statistics[j]->f = 0;
-            tables[i]->column_statistics[j]->d = 0;
-            tables[i]->column_statistics[j]->d_array = NULL;
-            tables[i]->column_statistics[j]->d_array_size = 0;
-            tables[i]->column_statistics[j]->initialSizeExcededSize = FALSE;
-        }
+        initializeTable(&tables[i], (*mapped_tables)[i]);
 
         if ( close(fd) == -1 ) {
             fprintf(stderr, "Error closing file \"%s\": %s!\n", table_path, strerror(errno));
@@ -145,8 +91,6 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     free(table_names);
 
-    free(table_name);   // "getline()" allocates space internally, which WE have to free.
-
     if ( USE_HARNESS == FALSE ) {
         end_t = clock();
         total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
@@ -158,4 +102,71 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 #endif
 
     return tables;
+}
+
+
+char **getTableNames(int *num_of_tables, int *table_names_array_size)
+{
+    int i;
+    size_t size;
+    char *table_name = NULL;
+
+    char **table_names = myMalloc(sizeof(char *) * 2);
+    for (i = 0; i < 2; i++) {
+        table_names[i] = myMalloc(sizeof(char) * 1024);
+    }
+
+    /* Init */
+    *num_of_tables = 0;
+    *table_names_array_size = 2;
+
+    /* Count the number of tables */
+    while ( getline(&table_name, &size, fp_read_tables) > 0 ) {
+
+        if ( strcmp(table_name, "Done\n") == 0 || strcmp(table_name, "\n") == 0 )
+            break;
+
+        table_name[strlen(table_name) - 1] = '\0';    // Remove "newLine"-character.
+
+        //fprintf(fp_print, "%s\n", table_name);
+
+        strcpy(table_names[*num_of_tables], table_name);
+        (*num_of_tables)++;
+
+        if ( (*table_names_array_size) == *num_of_tables ) {
+            (*table_names_array_size) <<= 1; // fast-multiply by 2
+            table_names = realloc(table_names, (size_t) (*table_names_array_size) * sizeof(char *));
+            for (i = *num_of_tables; i < (*table_names_array_size); i++) {
+                table_names[i] = myMalloc(sizeof(char) * 1024);
+            }
+        }
+    }
+
+    free(table_name);   // "getline()" allocates space internally, which WE have to free.
+
+    return table_names;
+}
+
+
+void initializeTable(Table** table, uint64_t *mapped_table)
+{
+    (*table) = myMalloc(sizeof(Table));
+
+    /* Initialize each table's variables */
+    (*table)->num_tuples = mapped_table[0];
+    (*table)->num_columns = mapped_table[1];
+    (*table)->column_indexes = myMalloc(sizeof(uint64_t *) * (*table)->num_columns);
+    (*table)->column_statistics = myMalloc(sizeof(ColumnStats *) * (*table)->num_columns);
+
+    for ( int j = 0; j < (*table)->num_columns; j++ ) {
+        (*table)->column_indexes[j] = &mapped_table[2 + j * (*table)->num_tuples];
+        (*table)->column_statistics[j] = myMalloc(sizeof(ColumnStats));
+        (*table)->column_statistics[j]->l = 999999;    // Set it to ~1 million, to make sure it will be decreased later.
+        (*table)->column_statistics[j]->u = 0;
+        (*table)->column_statistics[j]->f = 0;
+        (*table)->column_statistics[j]->d = 0;
+        (*table)->column_statistics[j]->d_array = NULL;
+        (*table)->column_statistics[j]->d_array_size = 0;
+        (*table)->column_statistics[j]->initialSizeExcededSize = FALSE;
+    }
 }
