@@ -61,6 +61,35 @@ int main(void) {
 
         query_info = parse_query(query);
 
+#if PRINTING || DEEP_PRINTING
+        fprintf(fp_print, "Original Query:");
+        print_query(query_info, query, query_count);    // See the original query.
+#endif
+
+/*
+        // DEBUG CODE:
+        int queryWeWant = 17;
+        if ( query_count < queryWeWant )
+            continue;
+        else if ( query_count > queryWeWant ) {
+            free_query(query_info);
+            break;
+        }
+        else {
+            print_query(query_info, query, query_count);
+            gatherPredicatesStatisticsForQuery(&query_info, tables);
+        }
+*/
+
+        gatherPredicatesStatisticsForQuery(&query_info, tables, query_count);
+
+
+#if PRINTING || DEEP_PRINTING
+        fprintf(fp_print, "\nChanged Query, after gathering the statistics and reordering the joins:");
+        print_query(query_info, query, query_count);    // See the changed query after gathering the statistics and reordering the joins.
+#endif
+
+
         if (((sums = execute_query(query_info, tables, &relation_array))) == NULL) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
             exit(-1);

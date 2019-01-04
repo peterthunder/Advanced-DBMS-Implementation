@@ -57,6 +57,13 @@ typedef struct column_stats {
 } ColumnStats;
 
 
+typedef struct query_table_statistics {
+    int realNumOfTable;
+    uint64_t num_columns;
+    ColumnStats **column_statistics;    // Array of columns with their statistics.s
+} QueryTableStatistics;
+
+
 /* Struct that holds the information of all the columns of a single table */
 typedef struct table_{
     uint64_t num_tuples;
