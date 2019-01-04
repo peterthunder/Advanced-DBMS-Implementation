@@ -7,41 +7,13 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     clock_t start_t, end_t, total_t;
 
-    int fd, i, j, table_names_array_size = 2;
+    int fd, i, j, table_names_array_size;
     size_t size;
     struct stat st;
-    char *table_name = NULL;
+    char basePath[30];
     char table_path[1024];
 
-    char **table_names = myMalloc(sizeof(char *) * 2);
-    for (i = 0; i < 2; i++) {
-        table_names[i] = myMalloc(sizeof(char) * 1024);
-    }
-
-    /* Init */
-    *num_of_tables = 0;
-
-    /* Count the number of tables */
-    while ( getline(&table_name, &size, fp_read_tables) > 0 ) {
-
-        if ( strcmp(table_name, "Done\n") == 0 || strcmp(table_name, "\n") == 0 )
-            break;
-
-        table_name[strlen(table_name) - 1] = '\0';    // Remove "newLine"-character.
-
-        //fprintf(fp_print, "%s\n", table_name);
-
-        strcpy(table_names[*num_of_tables], table_name);
-        (*num_of_tables)++;
-
-        if (table_names_array_size == *num_of_tables) {
-            table_names_array_size <<= 1; // fast-multiply by 2
-            table_names = realloc(table_names, (size_t) table_names_array_size * sizeof(char *));
-            for (i = *num_of_tables; i < table_names_array_size; i++) {
-                table_names[i] = myMalloc(sizeof(char) * 1024);
-            }
-        }
-    }
+    char **table_names = getTableNames(num_of_tables, &table_names_array_size);
 
     if ( USE_HARNESS == FALSE ) {
         if ( fclose(fp_read_tables) == EOF ) {   // Otherwise, on HARNESS this will be the stdin.
@@ -49,6 +21,10 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
             return NULL;
         }
         start_t = clock();
+        strcpy(basePath, "workloads/small/");
+    }
+    else {
+        strcpy(basePath, "../../workloads/small/");
     }
 
     /* Allocate all the memory needed and initialize all the structures */
@@ -68,12 +44,6 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     for (i = 0; i < (*num_of_tables); i++)
         (*mapped_tables_sizes)[i] = -1;
-
-    char basePath[30];
-    if ( USE_HARNESS )
-        strcpy(basePath, "../../workloads/small/");
-    else
-        strcpy(basePath, "workloads/small/");
 
     /* Read the names of the tables line by line */
     for (i = 0; i < *num_of_tables; i++) {
@@ -145,8 +115,6 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     free(table_names);
 
-    free(table_name);   // "getline()" allocates space internally, which WE have to free.
-
     if ( USE_HARNESS == FALSE ) {
         end_t = clock();
         total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
@@ -158,4 +126,47 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 #endif
 
     return tables;
+}
+
+
+char **getTableNames(int *num_of_tables, int *table_names_array_size)
+{
+    int i;
+    size_t size;
+    char *table_name = NULL;
+
+    char **table_names = myMalloc(sizeof(char *) * 2);
+    for (i = 0; i < 2; i++) {
+        table_names[i] = myMalloc(sizeof(char) * 1024);
+    }
+
+    /* Init */
+    *num_of_tables = 0;
+    *table_names_array_size = 2;
+
+    /* Count the number of tables */
+    while ( getline(&table_name, &size, fp_read_tables) > 0 ) {
+
+        if ( strcmp(table_name, "Done\n") == 0 || strcmp(table_name, "\n") == 0 )
+            break;
+
+        table_name[strlen(table_name) - 1] = '\0';    // Remove "newLine"-character.
+
+        //fprintf(fp_print, "%s\n", table_name);
+
+        strcpy(table_names[*num_of_tables], table_name);
+        (*num_of_tables)++;
+
+        if ( (*table_names_array_size) == *num_of_tables ) {
+            (*table_names_array_size) <<= 1; // fast-multiply by 2
+            table_names = realloc(table_names, (size_t) (*table_names_array_size) * sizeof(char *));
+            for (i = *num_of_tables; i < (*table_names_array_size); i++) {
+                table_names[i] = myMalloc(sizeof(char) * 1024);
+            }
+        }
+    }
+
+    free(table_name);   // "getline()" allocates space internally, which WE have to free.
+
+    return table_names;
 }
