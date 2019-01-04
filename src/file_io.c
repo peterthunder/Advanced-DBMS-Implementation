@@ -65,14 +65,17 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     for (i = 0; i < (*num_of_tables); i++)
         (*mapped_tables_sizes)[i] = -1;
 
+    char basePath[30];
+    if ( USE_HARNESS )
+        strcpy(basePath, "../../workloads/small/");
+    else
+        strcpy(basePath, "workloads/small/");
+
     /* Read the names of the tables line by line */
     for (i = 0; i < *num_of_tables; i++) {
 
         /* Create the path of the mapped_tables */
-        if ( USE_HARNESS )
-            strcpy(table_path, "../../workloads/small/");
-        else
-            strcpy(table_path, "workloads/small/");
+        strcpy(table_path, basePath);
         strcat(table_path, table_names[i]);
 
         //fprintf(fp_print, "%s\n", table_path);

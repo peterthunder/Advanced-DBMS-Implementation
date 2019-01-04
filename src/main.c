@@ -46,8 +46,6 @@ int main(void) {
 
         query[strlen(query) - 1] = '\0';    // Remove "newLine"-character.
 
-        fprintf(fp_print, "Query[%d]: %s\n", query_count, query);
-
         if (strcmp(query, "F") == 0) {
 
             // Print the sums to stdout before going to next batch of queries.
@@ -61,6 +59,8 @@ int main(void) {
         }
 
         query_count++;
+
+        //fprintf(fp_print, "Query_%d: %s\n", query_count, query);
 
         query_info = parse_query(query);
 
