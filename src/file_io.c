@@ -7,7 +7,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
     clock_t start_t, end_t, total_t;
 
-    int fd, i, j, table_names_array_size;
+    int fd, i, table_names_array_size;
     size_t size;
     struct stat st;
     char basePath[30];
@@ -30,18 +30,9 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     /* Allocate all the memory needed and initialize all the structures */
     Table **tables = myMalloc(sizeof(Table *) * (*num_of_tables));
 
-    for (i = 0; i < *num_of_tables; i++) {
-        tables[i] = myMalloc(sizeof(Table));
-        tables[i]->num_tuples = 0;
-        tables[i]->num_columns = 0;
-        tables[i]->column_indexes = NULL;
-        tables[i]->column_statistics = NULL;
-    }
-
     *mapped_tables = myMalloc(sizeof(uint64_t *) * (*num_of_tables));
 
     *mapped_tables_sizes = myMalloc(sizeof(int) * (*num_of_tables));
-
     for (i = 0; i < (*num_of_tables); i++)
         (*mapped_tables_sizes)[i] = -1;
 
@@ -51,8 +42,6 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
         /* Create the path of the mapped_tables */
         strcpy(table_path, basePath);
         strcat(table_path, table_names[i]);
-
-        //fprintf(fp_print, "%s\n", table_path);
 
 #if PRINTING || DEEP_PRINTING
         fprintf(fp_print, "Path of the %d-th mapped_tables: %s\n", i, table_path);
@@ -80,23 +69,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 #if PRINTING || DEEP_PRINTING
         printf("%d-th mapped_tables: numTuples: %ju and numColumns: %ju\n", i, (*mapped_tables)[i][0], (*mapped_tables)[i][1]);
 #endif
-        /* Initialize each table's variables */
-        tables[i]->num_tuples = (*mapped_tables)[i][0];
-        tables[i]->num_columns = (*mapped_tables)[i][1];
-        tables[i]->column_indexes = myMalloc(sizeof(uint64_t *) * tables[i]->num_columns);
-        tables[i]->column_statistics = myMalloc(sizeof(ColumnStats *) * tables[i]->num_columns);
-
-        for (j = 0; j < tables[i]->num_columns; j++) {
-            tables[i]->column_indexes[j] = &(*mapped_tables)[i][2 + j * tables[i]->num_tuples];
-            tables[i]->column_statistics[j] = myMalloc(sizeof(ColumnStats));
-            tables[i]->column_statistics[j]->l = 999999;    // Set it to ~1 million, to make sure it will be decreased later.
-            tables[i]->column_statistics[j]->u = 0;
-            tables[i]->column_statistics[j]->f = 0;
-            tables[i]->column_statistics[j]->d = 0;
-            tables[i]->column_statistics[j]->d_array = NULL;
-            tables[i]->column_statistics[j]->d_array_size = 0;
-            tables[i]->column_statistics[j]->initialSizeExcededSize = FALSE;
-        }
+        initializeTable(&tables[i], (*mapped_tables)[i]);
 
         if ( close(fd) == -1 ) {
             fprintf(stderr, "Error closing file \"%s\": %s!\n", table_path, strerror(errno));
@@ -172,4 +145,28 @@ char **getTableNames(int *num_of_tables, int *table_names_array_size)
     free(table_name);   // "getline()" allocates space internally, which WE have to free.
 
     return table_names;
+}
+
+
+void initializeTable(Table** table, uint64_t *mapped_table)
+{
+    (*table) = myMalloc(sizeof(Table));
+
+    /* Initialize each table's variables */
+    (*table)->num_tuples = mapped_table[0];
+    (*table)->num_columns = mapped_table[1];
+    (*table)->column_indexes = myMalloc(sizeof(uint64_t *) * (*table)->num_columns);
+    (*table)->column_statistics = myMalloc(sizeof(ColumnStats *) * (*table)->num_columns);
+
+    for ( int j = 0; j < (*table)->num_columns; j++ ) {
+        (*table)->column_indexes[j] = &mapped_table[2 + j * (*table)->num_tuples];
+        (*table)->column_statistics[j] = myMalloc(sizeof(ColumnStats));
+        (*table)->column_statistics[j]->l = 999999;    // Set it to ~1 million, to make sure it will be decreased later.
+        (*table)->column_statistics[j]->u = 0;
+        (*table)->column_statistics[j]->f = 0;
+        (*table)->column_statistics[j]->d = 0;
+        (*table)->column_statistics[j]->d_array = NULL;
+        (*table)->column_statistics[j]->d_array_size = 0;
+        (*table)->column_statistics[j]->initialSizeExcededSize = FALSE;
+    }
 }
