@@ -19,11 +19,3 @@ For **"Unity"** to work, we first need to install "**ruby**", "**rake**", "**lib
 
 Then, in order to run the tests, you have to run the following command:<br/>
 `make UNIT_TESTING`
-
-
-# How was implemented
-The program was implemented in three stages.
-1) In the first stage, we worked in a sub-set of the project which was receiving some static data from two in-memory-tables and then used the [RadixHashJoin methodology](https://ieeexplore.ieee.org/document/6544839) to Join those two Tables. In the end the result of this join was printed on the monitor.<br/>
-2) In the second stage, we expanded the program to receive dynamic data from multiple in-storage-tables and load them in memory. Then 
-
-## Load tables and execute queries from "workloads/small"
