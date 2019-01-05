@@ -172,6 +172,9 @@ int parsePredicates(char *query_part, Query_Info **q) {
         token = strtok_r(NULL, "&", &saveptr);
     }
 
+    // TODO - If the same join exists two-times then delete the second one (Be aware that one of them may be reversed).
+    // TODO - Query_20: 9 1 11|0.2=1.0&1.0=2.1&1.0=0.2&0.3>3991|1.0
+
     return 0;
 }
 

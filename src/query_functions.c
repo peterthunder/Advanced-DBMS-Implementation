@@ -208,8 +208,7 @@ int32_t *filterRelation(int operator, int num_filter, Relation *relation, uint32
     return rowIDs;
 }
 
-void
-handleRelationFilter(Relation **original_relation, Entity **entity, int relation_Id, int operator, int num_filter) {
+void handleRelationFilter(Relation **original_relation, Entity **entity, int relation_Id, int operator, int num_filter) {
 
     int i;
     uint32_t rowId_count = 0;
@@ -237,6 +236,9 @@ handleRelationFilter(Relation **original_relation, Entity **entity, int relation
         /* Get the rowIDs of the relation that satisfy the filter*/
         rowIDs = filterRelation(operator, num_filter, *original_relation, &rowId_count);
 
+        if ( rowId_count == 0 )
+            fprintf(fp_print, "Zero results returned after filter.\n");
+
         /* Fill the intermediate table according to those rowIDs*/
         (*entity)->inter_tables[inter_table_num]->num_of_columns = 1;
         (*entity)->inter_tables[inter_table_num]->num_of_rows = rowId_count;
@@ -254,8 +256,7 @@ handleRelationFilter(Relation **original_relation, Entity **entity, int relation
     free(rowIDs);
 }
 
-void
-handleRelationJoin(Relation **relation1, Relation **relation2, Entity **entity, int relation_Id1, int relation_Id2) {
+void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **entity, int relation_Id1, int relation_Id2) {
 
     int ret1, ret2, inter_table_num1, inter_table_num2, column_num1, column_num2, i, j, *row_ids;
     uint32_t result_counter = 0, columns = 0, counter = 0;
@@ -312,7 +313,7 @@ handleRelationJoin(Relation **relation1, Relation **relation2, Entity **entity, 
 
         deAllocateResult(&result);
     }
-        /* If one of the relations exists in an intermediate table */
+    /* If one of the relations exists in an intermediate table */
     else if ((ret1 != -1 && ret2 == -1) || ret1 == -1) {
 
         if (ret1 != -1) {
@@ -384,15 +385,17 @@ handleRelationJoin(Relation **relation1, Relation **relation2, Entity **entity, 
 
         deAllocateResult(&result);
     }
-        /* If both of the relations exist in the same or a different intermediate table */
+    /* If both of the relations exist in the same or a different intermediate table */
     else {
         new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1,
                                                   column_num1);
         new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_num2, FALSE, ret2,
                                                   column_num2);
 
-        /* If both of the relations are in the same intermediate table, then self join */
+        /* If both of the relations are in the same intermediate table, then filter */
         if (inter_table_num1 == inter_table_num2) {
+
+            fprintf(fp_print, "If both of the relations are in the same intermediate table, then filter.\n");
 
             exists_in_intermediate_table(relation_Id1, *entity, &inter_table_num1, &column_num1);
             exists_in_intermediate_table(relation_Id2, *entity, &inter_table_num2, &column_num2);
@@ -446,6 +449,11 @@ handleRelationJoin(Relation **relation1, Relation **relation2, Entity **entity, 
         }
             /* Else just join them and combine the 2 intermediate tables */
         else {
+
+#if PRINTING
+            fprintf(fp_print, "Join of columns from 2 diff inter_tables.\n");
+#endif
+
             result = RadixHashJoin(&new_relation1, &new_relation2);
 
             /* Count the number of the results(rows) */
@@ -620,7 +628,6 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
             }
 
             threadpool->jobs_done = 0;
-
         }
     }
 

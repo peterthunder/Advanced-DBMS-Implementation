@@ -90,6 +90,13 @@ void gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int 
     // Gather statistics for Filters
     gatherStatisticsForFilters(qInfo, tables, &statistic_tables);
 
+    // TODO
+    // IF RETURN_VAL == -1
+        // TOTE IF_CONNECTED
+            // TOTE RETURN
+
+    // ALLIWS SUNEXIZOUME
+
     // Gather statistics for Joins
 
 
@@ -160,7 +167,7 @@ void gatherStatisticsForFilters(Query_Info **qInfo, Table **tables, QueryTableSt
 void gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables, Table **tables)
 {
     //  e.g. Query_2: 5 0|0.2=1.0&0.3=9881|1.1 0.2 1.0
-#if DEEP_PRINTING
+#if PRINTING || DEEP_PRINTING
     fprintf(fp_print, "\nGathering statistics for filter: %d.c%d=%ju, using the realTableNum: %d\n", usedTableNum, filterColNum, k, realTableNum);
 #endif
 
@@ -181,6 +188,8 @@ void gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, 
     else {
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = 0;
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = 0;
+
+        // TODO - This filter will produce zero results.. take action!
     }
 
     // Other columns of his table
@@ -191,7 +200,7 @@ void gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, 
 void gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
                                            Table **tables) {
     //  e.g. Query_5: 6 1 12|0.1=1.0&1.0=2.2&0.0<62236|1.0
-#if DEEP_PRINTING
+#if PRINTING || DEEP_PRINTING
     fprintf(fp_print, "\nGathering statistics for filter: %d.c%d<%ju, using the realTableNum: %d\n", usedTableNum, filterColNum, k, realTableNum);
 #endif
 
@@ -247,6 +256,8 @@ void gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, i
     else {
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = tables[realTableNum]->column_statistics[filterColNum]->f;
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = tables[realTableNum]->column_statistics[filterColNum]->d;
+
+        // TODO - This filter will produce zero results.. take action!
     }
 
     // Other columns of his table
@@ -258,7 +269,7 @@ void gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum
                                               Table **tables)
 {
     //  e.g. Query_1: 3 0 1|0.2=1.0&0.1=2.0&0.2>3499|1.2 0.1
-#if DEEP_PRINTING
+#if PRINTING || DEEP_PRINTING
     fprintf(fp_print, "\nGathering statistics for filter: %d.c%d>%ju, using the realTableNum: %d\n", usedTableNum, filterColNum, k, realTableNum);
 #endif
 
@@ -328,6 +339,8 @@ void gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum
     else {
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = tables[realTableNum]->column_statistics[filterColNum]->f;
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = tables[realTableNum]->column_statistics[filterColNum]->d;
+
+        // TODO - This filter will produce zero results.. take action!
     }
 
     // Other columns of his table
@@ -438,13 +451,13 @@ QueryTableStatistics** createStatisticsTables(Query_Info *qInfo, Table **tables,
         statistic_tables[i]->column_statistics = myMalloc(sizeof(ColumnStats *) * statistic_tables[i]->num_columns);
         for ( int j = 0 ; j < statistic_tables[i]->num_columns ; j++ ) {
             statistic_tables[i]->column_statistics[j] = myMalloc(sizeof(ColumnStats));
-            statistic_tables[i]->column_statistics[j]->l = 999999;    // Set it to ~1 million, to make sure it will be decreased later.
-            statistic_tables[i]->column_statistics[j]->u = 0;
-            statistic_tables[i]->column_statistics[j]->f = 0;
-            statistic_tables[i]->column_statistics[j]->d = 0;
-            statistic_tables[i]->column_statistics[j]->d_array = NULL;
-            statistic_tables[i]->column_statistics[j]->d_array_size = 0;
-            statistic_tables[i]->column_statistics[j]->initialSizeExcededSize = FALSE;
+            statistic_tables[i]->column_statistics[j]->l = tables[statistic_tables[i]->realNumOfTable]->column_statistics[j]->l;
+            statistic_tables[i]->column_statistics[j]->u = tables[statistic_tables[i]->realNumOfTable]->column_statistics[j]->u;
+            statistic_tables[i]->column_statistics[j]->f = tables[statistic_tables[i]->realNumOfTable]->column_statistics[j]->f;
+            statistic_tables[i]->column_statistics[j]->d = tables[statistic_tables[i]->realNumOfTable]->column_statistics[j]->d;
+            statistic_tables[i]->column_statistics[j]->d_array = tables[statistic_tables[i]->realNumOfTable]->column_statistics[j]->d_array;
+            statistic_tables[i]->column_statistics[j]->d_array_size = tables[statistic_tables[i]->realNumOfTable]->column_statistics[j]->d_array_size;
+            statistic_tables[i]->column_statistics[j]->initialSizeExcededSize = tables[statistic_tables[i]->realNumOfTable]->column_statistics[j]->initialSizeExcededSize;
             //printf("Malloc-ed space for table[%d], column[%d]\n", i, j);
         }
     }
