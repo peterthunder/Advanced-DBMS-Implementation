@@ -99,7 +99,7 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     }
 
 #if PRINTING || DEEP_PRINTING
-    printInitialStatistics((*tables), num_of_tables);
+    printInitialStatistics(tables, *num_of_tables);
 #endif
 
     return tables;

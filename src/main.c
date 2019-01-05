@@ -69,9 +69,8 @@ int main(void) {
         print_query(query_info, query, query_count);    // See the original query.
 #endif
 
-/*
-        // DEBUG CODE:
-        int queryWeWant = 17;
+/*        // DEBUG CODE:
+        int queryWeWant = 1;
         if ( query_count < queryWeWant )
             continue;
         else if ( query_count > queryWeWant ) {
@@ -79,10 +78,9 @@ int main(void) {
             break;
         }
         else {
-            print_query(query_info, query, query_count);
-            gatherPredicatesStatisticsForQuery(&query_info, tables);
-        }
-*/
+            //print_query(query_info, query, query_count);
+            gatherPredicatesStatisticsForQuery(&query_info, tables, query_count);
+        }*/
 
         gatherPredicatesStatisticsForQuery(&query_info, tables, query_count);
 
