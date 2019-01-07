@@ -6,6 +6,21 @@
 
 Threadpool *threadpool;
 
+typedef struct join_struct{
+    int start;
+    int end;
+    Relation *relWithIndex;
+    Relation *relNoIndex;
+    int32_t **psumWithIndex;
+    int32_t **psumNoIndex;
+    int32_t **bucket_index;
+    int32_t **chain;
+    Result *end_of_list;
+    Result *start_of_list;
+    int current_bucket;
+    bool is_R_relation_first;
+}Join_struct;
+
 typedef struct sum_calc_struct{
     int start;
     int end;
@@ -36,12 +51,13 @@ typedef struct histo_struct {
 
 void testRHJ();
 
+/*Thread function for sum calculation */
 void thread_calculate_sums(Sum_calc_struct **sum_calc_struct);
 
 /* Radix Hash Join */
 Result *RadixHashJoin(Relation **reIR, Relation **reIS);
 
-/*Thread function for partition of each bucket*/
+/*Thread function for partition of each bucket */
 void thread_partition(Partition_struct **partition_struct);
 
 /* Partition Relation */
@@ -60,6 +76,9 @@ void allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index)
 
 /* Build the Index and the Chain Arrays of the relation with the less amount of tuples */
 void buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_t ***bucket_index, int32_t ***chain);
+
+/*Thread function for join of each bucket */
+void thread_joinRelation(Join_struct **join_struct);
 
 /* Join two relations and return the result. */
 Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **psumWithIndex, int32_t **psumNoIndex,
