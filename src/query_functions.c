@@ -270,8 +270,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
     /* If none of the relations exists in an intermediate table */
     if (ret1 == -1 && ret2 == -1) {
         /* Create the intermediate table */
-        create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1,
-                                  column_num1);    // It will return NULL.
+        create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1, column_num1);    // It will return NULL.
         result = RadixHashJoin(relation1, relation2);
 
         /* Count the number of the results(rows) */
@@ -317,11 +316,9 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
     else if ((ret1 != -1 && ret2 == -1) || ret1 == -1) {
 
         if (ret1 != -1) {
-            new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1,
-                                                      column_num1);
+            new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1, column_num1);
         } else {
-            new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_num2, FALSE, ret2,
-                                                      column_num2);
+            new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_num2, FALSE, ret2, column_num2);
             inter_table_num1 = inter_table_num2;
         }
 
@@ -341,8 +338,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
         columns = (*entity)->inter_tables[inter_table_num1]->num_of_columns + 1;
 
         (*entity)->inter_tables[inter_table_num1]->relationIDS_of_inter_table
-                = realloc((*entity)->inter_tables[inter_table_num1]->relationIDS_of_inter_table,
-                          sizeof(int *) * columns);
+                = myRealloc((*entity)->inter_tables[inter_table_num1]->relationIDS_of_inter_table, sizeof(int *) * columns);
 
         if (ret1 != -1)
             (*entity)->inter_tables[inter_table_num1]->relationIDS_of_inter_table[columns - 1] = relation_Id2;
@@ -402,11 +398,8 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
             /* Find how many elements are the same */
             for (i = 0; i < (*entity)->inter_tables[inter_table_num1]->num_of_rows; i++) {
-                if ((*relation1)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num1] -
-                                         1].payload
-                    ==
-                    (*relation2)->tuples[(int) (*entity)->inter_tables[inter_table_num2]->inter_table[i][column_num2] -
-                                         1].payload)
+                if ((*relation1)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num1] -1].payload
+                    == (*relation2)->tuples[(int) (*entity)->inter_tables[inter_table_num2]->inter_table[i][column_num2] -1].payload)
                     counter++;
             }
 
@@ -414,11 +407,8 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
             row_ids = myMalloc(sizeof(int) * counter);
             counter = 0;
             for (i = 0; i < (*entity)->inter_tables[inter_table_num1]->num_of_rows; i++) {
-                if ((*relation1)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num1] -
-                                         1].payload
-                    ==
-                    (*relation2)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num2] -
-                                         1].payload) {
+                if ((*relation1)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num1] -1].payload
+                    == (*relation2)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num2] -1].payload) {
                     row_ids[counter] = i;
                     counter++;
                 }
@@ -465,17 +455,14 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
 
             /* Fill the number of rows, columns and the relation_ids array */
-            columns = (*entity)->inter_tables[inter_table_num1]->num_of_columns +
-                      (*entity)->inter_tables[inter_table_num2]->num_of_columns;
+            columns = (*entity)->inter_tables[inter_table_num1]->num_of_columns + (*entity)->inter_tables[inter_table_num2]->num_of_columns;
 
             (*entity)->inter_tables[inter_table_num1]->relationIDS_of_inter_table
-                    = realloc((*entity)->inter_tables[inter_table_num1]->relationIDS_of_inter_table,
-                              sizeof(int *) * columns);
+                    = myRealloc((*entity)->inter_tables[inter_table_num1]->relationIDS_of_inter_table, sizeof(int *) * columns);
 
             for (i = 0; i < (*entity)->inter_tables[inter_table_num2]->num_of_columns; i++) {
 
-                (*entity)->inter_tables[inter_table_num1]->relationIDS_of_inter_table[
-                        (*entity)->inter_tables[inter_table_num1]->num_of_columns + i]
+                (*entity)->inter_tables[inter_table_num1]->relationIDS_of_inter_table[(*entity)->inter_tables[inter_table_num1]->num_of_columns + i]
                         = (*entity)->inter_tables[inter_table_num2]->relationIDS_of_inter_table[i];
             }
 
@@ -615,7 +602,6 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
 
                 threadpool_add_job(threadpool, (void *) thread_calculate_sums, &sum_calc_struct[k]);
                 jobs_added_to_queue++;
-
             }
 
             while (threadpool->jobs_done != jobs_added_to_queue) {

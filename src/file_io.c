@@ -135,7 +135,7 @@ char **getTableNames(int *num_of_tables, int *table_names_array_size) {
 
         if ((*table_names_array_size) == *num_of_tables) {
             (*table_names_array_size) <<= 1; // fast-multiply by 2
-            table_names = realloc(table_names, (size_t) (*table_names_array_size) * sizeof(char *));
+            table_names = myRealloc(table_names, (size_t) (*table_names_array_size) * sizeof(char *));
             for (i = *num_of_tables; i < (*table_names_array_size); i++) {
                 table_names[i] = myMalloc(sizeof(char) * 1024);
             }

@@ -101,8 +101,8 @@ void sumStructureUpdate(Sum_struct **sumStruct, Query_Info *query_info, long*sum
 
     if ((*sumStruct)->full_size == (*sumStruct)->actual_size) {
         (*sumStruct)->full_size <<= 1; // fast-multiply by 2
-        (*sumStruct)->sums = realloc((*sumStruct)->sums, (*sumStruct)->full_size * sizeof(long *));
-        (*sumStruct)->sums_sizes = realloc((*sumStruct)->sums_sizes, (*sumStruct)->full_size * sizeof(long));
+        (*sumStruct)->sums = myRealloc((*sumStruct)->sums, (*sumStruct)->full_size * sizeof(long *));
+        (*sumStruct)->sums_sizes = myRealloc((*sumStruct)->sums_sizes, (*sumStruct)->full_size * sizeof(long));
     }
 }
 
@@ -115,8 +115,8 @@ void resetSumStructure(Sum_struct **sumStruct){
     (*sumStruct)->actual_size = 0;
     (*sumStruct)->full_size = 1;
 
-    (*sumStruct)->sums = realloc((*sumStruct)->sums, sizeof(long *) * 1);
-    (*sumStruct)->sums_sizes = realloc((*sumStruct)->sums_sizes, sizeof(long) * 1);
+    (*sumStruct)->sums = myRealloc((*sumStruct)->sums, sizeof(long *) * 1);
+    (*sumStruct)->sums_sizes = myRealloc((*sumStruct)->sums_sizes, sizeof(long) * 1);
 
     /* Flush stdout to clear the output buffer */
     fflush(stdout);
@@ -405,11 +405,21 @@ void printPredicatesStatistics(QueryTableStatistics **statistic_tables, int numO
 }
 
 
-void *myMalloc(size_t sizeOfAllocation) {
-
+void *myMalloc(size_t sizeOfAllocation)
+{
     void *ptr = malloc(sizeOfAllocation);
     if (ptr == NULL) {
-        fprintf(stderr, "Malloc failed!\n");
+        fprintf(stderr, "malloc() failed!\n");
+        exit(EXIT_FAILURE);
+    } else
+        return ptr;
+}
+
+void *myRealloc(void* memory_ptr, size_t sizeOfAllocation)
+{
+    void *ptr = realloc(memory_ptr, sizeOfAllocation);
+    if (ptr == NULL) {
+        fprintf(stderr, "realloc() failed!\n");
         exit(EXIT_FAILURE);
     } else
         return ptr;

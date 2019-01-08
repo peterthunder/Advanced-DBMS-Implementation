@@ -141,8 +141,7 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
                                (*reIR)->bucket_index, (*reIR)->chain, TRUE);
     } else {
 
-        allocateAndInitializeBucketIndexAndChain(&(*reIS)->chain,
-                                                 &(*reIS)->bucket_index);    // Allocation-errors are handled internally.
+        allocateAndInitializeBucketIndexAndChain(&(*reIS)->chain, &(*reIS)->bucket_index);    // Allocation-errors are handled internally.
 
         //printf("  -Phase 2: Building index on the smaller relation S.\n");
         buildSmallestPartitionedRelationIndex((*reIS)->paritioned_relation, (*reIS)->psum, &(*reIS)->bucket_index,
@@ -282,7 +281,6 @@ void partition(Relation *relation, Relation **relationNew, int32_t **psum) {
         }
         free(partition_struct);
     }
-
 }
 
 void allocateAndInitializeBucketIndexAndChain(int ***chain, int ***bucket_index) {

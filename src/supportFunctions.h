@@ -69,6 +69,8 @@ void printPredicatesStatistics(QueryTableStatistics **statistic_tables, int numO
 
 void* myMalloc(size_t sizeOfAllocation);
 
+void *myRealloc(void* memory_ptr, size_t sizeOfAllocation);
+
 int myAtoi(char *str);
 
 long int myPow(int x,int n);
