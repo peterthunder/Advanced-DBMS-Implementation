@@ -10,7 +10,7 @@ Query_Info *parse_query(char *query) {
 
     /* Parse the Query Parts*/
     query_parts = parseQueryParts(query, &query_parts_count);     // Allocation-errors are handled internally.
-    if ( query_parts == NULL ) {
+    if (query_parts == NULL) {
         fprintf(stderr, "\nAn error occurred while parsing the query-parts!\n");
         return NULL;
     }
@@ -68,7 +68,7 @@ char **parseQueryParts(char *query, int *query_parts_count) {
         (*query_parts_count)++;
     }
 
-    if ( *query_parts_count != 3 ) {
+    if (*query_parts_count != 3) {
         fprintf(stderr, "\nWrong number of query parts! Received %d, while expecting 3.\n", *query_parts_count);
         return NULL;
     }
@@ -154,12 +154,10 @@ int parsePredicates(char *query_part, Query_Info **q) {
         if ((strstr(token, ">")) != NULL) {
             if (parseFilter(token, GREATER, q, &current_filter) == -1)
                 return -1;
-        }
-        else if ((strstr(token, "<")) != NULL) {
+        } else if ((strstr(token, "<")) != NULL) {
             if (parseFilter(token, LESS, q, &current_filter) == -1)
                 return -1;
-        }
-        else if ((strstr(token, "=")) != NULL) {
+        } else if ((strstr(token, "=")) != NULL) {
             if (isFilter(token)) {
                 if (parseFilter(token, EQUAL, q, &current_filter) == -1)
                     return -1;
@@ -171,9 +169,6 @@ int parsePredicates(char *query_part, Query_Info **q) {
         }
         token = strtok_r(NULL, "&", &saveptr);
     }
-
-    // TODO - If the same join exists two-times then delete the second one (Be aware that one of them may be reversed).
-    // TODO - Query_20: 9 1 11|0.2=1.0&1.0=2.1&1.0=0.2&0.3>3991|1.0
 
     return 0;
 }
@@ -239,14 +234,14 @@ int parseFilter(char *token, int operator, Query_Info **q, int *current_filter) 
             token1 = strtok_r(NULL, "=", &saveptr2);
         else if (operator == LESS)
             token1 = strtok_r(NULL, "<", &saveptr2);
-        else
+        else    // It will be GREATER, no doubt
             token1 = strtok_r(NULL, ">", &saveptr2);
     }
     return 0;
 }
 
 /* Parse a Join */
-void parseJoin(char *token, Query_Info **q, int *current_join) {
+void parseJoin(char *token, Query_Info **q, int *join_counter) {
 
     int join_part = 0;
     char *saveptr1, *saveptr2, *token1, *token2;
@@ -255,13 +250,36 @@ void parseJoin(char *token, Query_Info **q, int *current_join) {
     while (token1 != NULL) {
         if (strstr(token1, ".") != NULL) {
             token2 = strtok_r(token1, ".", &saveptr2);
-            (*q)->joins[*current_join][join_part] = myAtoi(token2);
+            (*q)->joins[*join_counter][join_part] = myAtoi(token2);
             token2 = strtok_r(NULL, ".", &saveptr2);
-            (*q)->joins[*current_join][join_part + 1] = myAtoi(token2);
+            (*q)->joins[*join_counter][join_part + 1] = myAtoi(token2);
             token1 = strtok_r(NULL, "=", &saveptr1);
-            if (token1 == NULL) (*current_join)++;
+            if (token1 == NULL)
+                (*join_counter)++;
         }
         join_part = 2;
+    }
+
+    // If the same join exists two-times then delete the second one (Be aware that one of them may be reversed).
+    // Test: Query_20: 9 1 11|0.2=1.0&1.0=2.1&1.0=0.2&0.3>3991|1.0
+    // Query_35: 7 0 9|0.1=1.0&1.0=0.1&1.0=2.1&0.1>3791|1.2 1.2\
+    // Query_38: 7 1 3|0.2=1.0&1.0=2.1&1.0=0.2&0.2>6082|2.3 2.1
+
+    if ( isCurrentJoinDuplicate(q, *join_counter) )
+    {
+        // Update the "join_counter"
+        (*join_counter) --;
+        (*q)->join_count --;
+
+        // Free this join and recreate it
+        free((*q)->joins[(*join_counter)]);
+        (*q)->joins[(*join_counter)] = myMalloc(sizeof(int) * 4);
+
+        // Reduce allocated space
+        free((*q)->joins[(*q)->join_count]);
+        (*q)->joins = myRealloc((*q)->joins, (sizeof(int *) * (*q)->join_count));
+
+        //printJoins(*q, (*join_counter));
     }
 }
 
@@ -277,12 +295,67 @@ bool isFilter(char *predicate) {
         memcpy(pred, pred + 1, strlen(pred + 1) + 1);
     }
 
-    if ( dots_count < 2 )
+    if (dots_count < 2)
         return TRUE;
-    // If we want to handle the "filter": 0.1=0.2
-    // In this case we have to use 5 cells in our "filters"-table to store the filter-members
-    /*else if ( dots_count == 2 &&   tableNum is the same in both sides  )
-      return TRUE;*/
+        // If we want to handle the "filter": 0.1=0.2
+        // In this case we have to use 5 cells in our "filters"-table to store the filter-members
+        /*else if ( dots_count == 2 &&   tableNum is the same in both sides  )
+          return TRUE;*/
     else
         return FALSE;
+}
+
+
+bool isCurrentJoinDuplicate(Query_Info **q, int joinCount) {
+    //printJoins(*q, joinCount);
+
+    int n = joinCount - 1;
+
+    for ( int i = 0; i < n; i++ ) {
+        if ( (*q)->joins[i][0] == (*q)->joins[n][0]
+            && (*q)->joins[i][1] == (*q)->joins[n][1]
+            && (*q)->joins[i][2] == (*q)->joins[n][2]
+            && (*q)->joins[i][3] == (*q)->joins[n][3] ) {
+#if PRINTING
+            printSame(q, i, n);
+#endif
+            return TRUE;
+        }   // Check reversed.
+        else if ( (*q)->joins[i][0] == (*q)->joins[n][2]
+                 && (*q)->joins[i][1] == (*q)->joins[n][3]
+                 && (*q)->joins[i][2] == (*q)->joins[n][0]
+                 && (*q)->joins[i][3] == (*q)->joins[n][1] ) {
+#if PRINTING
+            printSame(q, i, n);
+#endif
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+
+void printJoins(Query_Info *q, int joinCount)
+{
+    fprintf(fp_print, "Joins = %d\n", joinCount);
+    for ( int i = 0; i < joinCount; i++ ) {
+        for ( int j = 0; j < 4; j++ ) {
+            fprintf(fp_print, "[%d]", q->joins[i][j]);
+        }
+        fprintf(fp_print, "\n");
+    }
+}
+
+
+void printSame(Query_Info **q, int i, int j)
+{
+    fprintf(fp_print, "Found same Join! -> ");
+    for ( int k = 0; k < 4; k++ ) {
+        fprintf(fp_print, "[%d]", (*q)->joins[i][k]);
+    }
+    fprintf(fp_print, " == ");
+    for ( int k = 0; k < 4; k++ ) {
+        fprintf(fp_print, "[%d]", (*q)->joins[j][k]);
+    }
+    fprintf(fp_print, " -> Removing it from query..\n");
 }

@@ -18,8 +18,14 @@ void parseSelections(char *query_part, Query_Info **q);
 
 int parseFilter(char *token, int operator, Query_Info **q, int *current_filter);
 
-void parseJoin(char *token, Query_Info **q, int *current_join);
+void parseJoin(char *token, Query_Info **q, int *join_counter);
 
 bool isFilter(char *predicate);
+
+bool isCurrentJoinDuplicate(Query_Info **q, int joinCount);
+
+void printJoins(Query_Info* q, int joinCount);
+
+void printSame(Query_Info** q, int i, int j);
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_PARSER_H

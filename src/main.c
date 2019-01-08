@@ -60,17 +60,27 @@ int main(void) {
 
         query_count++;
 
-        //fprintf(fp_print, "Query_%d: %s\n", query_count, query);
+        fprintf(fp_print, "Query_%d: %s\n", query_count, query);
 
         query_info = parse_query(query);
+
+        /*  // DEBUG CODE:
+        if ( query_count < 20 )
+            continue;
+        if ( query_count == 20 ) {
+            query_info = parse_query(query);
+            print_query(query_info, query, query_count);
+        }
+        if ( query_count > 20 )
+            break;*/
 
 #if PRINTING || DEEP_PRINTING
         fprintf(fp_print, "Original Query:");
         print_query(query_info, query, query_count);    // See the original query.
 #endif
 
-/*        // DEBUG CODE:
-        int queryWeWant = 1;
+     /*   // DEBUG CODE:
+        int queryWeWant = 27;
         if ( query_count < queryWeWant )
             continue;
         else if ( query_count > queryWeWant ) {
@@ -78,18 +88,17 @@ int main(void) {
             break;
         }
         else {
-            //print_query(query_info, query, query_count);
+            print_query(query_info, query, query_count);
             gatherPredicatesStatisticsForQuery(&query_info, tables, query_count);
-        }*/
-
+        }
+*/
         gatherPredicatesStatisticsForQuery(&query_info, tables, query_count);
 
 
 #if PRINTING || DEEP_PRINTING
-        fprintf(fp_print, "\nChanged Query, after gathering the statistics and reordering the joins:");
-        print_query(query_info, query, query_count);    // See the changed query after gathering the statistics and reordering the joins.
+        //fprintf(fp_print, "\nChanged Query, after gathering the statistics and reordering the joins:");
+        //print_query(query_info, query, query_count);    // See the changed query after gathering the statistics and reordering the joins.
 #endif
-
 
         if (((sums = execute_query(query_info, tables, &relation_array))) == NULL) {
             fprintf(stderr, "An error occurred while executing the query: %s\nExiting program...\n", query);
