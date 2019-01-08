@@ -23,15 +23,20 @@ UNIT_TESTING:
 	# Add more UnitTesting directories.
 
 HARNESS:
-	rm -rf build && ./compile.sh && ./runTestharness.sh
+	rm -rf build && ./compile.sh
 
 DRIVER:
-	rm -rf build && ./compile.sh && ./run.sh
+	rm -rf build && ./compile.sh
 
 PROFILER:
 	rm -rf profiler_output.txt
 	make BASIC_FOR_PROFILER
 	./radixHashJoin_basic_for_profiler && gprof radixHashJoin_basic_for_profiler gmon.out > profiler_output.txt && head -65 profiler_output.txt
+
+HARNESS_PROFILER:
+	rm -rf profiler_output.txt
+	make HARNESS
+	cd build/release && ./harness workloads/small/small.init workloads/small/small.work workloads/small/small.result ../../run.sh && cd ../../ && gprof build/release/harness gmon.out > profiler_output.txt && head -65 profiler_output.txt
 
 EXAMPLE:
 	gcc -o example example.c

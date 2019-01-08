@@ -60,7 +60,7 @@ int main(void) {
 
         query_count++;
 
-        fprintf(fp_print, "Query_%d: %s\n", query_count, query);
+        //fprintf(fp_print, "Query_%d: %s\n", query_count, query);
 
         query_info = parse_query(query);
 

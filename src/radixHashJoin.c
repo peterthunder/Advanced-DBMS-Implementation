@@ -637,6 +637,7 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
         else {
             if (join_struct[i] != NULL) {
                 if (pointer_to_start_of_list == FALSE) {
+                    free(result);
                     result = join_struct[i]->start_of_list;
                     pointer_to_end_of_result = join_struct[i]->end_of_list;
                     pointer_to_start_of_list = TRUE;
