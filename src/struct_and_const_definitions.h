@@ -7,8 +7,8 @@
 
 #define MAX_BOOL_TABLE_NUM 50000000 // 50 millions
 #define H1_PARAM 4 // Number of bits we PRINTING keep after the 1st hash function pass
-#define H2_PARAM 101 // The number we use in the 2nd hash function as mod
-#define JOINED_ROWIDS_NUM ((1024 * 1024) / 8)
+#define H2_PARAM 251 // The number we use in the 2nd hash function as mod
+#define JOINED_ROWIDS_NUM ((1024 * 1024) / 8) // 1MB: ((1024 * 1024) / 8)
 #define TRUE true
 #define FALSE false
 #define EQUAL 0
@@ -19,6 +19,7 @@
 #define MULTITHREADING TRUE
 
 int32_t number_of_buckets;
+
 FILE *fp_read_tables, *fp_read_queries, *fp_write, *fp_print;
 
 /* Type definition for a tuple */

@@ -156,7 +156,6 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
     }
 
 
-
 #if PRINTING
     end_t = clock();
     total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
@@ -253,13 +252,13 @@ void partition(Relation *relation, Relation **relationNew, int32_t **psum) {
                 }
             }
         } else {
-            if (partition_struct_created == FALSE) {
+            if (partition_struct == NULL) {
                 partition_struct = myMalloc(sizeof(Partition_struct *) * number_of_buckets);
                 for (j = 0; j < number_of_buckets; j++) {
-                    partition_struct[j] = myMalloc(sizeof(Partition_struct));
+                    partition_struct[j] = NULL;
                 }
-                partition_struct_created = TRUE;
             }
+            partition_struct[i] = myMalloc(sizeof(Partition_struct));
             partition_struct[i]->start = psum[i][1];
             partition_struct[i]->hashValue = psum[i][0];
             partition_struct[i]->hashApperances = currHashAppearances;
@@ -274,7 +273,7 @@ void partition(Relation *relation, Relation **relationNew, int32_t **psum) {
         pthread_cond_wait(&threadpool->all_jobs_done, &threadpool->jobs_done_mtx);
     }
     threadpool->jobs_done = 0;
-    if(partition_struct_created == TRUE){
+    if (partition_struct != NULL) {
         for (j = 0; j < number_of_buckets; j++) {
             if (partition_struct[j] != NULL)
                 free(partition_struct[j]);
@@ -446,6 +445,68 @@ void buildSmallestPartitionedRelationIndex(Relation *rel, int32_t **psum, int32_
     }
 }
 
+void thread_joinRelation(Join_struct **join_struct) {
+
+    int j, i = (*join_struct)->current_bucket, currentIndex;
+    int32_t h2Value;
+    (*join_struct)->start_of_list = myMalloc(sizeof(Result));
+    (*join_struct)->start_of_list->next_result = NULL;
+    (*join_struct)->start_of_list->num_joined_rowIDs = 0;
+    Result *current_result = (*join_struct)->start_of_list;
+
+    /* If the num of tuples isn't 0, use the bucket_index to find same values of relNoIndex in relWithIndex */
+    for (j = (*join_struct)->start; j < (*join_struct)->end; j++) {
+
+        h2Value = (*join_struct)->relNoIndex->tuples[j].payload % H2_PARAM;
+        currentIndex = (*join_struct)->bucket_index[i][h2Value];
+
+        if (currentIndex == 0) {
+            continue;
+        }
+
+        /* If the value isn't 0, then a tuple with the same h2 exists.
+         * If it has the same value, then join-group both */
+
+        do {
+            if ((*join_struct)->relNoIndex->tuples[j].payload == (*join_struct)->relWithIndex->tuples[currentIndex - 1 + (*join_struct)->psumWithIndex[i][1]].payload) {
+
+                /* If the current result is full, then create a new one and point to it with current result */
+                if (current_result->num_joined_rowIDs == JOINED_ROWIDS_NUM) {
+                    current_result->next_result = myMalloc(sizeof(Result));
+                    current_result->next_result->num_joined_rowIDs = 0;
+                    current_result = current_result->next_result;
+                    current_result->next_result = NULL;
+                }
+                /* We always want to write R's rowIDs first and S' rowIDs second. */
+                /* So we use the variable "is_R_relation_first" to determine which relation was sent first. */
+                if ((*join_struct)->is_R_relation_first) {
+                    /* If the current result isn' t full, insert a new rowid combo (rowIDR, rowIDS)
+                     * and increment the num_joined_rowIDs variable */
+                    current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = (*join_struct)->relWithIndex->tuples[currentIndex - 1 +
+                                                                                                                               (*join_struct)->psumWithIndex[i][1]].key;
+                    current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = (*join_struct)->relNoIndex->tuples[j].key;
+                } else {
+                    current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = (*join_struct)->relNoIndex->tuples[j].key;
+                    current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = (*join_struct)->relWithIndex->tuples[currentIndex - 1 +
+                                                                                                                               (*join_struct)->psumWithIndex[i][1]].key;
+                }
+                current_result->num_joined_rowIDs++;
+            } else {
+            }
+            /* If a chain exists, meaning there is another tuple of relWithIndex with the same h2, check it too*/
+            currentIndex = (*join_struct)->chain[i][currentIndex - 1];
+        } while (currentIndex != 0);
+    }
+
+    (*join_struct)->end_of_list = current_result;
+
+    /* Increment the jobs_done var and signal the main process */
+    pthread_mutex_lock(&threadpool->jobs_done_mtx);
+    threadpool->jobs_done++;
+    pthread_cond_signal(&threadpool->all_jobs_done);
+    pthread_mutex_unlock(&threadpool->jobs_done_mtx);
+}
+
 /* Join two relations and return the result.
  * RelWithIndex: The index of this relation will be used for the comparison and the join.
  * RelNoIndex: This relation might or might not have index and we will use the index of the other relation to compare and join.
@@ -454,25 +515,26 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
                       int32_t **bucket_index, int32_t **chain,
                       bool is_R_relation_first) {
 
-    int i, j, num_tuples_of_currBucket, currentIndex;
+    int i, j, k, num_tuples_of_currBucket, currentIndex, jobs_added_to_queue = 0, pointer_to_start_of_list = FALSE;
     int32_t h2Value;
+    Join_struct **join_struct = NULL;
 
-    Result *result = myMalloc(sizeof(Result));
-    Result *current_result = result;
+    Result *result, *current_result, *pointer_to_end_of_result;
+    result = myMalloc(sizeof(Result));
+    current_result = result;
+    pointer_to_end_of_result = NULL;
     result->next_result = NULL;
     result->num_joined_rowIDs = 0;
 
     /* For each bucket of relNoIndex, we check if there is such bucket in relWithIndex and if so, we continue by checking the values inside. */
     for (i = 0; i < number_of_buckets; i++) {
-#if DEEP_PRINTING
-        printf("\n---------------------- Bucket: %d -----------------------\n", i);
-#endif
+
+        //printf("\n---------------------- Bucket: %d -----------------------\n", i);
+
         /* Check if the i-th bucket of relWithIndex is empty */
         /* If it is, then go to the next bucket */
         if (chain[i] == NULL) {
-#if DEEP_PRINTING
-            printf("Bucket #%d in \"Relation with Index\" is empty, continuing to the next bucket!\n", i);
-#endif
+            //printf("Bucket #%d in \"Relation with Index\" is empty, continuing to the next bucket!\n", i);
             continue;
         }
 
@@ -484,76 +546,116 @@ Result *joinRelations(Relation *relWithIndex, Relation *relNoIndex, int32_t **ps
 
         /* If the num of tuples in the i-th bucket of relNoIndex is 0, go to the next bucket */
         if (num_tuples_of_currBucket == 0) {
-#if DEEP_PRINTING
-            printf("Bucket #%d in \"Relation without Index\" is empty, continuing to the next bucket!\n", i);
-#endif
+            //printf("Bucket #%d in \"Relation without Index\" is empty, continuing to the next bucket!\n", i);
             continue;   // Next bucket in relNoIndex
         }
 
-        /* If the num of tuples isn't 0, use the bucket_index to find same values of relNoIndex in relWithIndex */
-        for (j = psumNoIndex[i][1]; j < psumNoIndex[i][1] + num_tuples_of_currBucket; j++) {
-#if DEEP_PRINTING
-            printf("Checking(%d):\n", relNoIndex->tuples[j].payload);
-#endif
-            h2Value = relNoIndex->tuples[j].payload % H2_PARAM;
-            currentIndex = bucket_index[i][h2Value];
+        if (!MULTITHREADING) {
+            /* If the num of tuples isn't 0, use the bucket_index to find same values of relNoIndex in relWithIndex */
+            for (j = psumNoIndex[i][1]; j < psumNoIndex[i][1] + num_tuples_of_currBucket; j++) {
+                //printf("Checking(%d):\n", relNoIndex->tuples[j].payload);
+                h2Value = relNoIndex->tuples[j].payload % H2_PARAM;
+                currentIndex = bucket_index[i][h2Value];
 
-            /* If the value of bucket_index[h2] is 0, it means there is no tuple with that h2, so go to the next tuple */
-            if (currentIndex == 0) {
-#if DEEP_PRINTING
-                printf("\th2(%d)=%d ~> b_i(%d)=%d ~> ", relNoIndex->tuples[j].payload, h2Value, h2Value, currentIndex);
-                printf("No_Indexed_Tuple_With_H2=%d ~> NOT_JOIN \n", h2Value);
-#endif
-                continue;
-            }
-
-            /* If the value isn't 0, then a tuple with the same h2 exists.
-             * If it has the same value, then join-group both */
-            do {
-#if DEEP_PRINTING
-                printf("\th2(%d)=%d ~> b_i(%d)=%d ~> ", relNoIndex->tuples[j].payload, h2Value, h2Value, currentIndex);
-                printf("EQUAL(%d,%d)", relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload, relNoIndex->tuples[j].payload);
-#endif
-                if (relNoIndex->tuples[j].payload ==
-                    relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload) {
-
-                    /* If the current result is full, then create a new one and point to it with current result*/
-                    if (current_result->num_joined_rowIDs == JOINED_ROWIDS_NUM) {
-                        current_result->next_result = myMalloc(sizeof(Result));
-                        current_result->next_result->num_joined_rowIDs = 0;
-                        current_result = current_result->next_result;
-                        current_result->next_result = NULL;
-                    }
-                    /* We always want to write R's rowIDs first and S' rowIDs second. */
-                    /* So we use the variable "is_R_relation_first" to determine which relation was sent first. */
-                    if (is_R_relation_first) {
-#if DEEP_PRINTING
-                        printf("=TRUE ~> JOIN[%d|%d]\n", relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].key, relNoIndex->tuples[j].key);
-#endif
-                        /* If the current result isn' t full, insert a new rowid combo (rowIDR, rowIDS)
-                         * and increment the num_joined_rowIDs variable */
-                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = relWithIndex->tuples[
-                                currentIndex - 1 + psumWithIndex[i][1]].key;
-                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = relNoIndex->tuples[j].key;
-                    } else {
-#if DEEP_PRINTING
-                        printf("=TRUE ~> JOIN[%d|%d]\n", relNoIndex->tuples[j].key, relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].key);
-#endif
-                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = relNoIndex->tuples[j].key;
-                        current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = relWithIndex->tuples[
-                                currentIndex - 1 + psumWithIndex[i][1]].key;
-                    }
-                    current_result->num_joined_rowIDs++;
-                } else {
-#if DEEP_PRINTING
-                    printf("=FALSE ~> NOT_JOIN\n");
-#endif
+                /* If the value of bucket_index[h2] is 0, it means there is no tuple with that h2, so go to the next tuple */
+                if (currentIndex == 0) {
+                    //printf("\th2(%d)=%d ~> b_i(%d)=%d ~> ", relNoIndex->tuples[j].payload, h2Value, h2Value, currentIndex);
+                    //printf("No_Indexed_Tuple_With_H2=%d ~> NOT_JOIN \n", h2Value);
+                    continue;
                 }
-                /* If a chain exists, meaning there is another tuple of relWithIndex with the same h2, check it too*/
-                currentIndex = chain[i][currentIndex - 1];
-            } while (currentIndex != 0);
+
+                /* If the value isn't 0, then a tuple with the same h2 exists.
+                 * If it has the same value, then join-group both */
+
+                do {
+                    //printf("\th2(%d)=%d ~> b_i(%d)=%d ~> ", relNoIndex->tuples[j].payload, h2Value, h2Value, currentIndex);
+                    //printf("EQUAL(%d,%d)", relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload, relNoIndex->tuples[j].payload);
+                    if (relNoIndex->tuples[j].payload == relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].payload) {
+
+                        /* If the current result is full, then create a new one and point to it with current result */
+                        if (current_result->num_joined_rowIDs == JOINED_ROWIDS_NUM) {
+                            current_result->next_result = myMalloc(sizeof(Result));
+                            current_result->next_result->num_joined_rowIDs = 0;
+                            current_result = current_result->next_result;
+                            current_result->next_result = NULL;
+                        }
+                        /* We always want to write R's rowIDs first and S' rowIDs second. */
+                        /* So we use the variable "is_R_relation_first" to determine which relation was sent first. */
+                        if (is_R_relation_first) {
+                            //printf("=TRUE ~> JOIN[%d|%d]\n", relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].key, relNoIndex->tuples[j].key);
+                            /* If the current result isn' t full, insert a new rowid combo (rowIDR, rowIDS)
+                             * and increment the num_joined_rowIDs variable */
+                            current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].key;
+                            current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = relNoIndex->tuples[j].key;
+                        } else {
+                            //printf("=TRUE ~> JOIN[%d|%d]\n", relNoIndex->tuples[j].key, relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].key);
+                            current_result->joined_rowIDs[current_result->num_joined_rowIDs][0] = relNoIndex->tuples[j].key;
+                            current_result->joined_rowIDs[current_result->num_joined_rowIDs][1] = relWithIndex->tuples[currentIndex - 1 + psumWithIndex[i][1]].key;
+                        }
+                        current_result->num_joined_rowIDs++;
+                    } else {
+                        //printf("=FALSE ~> NOT_JOIN\n");
+                    }
+                    /* If a chain exists, meaning there is another tuple of relWithIndex with the same h2, check it too*/
+                    currentIndex = chain[i][currentIndex - 1];
+                } while (currentIndex != 0);
+            }
+        } else {
+            if (join_struct == NULL) {
+                join_struct = myMalloc(sizeof(Join_struct *) * number_of_buckets);
+                for (k = 0; k < number_of_buckets; k++) {
+                    join_struct[k] = NULL;
+                }
+            }
+            join_struct[i] = myMalloc(sizeof(Join_struct));
+            join_struct[i]->chain = chain;
+            join_struct[i]->bucket_index = bucket_index;
+            join_struct[i]->psumNoIndex = psumNoIndex;
+            join_struct[i]->psumWithIndex = psumWithIndex;
+            join_struct[i]->relNoIndex = relNoIndex;
+            join_struct[i]->relWithIndex = relWithIndex;
+            join_struct[i]->is_R_relation_first = is_R_relation_first;
+            join_struct[i]->start = psumNoIndex[i][1];
+            join_struct[i]->end = psumNoIndex[i][1] + num_tuples_of_currBucket;
+            join_struct[i]->start_of_list = NULL;
+            join_struct[i]->end_of_list = NULL;
+            join_struct[i]->current_bucket = i;
+
+            threadpool_add_job(threadpool, (void *) thread_joinRelation, &join_struct[i]);
+            jobs_added_to_queue++;
+
         }
     }
+
+    while (threadpool->jobs_done != jobs_added_to_queue) {
+        pthread_cond_wait(&threadpool->all_jobs_done, &threadpool->jobs_done_mtx);
+    }
+
+    for (i = 0; i < number_of_buckets; i++) {
+        if (join_struct == NULL)
+            break;
+        else {
+            if (join_struct[i] != NULL) {
+                if (pointer_to_start_of_list == FALSE) {
+                    result = join_struct[i]->start_of_list;
+                    pointer_to_end_of_result = join_struct[i]->end_of_list;
+                    pointer_to_start_of_list = TRUE;
+                    continue;
+                }
+                pointer_to_end_of_result->next_result = join_struct[i]->start_of_list;
+                pointer_to_end_of_result = join_struct[i]->end_of_list;
+            }
+        }
+    }
+
+    threadpool->jobs_done = 0;
+    if (join_struct != NULL) {
+        for (j = 0; j < number_of_buckets; j++) {
+            free(join_struct[j]);
+        }
+        free(join_struct);
+    }
+
     return result;
 }
 
