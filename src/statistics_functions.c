@@ -76,7 +76,7 @@ void gatherInitialStatisticsForTable(Table **table) {
 }
 
 
-void gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count) {
+short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count) {
 
 #if PRINTING || DEEP_PRINTING
     clock_t start_t, end_t, total_t;
@@ -88,12 +88,10 @@ void gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int 
     QueryTableStatistics** statistic_tables = createStatisticsTables(*qInfo, tables, numOfTablesToBeUsed);
 
     // Gather statistics for Filters
-    gatherStatisticsForFilters(qInfo, tables, &statistic_tables);
-
-    // TODO
-    // IF RETURN_VAL == -1
-        // TOTE IF_CONNECTED
-            // TOTE RETURN
+    if ( gatherStatisticsForFilters(qInfo, tables, &statistic_tables) == -1 ) {
+        fprintf(fp_print, "Filter-statistics indicated that this query contains a filter producing zero-results, thus the query will produce NULL-results!\n");
+        return -1;
+    }
 
     // ALLIWS SUNEXIZOUME
 
@@ -119,7 +117,6 @@ void gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int 
     printPredicatesStatistics(statistic_tables, numOfTablesToBeUsed);
 #endif
 
-
     // De-allocate space.
     for ( int i = 0 ; i < numOfTablesToBeUsed ; i++ ) {
         for (int j = 0; j < statistic_tables[i]->num_columns ; j++) {
@@ -129,10 +126,12 @@ void gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int 
         free(statistic_tables[i]);
     }
     free(statistic_tables);
+
+    return 0;
 }
 
 
-void gatherStatisticsForFilters(Query_Info **qInfo, Table **tables, QueryTableStatistics ***statistic_tables)
+short gatherStatisticsForFilters(Query_Info **qInfo, Table **tables, QueryTableStatistics ***statistic_tables)
 {
     for ( int i = 0 ; i < (*qInfo)->filter_count ; i++ )
     {
@@ -147,24 +146,31 @@ void gatherStatisticsForFilters(Query_Info **qInfo, Table **tables, QueryTableSt
             switch ( operator ) // Switch on the operator.
             {
                 case EQUAL:
-                    gatherStatisticsForFilterOperatorEqual(usedTableNum, realTableNum, filterColNum, k, statistic_tables, tables);
-                    break;
+                    if ( gatherStatisticsForFilterOperatorEqual(usedTableNum, realTableNum, filterColNum, k, statistic_tables, tables) == -1 )
+                        return -1;
+                    else
+                        break;
                 case LESS:
-                    gatherStatisticsForFilterOperatorLess(usedTableNum, realTableNum, filterColNum, k, statistic_tables, tables);
-                    break;
+                    if ( gatherStatisticsForFilterOperatorLess(usedTableNum, realTableNum, filterColNum, k, statistic_tables, tables) == -1 )
+                        return -1;
+                    else
+                        break;
                 case GREATER:
-                    gatherStatisticsForFilterOperatorGreater(usedTableNum, realTableNum, filterColNum, k, statistic_tables, tables);
-                    break;
+                    if ( gatherStatisticsForFilterOperatorGreater(usedTableNum, realTableNum, filterColNum, k, statistic_tables, tables) == -1 )
+                        return -1;
+                    else
+                        break;
                 default:
                     fprintf(stderr, "\nInvalid operator found: %d\n\n", operator);
-                    return;
+                    return -2;
             }
         }
     }
+    return 0;
 }
 
 
-void gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables, Table **tables)
+short gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables, Table **tables)
 {
     //  e.g. Query_2: 5 0|0.2=1.0&0.3=9881|1.1 0.2 1.0
 #if PRINTING || DEEP_PRINTING
@@ -190,15 +196,18 @@ void gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, 
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = 0;
 
         // TODO - This filter will produce zero results.. take action!
+        return -1;
     }
 
     // Other columns of his table
     setStatisticsForOtherColumnsOfTheFilteredTable(usedTableNum, realTableNum, filterColNum, statistic_tables, tables);
+
+    return 0;
 }
 
 
-void gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
-                                           Table **tables) {
+short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
+                                            Table **tables) {
     //  e.g. Query_5: 6 1 12|0.1=1.0&1.0=2.2&0.0<62236|1.0
 #if PRINTING || DEEP_PRINTING
     fprintf(fp_print, "\nGathering statistics for filter: %d.c%d<%ju, using the realTableNum: %d\n", usedTableNum, filterColNum, k, realTableNum);
@@ -258,15 +267,18 @@ void gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, i
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = tables[realTableNum]->column_statistics[filterColNum]->d;
 
         // TODO - This filter will produce zero results.. take action!
+        return -1;
     }
 
     // Other columns of his table
     setStatisticsForOtherColumnsOfTheFilteredTable(usedTableNum, realTableNum, filterColNum, statistic_tables, tables);
+
+    return 0;
 }
 
 
-void gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
-                                              Table **tables)
+short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
+                                               Table **tables)
 {
     //  e.g. Query_1: 3 0 1|0.2=1.0&0.1=2.0&0.2>3499|1.2 0.1
 #if PRINTING || DEEP_PRINTING
@@ -341,10 +353,13 @@ void gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = tables[realTableNum]->column_statistics[filterColNum]->d;
 
         // TODO - This filter will produce zero results.. take action!
+        return -1;
     }
 
     // Other columns of his table
     setStatisticsForOtherColumnsOfTheFilteredTable(usedTableNum, realTableNum, filterColNum, statistic_tables, tables);
+
+    return 0;
 }
 
 

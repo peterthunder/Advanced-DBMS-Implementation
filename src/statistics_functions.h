@@ -5,18 +5,18 @@
 
 void gatherInitialStatisticsForTable(Table **table);
 
-void gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count);
+short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count);
 
-void gatherStatisticsForFilters(Query_Info **qInfo, Table **tables, QueryTableStatistics ***statistic_tables);
+short gatherStatisticsForFilters(Query_Info **qInfo, Table **tables, QueryTableStatistics ***statistic_tables);
 
-void gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
+short gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
+                                             Table **tables);
+
+short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
                                             Table **tables);
 
-void gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
-                                           Table **tables);
-
-void gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
-                                              Table **tables);
+short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
+                                               Table **tables);
 
 bool does_k_belongs_to_d_array(long k ,int realTableNum, int colNum, Table **tables);
 

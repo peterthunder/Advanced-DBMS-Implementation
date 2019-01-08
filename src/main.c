@@ -92,7 +92,18 @@ int main(void) {
             gatherPredicatesStatisticsForQuery(&query_info, tables, query_count);
         }
 */
-        gatherPredicatesStatisticsForQuery(&query_info, tables, query_count);
+        if ( gatherPredicatesStatisticsForQuery(&query_info, tables, query_count) == -1 ) {
+            // Found that a filter returned zero results. Because every query is a connected graph, the produced results by the query-joins will be NULL.
+            sums = myMalloc(sizeof(long *) * query_info->selection_count);
+            for ( i = 0 ; i < query_info->selection_count ; i++ ) {
+                sums[i] = 0;
+            }
+
+            sumStructureUpdate(&sumStruct, query_info, sums);
+            free_query(query_info);
+            continue;
+        }
+
 
 
 #if PRINTING || DEEP_PRINTING
