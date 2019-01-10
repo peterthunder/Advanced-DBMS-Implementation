@@ -93,8 +93,6 @@ short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int
         return -1;
     }
 
-    // ALLIWS SUNEXIZOUME
-
     // Gather statistics for Joins
 
 
@@ -401,10 +399,10 @@ void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTa
     {
         if ( i != filterColNum )  // For all columns except the one used by the filter.
         {
-            // l'c = la
+            // l'c = lc
             (*statistic_tables)[usedTableNum]->column_statistics[i]->l = tables[realTableNum]->column_statistics[i]->l;
 
-            // u'c = ua
+            // u'c = uc
             (*statistic_tables)[usedTableNum]->column_statistics[i]->u = tables[realTableNum]->column_statistics[i]->u;
 
             // f'c = f'a

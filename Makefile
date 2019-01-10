@@ -33,6 +33,10 @@ PROFILER:
 	make BASIC_FOR_PROFILER
 	./radixHashJoin_basic_for_profiler && gprof radixHashJoin_basic_for_profiler gmon.out > profiler_output.txt && head -65 profiler_output.txt
 
+CALLGRIND_PROFILER:
+	make BASIC_FOR_PROFILER
+	/usr/bin/valgrind --tool=callgrind ./radixHashJoin_basic_for_profiler
+
 HARNESS_PROFILER:
 	rm -rf profiler_output.txt
 	make HARNESS

@@ -13,7 +13,6 @@ int main(void) {
     int32_t n = H1_PARAM;
 
 /*    testRHJ();
-
     return 0;*/
 
 
