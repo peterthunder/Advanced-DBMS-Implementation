@@ -262,8 +262,10 @@ short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, 
         double fraction = (double)(k - tables[realTableNum]->column_statistics[filterColNum]->l)
                           / (tables[realTableNum]->column_statistics[filterColNum]->u - tables[realTableNum]->column_statistics[filterColNum]->l);
 
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f *= (uint64_t) fraction;
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d *= (uint64_t) fraction;
+        // f'a = fraction * fa
+        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) (fraction * (double)(*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f);
+        // d'a = fraction * da
+        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = (uint64_t) (fraction * (double)(*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d);
     }
     else {
         // f'a = fa
@@ -345,9 +347,9 @@ short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNu
         fprintf(fp_print, "f: %ju\n", tables[realTableNum]->column_statistics[filterColNum]->f);*/
 
         // f'a = fraction * fa
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f *= (uint64_t) fraction;
+        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) (fraction * (double)(*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f);
         // d'a = fraction * da
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d *= (uint64_t) fraction;
+        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = (uint64_t) (fraction * (double)(*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d);
     }
     else {
         // f'a = fa
