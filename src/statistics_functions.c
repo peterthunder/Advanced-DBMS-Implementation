@@ -192,10 +192,12 @@ short gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum,
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = 1;
     }
     else {
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = 0;
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = 0;
+        // f'a = 0
+        // d'a = 0
 
-        // TODO - This filter will produce zero results.. take action!
+        // Because the queries are connected-graphs, we know that if a predicate returns zero-results (as in this case), then the general-result for this query will be zero.
+        // So we don't set anything, instead we signal to stop processing this query.
+
         return -1;
     }
 
