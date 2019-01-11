@@ -75,7 +75,7 @@ int myAtoi(char *str);
 
 long int myPow(int x,int n);
 
-uint64_t myPow_uint64_t(uint64_t x, uint64_t n);
+double myPow_uint64_t(double x, uint64_t n);
 
 
 #endif //ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H

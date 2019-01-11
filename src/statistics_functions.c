@@ -96,6 +96,7 @@ short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int
     }
 
     // Gather statistics for Joins
+    //gatherStatisticsForJoins(qInfo, tables, &statistic_tables);
 
 
 
@@ -423,17 +424,206 @@ void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTa
                 uint64_t d_non_filter_old = tables[realTableNum]->column_statistics[i]->d;
                 uint64_t f_non_filter_old = tables[realTableNum]->column_statistics[i]->f;
 
+                setDwithComplexCalculation(&(*statistic_tables)[usedTableNum]->column_statistics[i]->d, d_non_filter_old, f_filter_new, f_filter_old, f_non_filter_old,
+                                           d_non_filter_old);
+
+                //fprintf(fp_print, "Table[%d][%d] -> d'c = %ju\n",realTableNum, i, (*statistic_tables)[usedTableNum]->column_statistics[i]->d);
+/*
                 uint64_t base = (uint64_t)(1 - ((double)f_filter_new / f_filter_old));
                 uint64_t exponent = (uint64_t)((double)f_non_filter_old / d_non_filter_old);
-
                 uint64_t powResult = myPow_uint64_t(base, exponent);
-
-                (*statistic_tables)[usedTableNum]->column_statistics[i]->d = d_non_filter_old * (1 - powResult);
+                (*statistic_tables)[usedTableNum]->column_statistics[i]->d = d_non_filter_old * (1 - powResult);*/
             }
             else {
                 // It gets simplified to:  d'c = dc
                 // Nothing needs to be done.. they are the same..
             }
+        }
+    }
+}
+
+
+void setDwithComplexCalculation(uint64_t *receiver_d, uint64_t factor, uint64_t base_numerator, uint64_t base_denominator, uint64_t exponent_numerator,
+                                uint64_t exponent_denominator)
+{
+    double base = 1 - ((double)(base_numerator) / base_denominator);
+    uint64_t exponent = (uint64_t)((double)(exponent_numerator) / exponent_denominator);
+
+    double powResult = myPow_uint64_t(base, exponent);
+
+    (*receiver_d) = (uint64_t) llabs((long long int)((double)(factor) * (1 - powResult)));
+
+    if ( (*receiver_d) == 0 )   // A column cannot have less than 1 distinct values. Convert value to one from rounded-to-zero.
+        (*receiver_d) = 1;
+}
+
+
+void gatherStatisticsForJoins(Query_Info **qInfo, Table **tables, QueryTableStatistics ***statistic_tables)
+{
+    for ( int i = 0 ; i < (*qInfo)->join_count ; i++ )
+    {
+        if ( (*qInfo)->joins[i] != NULL )
+        {
+            int usedTableNum1 = (*qInfo)->joins[i][0];
+            int colNum1 = (*qInfo)->joins[i][1];
+            int usedTableNum2 = (*qInfo)->joins[i][2];
+            int colNum2 = (*qInfo)->joins[i][3];
+
+            int realTableNum1 = (*qInfo)->relation_IDs[usedTableNum1];
+            int realTableNum2 = (*qInfo)->relation_IDs[usedTableNum2];
+
+            if ( (usedTableNum1 == usedTableNum2) && (colNum1 == colNum2) )
+                gatherStatisticsForJoinAutocorrelation(tables, statistic_tables, realTableNum1, usedTableNum1, colNum1);
+            else
+                gatherStatisticsForJoinBetweenDifferentTables(tables, statistic_tables, realTableNum1, realTableNum2, usedTableNum1, usedTableNum2, colNum1, colNum2);
+        }
+    }
+}
+
+
+void gatherStatisticsForJoinAutocorrelation(Table **tables, QueryTableStatistics ***statistic_tables, int realTableNum, int usedTableNum, int colNum)
+{
+    // l'A = lA
+    // u'A = uA
+    // Nothing needs to be done.. they are already the same..
+
+    // f'A = fA * fA / n
+        // n = uAB - lAB + 1
+
+    uint64_t n = (*statistic_tables)[usedTableNum]->column_statistics[colNum]->u - (*statistic_tables)[usedTableNum]->column_statistics[colNum]->l + 1;
+
+    double fraction = (double)((*statistic_tables)[usedTableNum]->column_statistics[colNum]->f * (*statistic_tables)[usedTableNum]->column_statistics[colNum]->f) / n;
+
+    (*statistic_tables)[usedTableNum]->column_statistics[colNum]->f = (uint64_t) fraction;
+
+    // Set statistics for other columns of this table.
+    uint64_t f_join_new = (*statistic_tables)[usedTableNum]->column_statistics[colNum]->f;
+
+    for ( int i = 0 ; i < tables[realTableNum]->num_columns ; i++ )
+    {
+        if ( i != colNum )  // For all columns except the one used by the filter.
+        {
+            // l'c = lc
+            // u'c = uc
+            // d'c = dc
+            // Nothing needs to be done.. they are already the same..
+
+            // f'c = f'A
+            (*statistic_tables)[usedTableNum]->column_statistics[i]->f = f_join_new;
+        }
+    }
+}
+
+
+void gatherStatisticsForJoinBetweenDifferentTables(Table **tables, QueryTableStatistics ***statistic_tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2,
+                                                   int colNum1, int colNum2)
+{
+    // Set the la and lb with the max of both values.
+    uint64_t la = (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->l;
+    uint64_t lb = (*statistic_tables)[usedTableNum2]->column_statistics[colNum2]->l;
+    uint64_t max_l = (la > lb) ? la : lb;
+    (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->l = (*statistic_tables)[usedTableNum2]->column_statistics[colNum2]->l = max_l;
+
+    // Set the ua and ub with the min of both values
+    uint64_t ua = (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->l;
+    uint64_t ub = (*statistic_tables)[usedTableNum2]->column_statistics[colNum2]->l;
+    uint64_t min_u = (ua < ub) ? ua : ub;
+    (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->u = (*statistic_tables)[usedTableNum2]->column_statistics[colNum2]->u = min_u;
+
+    // f, d
+    uint64_t n = min_u - max_l + 1;
+    uint64_t fraction = 0;
+
+    // f'a = f'b = fa * fb / n
+    uint64_t fa = (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->f;
+    uint64_t fb = (*statistic_tables)[usedTableNum2]->column_statistics[colNum2]->f;
+    fraction = (uint64_t)((double)(fa * fb) / n);
+
+    fprintf(fp_print, "\n-------------Table[%d][%d] & Table[%d][%d] -> fraction = %ju\n", realTableNum1, colNum1, realTableNum2, colNum2, fraction);
+
+    (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->f = fraction;
+    (*statistic_tables)[usedTableNum2]->column_statistics[colNum2]->f = fraction;
+
+    fprintf(fp_print, "\n-------------Table[%d][%d] & Table[%d][%d] -> f' = %ju\n", realTableNum1, colNum1, realTableNum2, colNum2, (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->f);
+
+    // d'a = d'b = da * db / n
+    uint64_t da = (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->d;
+    uint64_t db = (*statistic_tables)[usedTableNum2]->column_statistics[colNum2]->d;
+    fraction = (uint64_t)((double)(da * db) / n);
+    (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->d = fraction;
+    (*statistic_tables)[usedTableNum2]->column_statistics[colNum2]->d = fraction;
+
+    fprintf(fp_print, "-------------Table[%d][%d] & Table[%d][%d] -> d' = %ju\n\n", realTableNum1, colNum1, realTableNum2, colNum2, (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->d);
+
+    // Set statistics for other columns of this table.
+    setStatisticsForOtherColumnsOfTheJoinedTables(statistic_tables, tables, realTableNum1, realTableNum2, usedTableNum1, usedTableNum2, colNum1, colNum2, da, db);
+}
+
+
+void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***statistic_tables, Table **tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2,
+                                                   int colNum1, int colNum2, uint64_t da, uint64_t db)
+{
+    // "A" & "B" is referred to the joined columns, whereas "c" is referred to every other column.
+
+    // f'A = f'B
+    uint64_t f_join_new = (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->f;
+
+    fprintf(fp_print, "=====================================\n");
+
+
+    // Set statistics for Table_A
+    // d'A
+    uint64_t d_join_new_A = (*statistic_tables)[usedTableNum1]->column_statistics[colNum1]->d;
+    // dA
+    uint64_t d_join_old_A = da;
+
+    for ( int i = 0 ; i < tables[realTableNum1]->num_columns ; i++ )
+    {
+        if ( i != colNum1 )  // For all columns except the one used by the filter.
+        {
+            // l'c = lc
+            // u'c = uc
+            // Nothing needs to be done.. they are already the same..
+
+            // d'c = dcA * (1 - (1 - (d'A/dA))^(fc/dcA))
+            uint64_t f_non_join_old_A = (*statistic_tables)[usedTableNum1]->column_statistics[i]->f;
+            uint64_t d_non_join_old_A = (*statistic_tables)[usedTableNum1]->column_statistics[i]->d;
+
+            setDwithComplexCalculation(&(*statistic_tables)[usedTableNum1]->column_statistics[i]->d, d_non_join_old_A, d_join_new_A, d_join_old_A, f_non_join_old_A, d_non_join_old_A);
+
+            fprintf(fp_print, "Table[%d][%d] -> d'c = %ju\n",realTableNum1, i, (*statistic_tables)[usedTableNum1]->column_statistics[i]->d);
+
+            // f'c = f'A
+            (*statistic_tables)[usedTableNum1]->column_statistics[i]->f = f_join_new;
+        }
+    }
+
+    fprintf(fp_print, "-------------------------------\n");
+
+    // Set statistics for Table_B
+    // d'B
+    uint64_t d_join_new_B = tables[realTableNum2]->column_statistics[colNum2]->d;
+    // dB
+    uint64_t d_join_old_B = db;
+
+    for ( int i = 0 ; i < tables[realTableNum2]->num_columns ; i++ )
+    {
+        if ( i != colNum2 )  // For all columns except the one used by the filter.
+        {
+            // l'c = lc
+            // u'c = uc
+            // Nothing needs to be done.. they are already the same..
+
+            // d'c = dcB * (1 - (1 - (d'B/dB))^(fc/dcB))
+            uint64_t f_non_join_old_B = (*statistic_tables)[usedTableNum2]->column_statistics[i]->f;
+            uint64_t d_non_join_old_B = (*statistic_tables)[usedTableNum2]->column_statistics[i]->d;
+
+            setDwithComplexCalculation(&(*statistic_tables)[usedTableNum2]->column_statistics[i]->d, d_non_join_old_B, d_join_new_B, d_join_old_B, f_non_join_old_B, d_non_join_old_B);
+
+            fprintf(fp_print, "Table[%d][%d] -> d'c = %ju\n",realTableNum2, i, (*statistic_tables)[usedTableNum2]->column_statistics[i]->d);
+
+            // f'c = f'B (=f'A)
+            (*statistic_tables)[usedTableNum2]->column_statistics[i]->f = f_join_new;
         }
     }
 }

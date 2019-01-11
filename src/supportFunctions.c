@@ -451,10 +451,10 @@ long int myPow(int x, int n) {
     return number;
 }
 
-uint64_t myPow_uint64_t(uint64_t x, uint64_t n) {
+double myPow_uint64_t(double x, uint64_t n) {
 
     uint64_t i;
-    uint64_t number = 1;
+    double number = 1.0;
 
     for (i = 0; i < n; ++i)
         number *= x;

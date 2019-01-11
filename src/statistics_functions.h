@@ -22,6 +22,19 @@ bool does_k_belong_to_d_array(long k, int realTableNum, int colNum, Table **tabl
 
 void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTableNum, int filterColNum, QueryTableStatistics ***statistic_tables, Table **tables);
 
+void setDwithComplexCalculation(uint64_t *receiver_d, uint64_t factor, uint64_t base_numerator, uint64_t base_denominator, uint64_t exponent_numerator,
+                                uint64_t exponent_denominator);
+
+void gatherStatisticsForJoins(Query_Info **qInfo, Table **tables, QueryTableStatistics ***statistic_tables);
+
+void gatherStatisticsForJoinAutocorrelation(Table **tables, QueryTableStatistics ***statistic_tables, int realTableNum, int usedTableNum, int colNum);
+
+void gatherStatisticsForJoinBetweenDifferentTables(Table **tables, QueryTableStatistics ***statistic_tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2,
+                                                   int colNum1, int colNum2);
+
+void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***statistic_tables, Table **tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2,
+                                                   int colNum1, int colNum2, uint64_t da, uint64_t db);
+
 QueryTableStatistics** createStatisticsTables(Query_Info *qInfo, Table **tables, int numOfTablesToBeUsed);
 
 
