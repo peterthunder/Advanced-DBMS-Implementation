@@ -7,7 +7,8 @@
  * @param table
  * @param num_of_tables
  */
-void gatherInitialStatisticsForTable(Table **table) {
+void gatherInitialStatisticsForTable(Table **table)
+{
 
     u_int64_t indexOfValueToSetTrue;
 
@@ -76,7 +77,8 @@ void gatherInitialStatisticsForTable(Table **table) {
 }
 
 
-short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count) {
+short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count)
+{
 
 #if PRINTING || DEEP_PRINTING
     clock_t start_t, end_t, total_t;
@@ -183,9 +185,9 @@ short gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum,
 
     // f'a = fa/da if k belongs to da, otherwise 0.
     // d'a = 1 if k belongs to da, otherwise 0.
-    if ( does_k_belongs_to_d_array(k, realTableNum, filterColNum, tables) ) {
+    if (does_k_belong_to_d_array(k, realTableNum, filterColNum, tables) ) {
 
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) ((double)tables[realTableNum]->column_statistics[filterColNum]->f
+        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) ((double)(tables[realTableNum]->column_statistics[filterColNum]->f)
                                                                                                     / tables[realTableNum]->column_statistics[filterColNum]->d);
         (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = 1;
     }
@@ -204,8 +206,8 @@ short gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum,
 }
 
 
-short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
-                                            Table **tables) {
+short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables, Table **tables)
+{
     //  e.g. Query_5: 6 1 12|0.1=1.0&1.0=2.2&0.0<62236|1.0
 #if PRINTING || DEEP_PRINTING
     fprintf(fp_print, "\nGathering statistics for filter: %d.c%d<%ju, using the realTableNum: %d\n", usedTableNum, filterColNum, k, realTableNum);
@@ -222,18 +224,18 @@ short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, 
         k = tables[realTableNum]->column_statistics[filterColNum]->u;
     }
     else if ( k < tables[realTableNum]->column_statistics[filterColNum]->l ) {
-        doesKBelongInRange = FALSE;
         // Else if k < la, then we should mark somehow that the result of this filter will be an intermediate table with NO results..
         // We can't throw aay the filter altogether.. as whatever results this is about to bring.. in this case.. zero.. we have to use this info when making the joins..
         // (one of the tables to join will be assumed to be empty)
+        return -1;
     }
 
     // Compute the statistics:
 
     // l'a = la
-    (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->l = tables[realTableNum]->column_statistics[filterColNum]->l;
+    // Nothing needs to be done.. they are already the same..
 
-    // u'a = k -1
+    // u'a = k - 1 (as we want LESS, not LESS-EQUAL)
     (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->u = k - 1;
 
     // Mathematics:
@@ -257,15 +259,13 @@ short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, 
         double fraction = (double)(k - tables[realTableNum]->column_statistics[filterColNum]->l)
                           / (tables[realTableNum]->column_statistics[filterColNum]->u - tables[realTableNum]->column_statistics[filterColNum]->l);
 
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) (fraction * tables[realTableNum]->column_statistics[filterColNum]->f);
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = (uint64_t) (fraction * tables[realTableNum]->column_statistics[filterColNum]->d);
+        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f *= (uint64_t) fraction;
+        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d *= (uint64_t) fraction;
     }
     else {
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = tables[realTableNum]->column_statistics[filterColNum]->f;
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = tables[realTableNum]->column_statistics[filterColNum]->d;
-
-        // TODO - This filter will produce zero results.. take action!
-        return -1;
+        // f'a = fa
+        // d'a = da
+        // Nothing needs to be done.. they are already the same..
     }
 
     // Other columns of his table
@@ -275,8 +275,7 @@ short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, 
 }
 
 
-short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
-                                               Table **tables)
+short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables, Table **tables)
 {
     //  e.g. Query_1: 3 0 1|0.2=1.0&0.1=2.0&0.2>3499|1.2 0.1
 #if PRINTING || DEEP_PRINTING
@@ -294,20 +293,20 @@ short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNu
         k = tables[realTableNum]->column_statistics[filterColNum]->l;
     }
     else if ( k > tables[realTableNum]->column_statistics[filterColNum]->u ) {
-        doesKBelongInRange = FALSE;
         // Else if k > ua, then we should mark somehow that the result of this filter will be an intermediate table with NO results..
         // We can't throw away the filter altogether.. as whatever results this is about to bring.. in this case.. zero.. we have to use this info when making the joins..
         // (one of the tables to join will be assumed to be empty)
+        return -1;
     }
 
 
     // If it is in range, then we can use the <k> as follows:
 
     // l'a = k + 1
-    (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->l = k+1;
+    (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->l = k + 1;
 
     // u'a = ua
-    (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->u = tables[realTableNum]->column_statistics[filterColNum]->u;
+    // Nothing needs to be done.. they are already the same..
 
 
     // Mathematics:
@@ -342,16 +341,15 @@ short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNu
         fprintf(fp_print, "d: %ju\n", tables[realTableNum]->column_statistics[filterColNum]->d);
         fprintf(fp_print, "f: %ju\n", tables[realTableNum]->column_statistics[filterColNum]->f);*/
 
-
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) (fraction * tables[realTableNum]->column_statistics[filterColNum]->f);
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = (uint64_t) (fraction * tables[realTableNum]->column_statistics[filterColNum]->d);
+        // f'a = fraction * fa
+        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f *= (uint64_t) fraction;
+        // d'a = fraction * da
+        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d *= (uint64_t) fraction;
     }
     else {
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->f = tables[realTableNum]->column_statistics[filterColNum]->f;
-        (*statistic_tables)[usedTableNum]->column_statistics[filterColNum]->d = tables[realTableNum]->column_statistics[filterColNum]->d;
-
-        // TODO - This filter will produce zero results.. take action!
-        return -1;
+        // f'a = fa
+        // d'a = da
+        // Nothing needs to be done.. they are already the same..
     }
 
     // Other columns of his table
@@ -361,7 +359,7 @@ short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNu
 }
 
 
-bool does_k_belongs_to_d_array(long k, int realTableNum, int colNum, Table **tables)
+bool does_k_belong_to_d_array(long k, int realTableNum, int colNum, Table **tables)
 {
     uint64_t indexOfValueToInvestigate;
 
@@ -400,10 +398,8 @@ void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTa
         if ( i != filterColNum )  // For all columns except the one used by the filter.
         {
             // l'c = lc
-            (*statistic_tables)[usedTableNum]->column_statistics[i]->l = tables[realTableNum]->column_statistics[i]->l;
-
             // u'c = uc
-            (*statistic_tables)[usedTableNum]->column_statistics[i]->u = tables[realTableNum]->column_statistics[i]->u;
+            // Nothing needs to be done.. they are already the same..
 
             // f'c = f'a
             (*statistic_tables)[usedTableNum]->column_statistics[i]->f = f_filter_new;
@@ -434,7 +430,7 @@ void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTa
             }
             else {
                 // It gets simplified to:  d'c = dc
-                (*statistic_tables)[usedTableNum]->column_statistics[i]->d = tables[realTableNum]->column_statistics[i]->d;
+                // Nothing needs to be done.. they are the same..
             }
         }
     }

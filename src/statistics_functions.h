@@ -18,7 +18,7 @@ short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, 
 short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistic_tables,
                                                Table **tables);
 
-bool does_k_belongs_to_d_array(long k ,int realTableNum, int colNum, Table **tables);
+bool does_k_belong_to_d_array(long k, int realTableNum, int colNum, Table **tables);
 
 void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTableNum, int filterColNum, QueryTableStatistics ***statistic_tables, Table **tables);
 
