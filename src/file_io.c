@@ -166,6 +166,6 @@ void initializeTable(Table **table, uint64_t *mapped_table) {
         (*table)->column_statistics[j]->d = 0;
         (*table)->column_statistics[j]->d_array = NULL;
         (*table)->column_statistics[j]->d_array_size = 0;
-        (*table)->column_statistics[j]->initialSizeExcededSize = FALSE;
+        (*table)->column_statistics[j]->initialSizeExceededMax = FALSE;
     }
 }

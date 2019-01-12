@@ -56,9 +56,9 @@ typedef struct column_stats {
     uint64_t u; // upper_value
     uint64_t f; // count_of_all_the_values
     uint64_t d; // count_of_the_distinct_values
-    bool* d_array;
+    bool* d_array;  // Array of marking of distinct values.
     uint64_t d_array_size;
-    bool initialSizeExcededSize;
+    bool initialSizeExceededMax;
 } ColumnStats;
 
 
