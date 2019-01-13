@@ -77,13 +77,11 @@ long *execute_query(Query_Info *query_info, Table **tables, Relation ****relatio
     return sums;
 }
 
-Relation *
-create_intermediate_table(int relation_Id, Entity **entity, Relation *original_relation, int *inter_table_num,
-                          bool shouldCheckIfExists, int exists_value, int inter_column) {
+Relation *create_intermediate_table(int relation_Id, Entity **entity, Relation *original_relation,
+                                    int *inter_table_num, bool shouldCheckIfExists, int exists_value, int inter_column) {
 
-    int i;
+    int i, rId;
     Relation *relation;
-    int rId;
 
     /* Check if the relation_id arg exists in the entity */
     if (shouldCheckIfExists)
@@ -378,7 +376,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
     }
         /* If both of the relations exist in the same or a different intermediate table */
     else {
-        new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1,  column_num1);
+        new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1, column_num1);
         new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_num2, FALSE, ret2, column_num2);
 
         /* If both of the relations are in the same intermediate table, then filter */
@@ -476,7 +474,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
                                     (*entity)->inter_tables[inter_table_num1]->inter_table[current_result->joined_rowIDs[i][0] - 1][j];
                         else
                             new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_num2]->
-                                    inter_table[current_result->joined_rowIDs[i][1] - 1] [j - (*entity)->inter_tables[inter_table_num1]->num_of_columns];
+                                    inter_table[current_result->joined_rowIDs[i][1] - 1][j - (*entity)->inter_tables[inter_table_num1]->num_of_columns];
                     }
                 }
                 /* Update the counter */
@@ -513,16 +511,19 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
 void thread_calculate_sums(Sum_calc_struct **sum_calc_struct) {
 
-    int j, table, column, rid;
+    int j, tableNum, columnNum, rowID;
     int64_t sum = 0;
 
+    /* Get the table and the column numbers of the original table that the sum will be calculated from */
+    tableNum = (*sum_calc_struct)->query_info->relation_IDs[(*sum_calc_struct)->query_info->selections[(*sum_calc_struct)->selection_num][0]];
+    columnNum = (*sum_calc_struct)->query_info->selections[(*sum_calc_struct)->selection_num][1];
+
+    /* Each thread adds the elements from start to end */
     for (j = (*sum_calc_struct)->start; j < (*sum_calc_struct)->end; j++) {
-        table = (*sum_calc_struct)->query_info->relation_IDs[(*sum_calc_struct)
-                ->query_info->selections[(*sum_calc_struct)->selection_num][0]];
-        column = (*sum_calc_struct)->query_info->selections[(*sum_calc_struct)->selection_num][1];
-        rid = (int32_t) (*sum_calc_struct)->entity->inter_tables[(*sum_calc_struct)->inter_table_num]->inter_table[j][(*sum_calc_struct)->inter_column_num] - 1;
-        sum += (*sum_calc_struct)->tables[table]->column_indexes[column][rid];
-        //printf("Sum on t: %d and c: %d\n", table, column);    // DEBUG!
+        /* Get the real rowID of each element from the intermediate table */
+        rowID = (int32_t) (*sum_calc_struct)->entity->inter_tables[(*sum_calc_struct)->inter_table_num]->inter_table[j][(*sum_calc_struct)->inter_column_num] - 1;
+        /* Add the element to the sum */
+        sum += (*sum_calc_struct)->tables[tableNum]->column_indexes[columnNum][rowID];
     }
     (*sum_calc_struct)->sum = (long) sum;
 
@@ -539,18 +540,16 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
     int64_t rid;
     int i, j, k, inter_table_num, inter_column_num,
             table, column, chunk_size, bonus, start,
-            end, num_of_rows, jobs_added_to_queue;
-    Sum_calc_struct **sum_calc_struct = NULL;
+            end, num_of_rows, jobs_added_to_queue = 0;
+    Sum_calc_struct ***sum_calc_struct = NULL;
 
     long *sums = myMalloc(sizeof(long) * query_info->selection_count);
-
 
     for (i = 0; i < query_info->selection_count; i++) {
 
         exists_in_intermediate_table(query_info->selections[i][0], entity, &inter_table_num, &inter_column_num);
 
         sums[i] = 0;
-        jobs_added_to_queue = 0;
         num_of_rows = entity->inter_tables[inter_table_num]->num_of_rows;
 
         if (num_of_rows == 0)
@@ -558,23 +557,27 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
 
         if (num_of_rows < SUM_SPLITS * 10 || MULTITHREADING == FALSE) {
 
+            table = query_info->relation_IDs[query_info->selections[i][0]];
+            column = query_info->selections[i][1];
+
             for (j = 0; j < num_of_rows; j++) {
-                table = query_info->relation_IDs[query_info->selections[i][0]];
-                column = query_info->selections[i][1];
                 rid = (int32_t) entity->inter_tables[inter_table_num]->inter_table[j][inter_column_num] - 1;
                 sums[i] += tables[table]->column_indexes[column][rid];
-                //printf("Sum on t: %d and c: %d\n", table, column);    // DEBUG!
             }
+
         } else {
-            if (sum_calc_struct == NULL) {
-                sum_calc_struct = myMalloc(sizeof(Sum_calc_struct **) * SUM_SPLITS);
-                for (j = 0; j < SUM_SPLITS; j++) {
-                    sum_calc_struct[j] = myMalloc(sizeof(Sum_calc_struct));
-                    sum_calc_struct[j]->entity = entity;
-                    sum_calc_struct[j]->query_info = query_info;
-                    sum_calc_struct[j]->tables = tables;
-                }
+
+            if (sum_calc_struct == NULL)
+                sum_calc_struct = myMalloc(sizeof(Sum_calc_struct **) * query_info->selection_count);
+
+            sum_calc_struct[i] = myMalloc(sizeof(Sum_calc_struct *) * SUM_SPLITS);
+            for (j = 0; j < SUM_SPLITS; j++) {
+                sum_calc_struct[i][j] = myMalloc(sizeof(Sum_calc_struct));
+                sum_calc_struct[i][j]->entity = entity;
+                sum_calc_struct[i][j]->query_info = query_info;
+                sum_calc_struct[i][j]->tables = tables;
             }
+
             chunk_size = num_of_rows / SUM_SPLITS;
             bonus = num_of_rows - chunk_size * SUM_SPLITS;  // i.e. remainder
             for (k = 0, start = 0, end = chunk_size;
@@ -585,32 +588,40 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
                     end++;
                     bonus--;
                 }
-                sum_calc_struct[k]->inter_table_num = inter_table_num;
-                sum_calc_struct[k]->inter_column_num = inter_column_num;
-                sum_calc_struct[k]->start = start;
-                sum_calc_struct[k]->end = end;
-                sum_calc_struct[k]->sum = 0;
-                sum_calc_struct[k]->selection_num = i;
 
-                threadpool_add_job(threadpool, (void *) thread_calculate_sums, &sum_calc_struct[k]);
+                sum_calc_struct[i][k]->inter_table_num = inter_table_num;
+                sum_calc_struct[i][k]->inter_column_num = inter_column_num;
+                sum_calc_struct[i][k]->start = start;
+                sum_calc_struct[i][k]->end = end;
+                sum_calc_struct[i][k]->sum = 0;
+                sum_calc_struct[i][k]->selection_num = i;
+
+                threadpool_add_job(threadpool, (void *) thread_calculate_sums, &sum_calc_struct[i][k]);
                 jobs_added_to_queue++;
             }
-
-            while (threadpool->jobs_done != jobs_added_to_queue) {
-                pthread_cond_wait(&threadpool->all_jobs_done, &threadpool->jobs_done_mtx);
-            }
-
-
-            for (k = 0; k < SUM_SPLITS; k++) {
-                sums[i] += sum_calc_struct[k]->sum;
-            }
-
-            threadpool->jobs_done = 0;
         }
     }
 
+
+    while (threadpool->jobs_done != jobs_added_to_queue) {
+        pthread_cond_wait(&threadpool->all_jobs_done, &threadpool->jobs_done_mtx);
+    }
+
     if (sum_calc_struct != NULL) {
-        for (i = 0; i < SUM_SPLITS; i++) {
+        for (i = 0; i < query_info->selection_count; i++) {
+            for (k = 0; k < SUM_SPLITS; k++) {
+                sums[i] += sum_calc_struct[i][k]->sum;
+            }
+        }
+    }
+
+    threadpool->jobs_done = 0;
+
+    if (sum_calc_struct != NULL) {
+        for (i = 0; i < query_info->selection_count; i++) {
+            for (k = 0; k < SUM_SPLITS; k++) {
+                free(sum_calc_struct[i][k]);
+            }
             free(sum_calc_struct[i]);
         }
         free(sum_calc_struct);
