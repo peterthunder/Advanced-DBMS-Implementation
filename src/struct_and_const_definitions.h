@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 #define MAX_BOOL_TABLE_NUM 50000000 // 50 millions
-#define H1_PARAM 4 // Number of bits we PRINTING keep after the 1st hash function pass
+#define H1_PARAM 4 // Number of bits we keep after the 1st hash function pass
 #define H2_PARAM 251 // The number we use in the 2nd hash function as mod
 #define JOINED_ROWIDS_NUM ((128 * 1024) / 8) // 1MB: ((1024 * 1024) / 8)
 #define TRUE true
@@ -17,6 +17,7 @@
 #define WORKLOAD_BASE_PATH  "workloads/small/"
 #define USE_HARNESS FALSE
 #define MULTITHREADING TRUE
+#define SUM_SPLITS 64
 
 int32_t number_of_buckets;
 

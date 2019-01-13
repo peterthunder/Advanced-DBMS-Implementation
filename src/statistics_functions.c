@@ -439,6 +439,7 @@ void setDistinctWithComplexCalculation(uint64_t *receiver_d, uint64_t factor, ui
 void gatherStatisticsForJoins(Query_Info **qInfo, QueryTableStatistics ***statistic_tables, int numOfTablesToBeUsed)
 {
     //fprintf(fp_print, "For joins:\n");
+    int joinTableNum1, colNum1, joinTableNum2, colNum2, realTableNum1, realTableNum2;
 
     for ( int i = 0 ; i < (*qInfo)->join_count ; i++ )
     {
@@ -447,13 +448,13 @@ void gatherStatisticsForJoins(Query_Info **qInfo, QueryTableStatistics ***statis
 
         if ( (*qInfo)->joins[i] != NULL )
         {
-            int joinTableNum1 = (*qInfo)->joins[i][0];
-            int colNum1 = (*qInfo)->joins[i][1];
-            int joinTableNum2 = (*qInfo)->joins[i][2];
-            int colNum2 = (*qInfo)->joins[i][3];
+            joinTableNum1 = (*qInfo)->joins[i][0];
+            colNum1 = (*qInfo)->joins[i][1];
+            joinTableNum2 = (*qInfo)->joins[i][2];
+            colNum2 = (*qInfo)->joins[i][3];
 
-            int realTableNum1 = (*qInfo)->relation_IDs[joinTableNum1];
-            int realTableNum2 = (*qInfo)->relation_IDs[joinTableNum2];
+            realTableNum1 = (*qInfo)->relation_IDs[joinTableNum1];
+            realTableNum2 = (*qInfo)->relation_IDs[joinTableNum2];
 
             if ( joinTableNum1 == joinTableNum2 ) {
                 if (colNum1 == colNum2) {

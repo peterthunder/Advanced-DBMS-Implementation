@@ -29,8 +29,7 @@ long *execute_query(Query_Info *query_info, Table **tables, Relation ****relatio
             /*  And fill the relation from the tables array*/
             initializeRelation(&(*relation_array)[table_num][column_num], tables, table_num, column_num);
         }
-        handleRelationFilter(&(*relation_array)[table_num][column_num], &entity, query_info->filters[i][0], operator,
-                             num_filter);
+        handleRelationFilter(&(*relation_array)[table_num][column_num], &entity, query_info->filters[i][0], operator, num_filter);
     }
 
     /* Then Join them */
@@ -49,8 +48,7 @@ long *execute_query(Query_Info *query_info, Table **tables, Relation ****relatio
         column_num2 = query_info->joins[i][3];
 
         if ((*relation_array)[table_num2][column_num2] == NULL) {
-            (*relation_array)[table_num2][column_num2] = allocateRelation((uint32_t) tables[table_num2]->num_tuples,
-                                                                          TRUE);
+            (*relation_array)[table_num2][column_num2] = allocateRelation((uint32_t) tables[table_num2]->num_tuples, TRUE);
             initializeRelation(&(*relation_array)[table_num2][column_num2], tables, table_num2, column_num2);
         }
 
@@ -236,7 +234,7 @@ void handleRelationFilter(Relation **original_relation, Entity **entity, int rel
         /* Get the rowIDs of the relation that satisfy the filter*/
         rowIDs = filterRelation(operator, num_filter, *original_relation, &rowId_count);
 
-        if ( rowId_count == 0 )
+        if (rowId_count == 0)
             fprintf(fp_print, "Zero results returned after filter.\n");
 
         /* Fill the intermediate table according to those rowIDs*/
@@ -299,10 +297,8 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
         do {
             /* Then do a for from counter until counter+ num_joined_rowIDs of the current result */
             for (i = 0; i < current_result->num_joined_rowIDs; i++) {
-                (*entity)->inter_tables[inter_table_num1]->inter_table[i +
-                                                                       result_counter][0] = current_result->joined_rowIDs[i][0];
-                (*entity)->inter_tables[inter_table_num1]->inter_table[i +
-                                                                       result_counter][1] = current_result->joined_rowIDs[i][1];
+                (*entity)->inter_tables[inter_table_num1]->inter_table[i + result_counter][0] = current_result->joined_rowIDs[i][0];
+                (*entity)->inter_tables[inter_table_num1]->inter_table[i + result_counter][1] = current_result->joined_rowIDs[i][1];
             }
             /* Update the counter */
             result_counter = result_counter + current_result->num_joined_rowIDs;
@@ -312,7 +308,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
         deAllocateResult(&result);
     }
-    /* If one of the relations exists in an intermediate table */
+        /* If one of the relations exists in an intermediate table */
     else if ((ret1 != -1 && ret2 == -1) || ret1 == -1) {
 
         if (ret1 != -1) {
@@ -356,8 +352,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
             for (i = 0; i < current_result->num_joined_rowIDs; i++) {
                 new_inter_table[i + result_counter] = myMalloc(sizeof(int32_t) * columns);
                 for (j = 0; j < columns - 1; j++) {
-                    new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_num1]->inter_table[
-                            current_result->joined_rowIDs[i][0] - 1][j];
+                    new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_num1]->inter_table[current_result->joined_rowIDs[i][0] - 1][j];
                 }
                 new_inter_table[i + result_counter][j] = current_result->joined_rowIDs[i][1];
             }
@@ -381,12 +376,10 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
         deAllocateResult(&result);
     }
-    /* If both of the relations exist in the same or a different intermediate table */
+        /* If both of the relations exist in the same or a different intermediate table */
     else {
-        new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1,
-                                                  column_num1);
-        new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_num2, FALSE, ret2,
-                                                  column_num2);
+        new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1,  column_num1);
+        new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_num2, FALSE, ret2, column_num2);
 
         /* If both of the relations are in the same intermediate table, then filter */
         if (inter_table_num1 == inter_table_num2) {
@@ -398,8 +391,8 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
             /* Find how many elements are the same */
             for (i = 0; i < (*entity)->inter_tables[inter_table_num1]->num_of_rows; i++) {
-                if ((*relation1)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num1] -1].payload
-                    == (*relation2)->tuples[(int) (*entity)->inter_tables[inter_table_num2]->inter_table[i][column_num2] -1].payload)
+                if ((*relation1)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num1] - 1].payload
+                    == (*relation2)->tuples[(int) (*entity)->inter_tables[inter_table_num2]->inter_table[i][column_num2] - 1].payload)
                     counter++;
             }
 
@@ -407,8 +400,8 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
             row_ids = myMalloc(sizeof(int) * counter);
             counter = 0;
             for (i = 0; i < (*entity)->inter_tables[inter_table_num1]->num_of_rows; i++) {
-                if ((*relation1)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num1] -1].payload
-                    == (*relation2)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num2] -1].payload) {
+                if ((*relation1)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num1] - 1].payload
+                    == (*relation2)->tuples[(int) (*entity)->inter_tables[inter_table_num1]->inter_table[i][column_num2] - 1].payload) {
                     row_ids[counter] = i;
                     counter++;
                 }
@@ -483,8 +476,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
                                     (*entity)->inter_tables[inter_table_num1]->inter_table[current_result->joined_rowIDs[i][0] - 1][j];
                         else
                             new_inter_table[i + result_counter][j] = (*entity)->inter_tables[inter_table_num2]->
-                                    inter_table[current_result->joined_rowIDs[i][1] - 1]
-                                    [j - (*entity)->inter_tables[inter_table_num1]->num_of_columns];
+                                    inter_table[current_result->joined_rowIDs[i][1] - 1] [j - (*entity)->inter_tables[inter_table_num1]->num_of_columns];
                     }
                 }
                 /* Update the counter */
@@ -528,8 +520,7 @@ void thread_calculate_sums(Sum_calc_struct **sum_calc_struct) {
         table = (*sum_calc_struct)->query_info->relation_IDs[(*sum_calc_struct)
                 ->query_info->selections[(*sum_calc_struct)->selection_num][0]];
         column = (*sum_calc_struct)->query_info->selections[(*sum_calc_struct)->selection_num][1];
-        rid = (int32_t) (*sum_calc_struct)->entity->inter_tables[(*sum_calc_struct)->inter_table_num]->inter_table[j][(*sum_calc_struct)->inter_column_num] -
-              1;
+        rid = (int32_t) (*sum_calc_struct)->entity->inter_tables[(*sum_calc_struct)->inter_table_num]->inter_table[j][(*sum_calc_struct)->inter_column_num] - 1;
         sum += (*sum_calc_struct)->tables[table]->column_indexes[column][rid];
         //printf("Sum on t: %d and c: %d\n", table, column);    // DEBUG!
     }
@@ -553,6 +544,7 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
 
     long *sums = myMalloc(sizeof(long) * query_info->selection_count);
 
+
     for (i = 0; i < query_info->selection_count; i++) {
 
         exists_in_intermediate_table(query_info->selections[i][0], entity, &inter_table_num, &inter_column_num);
@@ -564,7 +556,7 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
         if (num_of_rows == 0)
             continue;
 
-        if (num_of_rows < number_of_buckets * 10 || MULTITHREADING == FALSE) {
+        if (num_of_rows < SUM_SPLITS * 10 || MULTITHREADING == FALSE) {
 
             for (j = 0; j < num_of_rows; j++) {
                 table = query_info->relation_IDs[query_info->selections[i][0]];
@@ -575,16 +567,16 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
             }
         } else {
             if (sum_calc_struct == NULL) {
-                sum_calc_struct = myMalloc(sizeof(Sum_calc_struct **) * number_of_buckets);
-                for (j = 0; j < number_of_buckets; j++) {
+                sum_calc_struct = myMalloc(sizeof(Sum_calc_struct **) * SUM_SPLITS);
+                for (j = 0; j < SUM_SPLITS; j++) {
                     sum_calc_struct[j] = myMalloc(sizeof(Sum_calc_struct));
                     sum_calc_struct[j]->entity = entity;
                     sum_calc_struct[j]->query_info = query_info;
                     sum_calc_struct[j]->tables = tables;
                 }
             }
-            chunk_size = num_of_rows / number_of_buckets;
-            bonus = num_of_rows - chunk_size * number_of_buckets;  // i.e. remainder
+            chunk_size = num_of_rows / SUM_SPLITS;
+            bonus = num_of_rows - chunk_size * SUM_SPLITS;  // i.e. remainder
             for (k = 0, start = 0, end = chunk_size;
                  start < num_of_rows;
                  start = end, end = start + chunk_size, k++) {
@@ -609,7 +601,7 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
             }
 
 
-            for (k = 0; k < number_of_buckets; k++) {
+            for (k = 0; k < SUM_SPLITS; k++) {
                 sums[i] += sum_calc_struct[k]->sum;
             }
 
@@ -618,7 +610,7 @@ long *calculateSums(Entity *entity, Query_Info *query_info, Table **tables) {
     }
 
     if (sum_calc_struct != NULL) {
-        for (i = 0; i < number_of_buckets; i++) {
+        for (i = 0; i < SUM_SPLITS; i++) {
             free(sum_calc_struct[i]);
         }
         free(sum_calc_struct);

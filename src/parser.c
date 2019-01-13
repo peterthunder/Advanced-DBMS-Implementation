@@ -265,11 +265,11 @@ void parseJoin(char *token, Query_Info **q, int *join_counter) {
     // Query_35: 7 0 9|0.1=1.0&1.0=0.1&1.0=2.1&0.1>3791|1.2 1.2\
     // Query_38: 7 1 3|0.2=1.0&1.0=2.1&1.0=0.2&0.2>6082|2.3 2.1
 
-    if ( ((*join_counter) > 0) && isCurrentJoinDuplicate(q, *join_counter) )
-    {
+    if (((*join_counter) > 0) && isCurrentJoinDuplicate(q, *join_counter)) {
+        fprintf(fp_print, "Duplicate join\n");
         // Update the "join_counter"
-        (*join_counter) --;
-        (*q)->join_count --;
+        (*join_counter)--;
+        (*q)->join_count--;
 
         // Reduce allocated space
         free((*q)->joins[(*q)->join_count]);
@@ -286,20 +286,20 @@ bool isCurrentJoinDuplicate(Query_Info **q, int joinCount) {
 
     int n = joinCount - 1;
 
-    for ( int i = 0; i < n; i++ ) {
-        if ( (*q)->joins[i][0] == (*q)->joins[n][0]
-             && (*q)->joins[i][1] == (*q)->joins[n][1]
-             && (*q)->joins[i][2] == (*q)->joins[n][2]
-             && (*q)->joins[i][3] == (*q)->joins[n][3] ) {
+    for (int i = 0; i < n; i++) {
+        if ((*q)->joins[i][0] == (*q)->joins[n][0]
+            && (*q)->joins[i][1] == (*q)->joins[n][1]
+            && (*q)->joins[i][2] == (*q)->joins[n][2]
+            && (*q)->joins[i][3] == (*q)->joins[n][3]) {
 #if PRINTING
             printSame(q, i, n);
 #endif
             return TRUE;
         }   // Check reversed.
-        else if ( (*q)->joins[i][0] == (*q)->joins[n][2]
-                  && (*q)->joins[i][1] == (*q)->joins[n][3]
-                  && (*q)->joins[i][2] == (*q)->joins[n][0]
-                  && (*q)->joins[i][3] == (*q)->joins[n][1] ) {
+        else if ((*q)->joins[i][0] == (*q)->joins[n][2]
+                 && (*q)->joins[i][1] == (*q)->joins[n][3]
+                 && (*q)->joins[i][2] == (*q)->joins[n][0]
+                 && (*q)->joins[i][3] == (*q)->joins[n][1]) {
 #if PRINTING
             printSame(q, i, n);
 #endif
@@ -333,11 +333,10 @@ bool isFilter(char *predicate) {
 }
 
 
-void printJoins(Query_Info *q, int joinCount)
-{
+void printJoins(Query_Info *q, int joinCount) {
     fprintf(fp_print, "Joins = %d\n", joinCount);
-    for ( int i = 0; i < joinCount; i++ ) {
-        for ( int j = 0; j < 4; j++ ) {
+    for (int i = 0; i < joinCount; i++) {
+        for (int j = 0; j < 4; j++) {
             fprintf(fp_print, "[%d]", q->joins[i][j]);
         }
         fprintf(fp_print, "\n");
@@ -345,14 +344,13 @@ void printJoins(Query_Info *q, int joinCount)
 }
 
 
-void printSame(Query_Info **q, int i, int j)
-{
+void printSame(Query_Info **q, int i, int j) {
     fprintf(fp_print, "Found same Join! -> ");
-    for ( int k = 0; k < 4; k++ ) {
+    for (int k = 0; k < 4; k++) {
         fprintf(fp_print, "[%d]", (*q)->joins[i][k]);
     }
     fprintf(fp_print, " == ");
-    for ( int k = 0; k < 4; k++ ) {
+    for (int k = 0; k < 4; k++) {
         fprintf(fp_print, "[%d]", (*q)->joins[j][k]);
     }
     fprintf(fp_print, " -> Removing it from query..\n");
