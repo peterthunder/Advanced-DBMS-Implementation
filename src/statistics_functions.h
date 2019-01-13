@@ -26,9 +26,15 @@ void gatherStatisticsForJoins(Query_Info **qInfo, QueryTableStatistics ***statis
 
 void gatherStatisticsForJoinAutocorrelation(QueryTableStatistics ***statistic_tables, int usedTableNum, int colNum);
 
-void gatherStatisticsForJoinBetweenDifferentTables(QueryTableStatistics ***statistic_tables, int usedTableNum1, int usedTableNum2, int colNum1, int colNum2);
+void gatherStatisticsForJoinSameTableDiffColumns(QueryTableStatistics ***statistic_tables, int realTableNum, int usedTableNum, int colNum1, int colNum2);
 
-void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***statistic_tables, int usedTableNum1, int usedTableNum2, int colNum1, int colNum2, uint64_t da, uint64_t db);
+void setStatisticsForOtherColumnsOfJoinSameTableDiffColumns(int usedTableNum, int realTableNum, int joinColumn, QueryTableStatistics ***statistic_tables, uint64_t f_join_old);
+
+void gatherStatisticsForJoinBetweenDifferentTables(QueryTableStatistics ***statistic_tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2, int colNum1,
+                                                   int colNum2);
+
+void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***statistic_tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2, int colNum1,
+                                                   int colNum2, uint64_t da, uint64_t db);
 
 QueryTableStatistics** createStatisticsTables(Query_Info *qInfo, Table **tables, int numOfTablesToBeUsed);
 
