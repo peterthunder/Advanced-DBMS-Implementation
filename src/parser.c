@@ -265,8 +265,11 @@ void parseJoin(char *token, Query_Info **q, int *join_counter) {
     // Query_35: 7 0 9|0.1=1.0&1.0=0.1&1.0=2.1&0.1>3791|1.2 1.2\
     // Query_38: 7 1 3|0.2=1.0&1.0=2.1&1.0=0.2&0.2>6082|2.3 2.1
 
-    if (((*join_counter) > 0) && isCurrentJoinDuplicate(q, *join_counter)) {
+    if (((*join_counter) > 0) && isCurrentJoinDuplicate(q, *join_counter))
+    {
+#if PRINTING || DEEP_PRINTING
         fprintf(fp_print, "Duplicate join\n");
+#endif
         // Update the "join_counter"
         (*join_counter)--;
         (*q)->join_count--;

@@ -380,10 +380,11 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
         new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_num2, FALSE, ret2, column_num2);
 
         /* If both of the relations are in the same intermediate table, then filter */
-        if (inter_table_num1 == inter_table_num2) {
-
+        if (inter_table_num1 == inter_table_num2)
+        {
+#if PRINTING || DEEP_PRINTING
             fprintf(fp_print, "If both of the relations are in the same intermediate table, then filter.\n");
-
+#endif
             exists_in_intermediate_table(relation_Id1, *entity, &inter_table_num1, &column_num1);
             exists_in_intermediate_table(relation_Id2, *entity, &inter_table_num2, &column_num2);
 

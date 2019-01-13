@@ -38,9 +38,9 @@ CALLGRIND_PROFILER:
 	/usr/bin/valgrind --tool=callgrind ./radixHashJoin_basic_for_profiler
 
 HARNESS_PROFILER:
-	rm -rf profiler_output.txt
+	rm -rf harness_profiler_output.txt
 	make HARNESS
-	cd build/release && ./harness workloads/small/small.init workloads/small/small.work workloads/small/small.result ../../run.sh && cd ../../ && gprof build/release/harness gmon.out > profiler_output.txt && head -65 profiler_output.txt
+	cd build/release && ./harness workloads/small/small.init workloads/small/small.work workloads/small/small.result ../../run.sh && cd ../../ && gprof build/release/harness gmon.out > harness_profiler_output.txt && head -65 harness_profiler_output.txt
 
 EXAMPLE:
 	gcc -o example example.c
