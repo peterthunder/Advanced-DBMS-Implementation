@@ -47,6 +47,8 @@ int main(void) {
 
         if (strcmp(query, "F") == 0) {
 
+            fprintf(fp_print, "F - End of Batch\n");
+
             // Print the sums to stdout before going to next batch of queries.
             writeSumsToStdout(sumStruct);
 
@@ -58,43 +60,30 @@ int main(void) {
         }
 
         query_count++;
-
         //fprintf(fp_print, "Query_%d: %s\n", query_count, query);
+
+
+        // DEBUG CODE:
+       /* int queryNum = 50;
+        if (query_count != queryNum)
+            continue;
+        */
 
         query_info = parse_query(query);
 
-        /*  // DEBUG CODE:
-        if ( query_count < 20 )
-            continue;
-        if ( query_count == 20 ) {
-            query_info = parse_query(query);
-            print_query(query_info, query, query_count);
-        }
-        if ( query_count > 20 )
-            break;*/
+        //print_query(query_info, query, query_count);
+
 
 #if PRINTING || DEEP_PRINTING
         fprintf(fp_print, "Original Query:");
         print_query(query_info, query, query_count);    // See the original query.
 #endif
 
-     /*   // DEBUG CODE:
-        int queryWeWant = 27;
-        if ( query_count < queryWeWant )
-            continue;
-        else if ( query_count > queryWeWant ) {
-            free_query(query_info);
-            break;
-        }
-        else {
-            print_query(query_info, query, query_count);
-            gatherPredicatesStatisticsForQuery(&query_info, tables, query_count);
-        }
-*/
-        if ( gatherPredicatesStatisticsForQuery(&query_info, tables, query_count) == -1 ) {
+
+        if (gatherPredicatesStatisticsForQuery(&query_info, tables, query_count) == -1) {
             // Found that a filter returned zero results. Because every query is a connected graph, the produced results by the query-joins will be NULL.
             sums = myMalloc(sizeof(long *) * query_info->selection_count);
-            for ( i = 0 ; i < query_info->selection_count ; i++ ) {
+            for (i = 0; i < query_info->selection_count; i++) {
                 sums[i] = 0;
             }
 
@@ -102,7 +91,6 @@ int main(void) {
             free_query(query_info);
             continue;
         }
-
 
 
 #if PRINTING || DEEP_PRINTING

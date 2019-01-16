@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #define MAX_BOOL_TABLE_NUM 50000000 // 50 millions
-#define H1_PARAM 4 // Number of bits we keep after the 1st hash function pass in RadixHashJoin
+#define H1_PARAM 3 // Number of bits we keep after the 1st hash function pass in RadixHashJoin
 #define H2_PARAM 251 // The number we use in the 2nd hash function as a mod
 #define JOINED_ROWIDS_NUM ((128 * 1024) / 8) // 1MB: ((1024 * 1024) / 8)
 #define TRUE true
@@ -14,9 +14,9 @@
 #define GREATER 1
 #define LESS 2
 #define WORKLOAD_BASE_PATH  "workloads/small/"
-#define USE_HARNESS FALSE
+#define USE_HARNESS TRUE
 #define MULTITHREADING TRUE
-#define SUM_SPLITS 64
+#define SUM_SPLITS 32
 
 int32_t number_of_buckets;
 
@@ -65,7 +65,7 @@ typedef struct column_stats {
 typedef struct query_table_statistics {
     int realNumOfTable;
     uint64_t num_columns;
-    ColumnStats **column_statistics;    // Array of columns with their statistics.s
+    ColumnStats **column_statistics;    // Array of columns with their statistics.
 } QueryTableStatistics;
 
 

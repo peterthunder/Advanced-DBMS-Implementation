@@ -40,6 +40,7 @@ void testRHJ() {
     free(relations);
 }
 
+
 /* Relation R: reIR, Relation S: reIS, Number of buckets: 2^n */
 Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
 

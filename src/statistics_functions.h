@@ -3,6 +3,27 @@
 
 #include "radixHashJoin.h"
 
+typedef struct Adjacent_{
+    bool is_neighbour;
+    int join_number;
+
+}Adjacent;
+
+typedef struct set_{
+    int set_id;
+    unsigned int set_number;
+    int relations_in_set; // number of relations in the set
+    int *join_order;
+    uint64_t cost_of_join;
+    uint64_t size_of_join_result;
+    QueryTableStatistics **tableStatistics;
+}Set;
+
+
+void test2(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed);
+
+
+
 void gatherInitialStatisticsForTable(Table **table);
 
 short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count);
@@ -37,6 +58,8 @@ void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***stati
                                                    int colNum2, uint64_t da, uint64_t db);
 
 QueryTableStatistics** createStatisticsTables(Query_Info *qInfo, Table **tables, int numOfTablesToBeUsed);
+
+QueryTableStatistics** copyStatisticsTables(Query_Info *qInfo, QueryTableStatistics **old_statistics_tables, int numOfTablesToBeUsed);
 
 void freeStatisticsTables(QueryTableStatistics** statistics_tables, int numOfTablesToBeUsed);
 

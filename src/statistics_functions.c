@@ -7,26 +7,23 @@
  * @param table
  * @param num_of_tables
  */
-void gatherInitialStatisticsForTable(Table **table)
-{
+void gatherInitialStatisticsForTable(Table **table) {
     u_int64_t indexOfValueToSetTrue;
 
     // Get l, u, f, d
 
     // For each column
-    for ( int col_num = 0 ; col_num < (*table)->num_columns ; col_num++ )
-    {
+    for (int col_num = 0; col_num < (*table)->num_columns; col_num++) {
         // For values inside the column
-        for ( int value_index = 0 ; value_index < (*table)->num_tuples ; value_index++ )
-        {
+        for (int value_index = 0; value_index < (*table)->num_tuples; value_index++) {
             //fprintf(fp_print, "Table[%d] , column[%d], value[%4d] = %ju!\n", table_num, col_num, value_index, (*table)->column_indexes[col_num][value_index]);  // DEBUG!
 
             // Get l
-            if ( (*table)->column_indexes[col_num][value_index] < (*table)->column_statistics[col_num]->l )
+            if ((*table)->column_indexes[col_num][value_index] < (*table)->column_statistics[col_num]->l)
                 (*table)->column_statistics[col_num]->l = (*table)->column_indexes[col_num][value_index];
 
             // Get u
-            if ( (*table)->column_indexes[col_num][value_index] > (*table)->column_statistics[col_num]->u )
+            if ((*table)->column_indexes[col_num][value_index] > (*table)->column_statistics[col_num]->u)
                 (*table)->column_statistics[col_num]->u = (*table)->column_indexes[col_num][value_index];
         }
 
@@ -38,7 +35,7 @@ void gatherInitialStatisticsForTable(Table **table)
         u_int64_t sizeOfArray = (*table)->column_statistics[col_num]->u - (*table)->column_statistics[col_num]->l + 1;
         bool isSizeLargerThanAccepted = FALSE;
 
-        if ( sizeOfArray > MAX_BOOL_TABLE_NUM ) {
+        if (sizeOfArray > MAX_BOOL_TABLE_NUM) {
             isSizeLargerThanAccepted = TRUE;
             sizeOfArray = MAX_BOOL_TABLE_NUM;
         }
@@ -47,7 +44,7 @@ void gatherInitialStatisticsForTable(Table **table)
         (*table)->column_statistics[col_num]->d_array_size = sizeOfArray;
         (*table)->column_statistics[col_num]->d_array = myMalloc(sizeof(bool) * sizeOfArray);
 
-        for ( int i = 0 ; i < sizeOfArray ; i++ ) {
+        for (int i = 0; i < sizeOfArray; i++) {
             (*table)->column_statistics[col_num]->d_array[i] = FALSE;
         }
 
@@ -55,19 +52,19 @@ void gatherInitialStatisticsForTable(Table **table)
         (*table)->column_statistics[col_num]->d = (*table)->column_statistics[col_num]->f;
 
         // Do another pass on the values of this column to mark the distinct values.
-        for ( int value_index = 0 ; value_index < (*table)->num_tuples ; value_index++ ) {
+        for (int value_index = 0; value_index < (*table)->num_tuples; value_index++) {
 
-            if ( isSizeLargerThanAccepted )
+            if (isSizeLargerThanAccepted)
                 indexOfValueToSetTrue = (*table)->column_indexes[col_num][value_index] - (*table)->column_statistics[col_num]->l % MAX_BOOL_TABLE_NUM;
             else
                 indexOfValueToSetTrue = (*table)->column_indexes[col_num][value_index] - (*table)->column_statistics[col_num]->l;
 
-          /*  fprintf(fp_print, "Table[%d] , column[%d], value[%4d] = %6ju, indexOfValueToSetTrue = %ju!\n",
-                    table_num, col_num, value_index, (*table)->column_indexes[col_num][value_index], indexOfValueToSetTrue);  // DEBUG!
-          */
+            /*  fprintf(fp_print, "Table[%d] , column[%d], value[%4d] = %6ju, indexOfValueToSetTrue = %ju!\n",
+                      table_num, col_num, value_index, (*table)->column_indexes[col_num][value_index], indexOfValueToSetTrue);  // DEBUG!
+            */
 
-            if ( (*table)->column_statistics[col_num]->d_array[indexOfValueToSetTrue] == TRUE )   // We re-access the same value.
-                (*table)->column_statistics[col_num]->d --; // So we have one less value to be distinct.
+            if ((*table)->column_statistics[col_num]->d_array[indexOfValueToSetTrue] == TRUE)   // We re-access the same value.
+                (*table)->column_statistics[col_num]->d--; // So we have one less value to be distinct.
             else
                 (*table)->column_statistics[col_num]->d_array[indexOfValueToSetTrue] = TRUE;
 
@@ -76,8 +73,7 @@ void gatherInitialStatisticsForTable(Table **table)
 }
 
 
-short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count)
-{
+short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int query_count) {
 
 #if PRINTING || DEEP_PRINTING
     clock_t start_t, end_t, total_t;
@@ -86,10 +82,10 @@ short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int
 #endif
 
     int numOfTablesToBeUsed = (*qInfo)->relationId_count;    // Num of tables to be used in this query.
-    QueryTableStatistics** statistics_tables = createStatisticsTables(*qInfo, tables, numOfTablesToBeUsed);
+    QueryTableStatistics **statistics_tables = createStatisticsTables(*qInfo, tables, numOfTablesToBeUsed);
 
     // Gather statistics for Filters
-    if ( gatherStatisticsForFilters(qInfo, tables, &statistics_tables) == -1 ) {
+    if (gatherStatisticsForFilters(qInfo, tables, &statistics_tables) == -1) {
 #if PRINTING || DEEP_PRINTING
         fprintf(fp_print, "Filter-statistics indicated that this query contains a filter producing zero-results, thus the query will produce NULL-results!\n");
 #endif
@@ -130,32 +126,29 @@ short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int
 }
 
 
-short gatherStatisticsForFilters(Query_Info **qInfo, Table **tables, QueryTableStatistics ***statistics_tables)
-{
-    for ( int i = 0 ; i < (*qInfo)->filter_count ; i++ )
-    {
-        if ( (*qInfo)->filters[i] != NULL )
-        {
+short gatherStatisticsForFilters(Query_Info **qInfo, Table **tables, QueryTableStatistics ***statistics_tables) {
+    for (int i = 0; i < (*qInfo)->filter_count; i++) {
+        if ((*qInfo)->filters[i] != NULL) {
             int operator = (*qInfo)->filters[i][2];
             int usedTableNum = (*qInfo)->filters[i][0];
             int filterColNum = (*qInfo)->filters[i][1];
             uint64_t k = (uint64_t) (*qInfo)->filters[i][3];
             int realTableNum = (*qInfo)->relation_IDs[usedTableNum];
 
-            switch ( operator ) // Switch on the operator.
+            switch (operator) // Switch on the operator.
             {
                 case EQUAL:
-                    if ( gatherStatisticsForFilterOperatorEqual(usedTableNum, realTableNum, filterColNum, k, statistics_tables, tables) == -1 )
+                    if (gatherStatisticsForFilterOperatorEqual(usedTableNum, realTableNum, filterColNum, k, statistics_tables, tables) == -1)
                         return -1;
                     else
                         break;
                 case LESS:
-                    if ( gatherStatisticsForFilterOperatorLess(usedTableNum, realTableNum, filterColNum, k, statistics_tables, tables) == -1 )
+                    if (gatherStatisticsForFilterOperatorLess(usedTableNum, realTableNum, filterColNum, k, statistics_tables, tables) == -1)
                         return -1;
                     else
                         break;
                 case GREATER:
-                    if ( gatherStatisticsForFilterOperatorGreater(usedTableNum, realTableNum, filterColNum, k, statistics_tables, tables) == -1 )
+                    if (gatherStatisticsForFilterOperatorGreater(usedTableNum, realTableNum, filterColNum, k, statistics_tables, tables) == -1)
                         return -1;
                     else
                         break;
@@ -169,8 +162,7 @@ short gatherStatisticsForFilters(Query_Info **qInfo, Table **tables, QueryTableS
 }
 
 
-short gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistics_tables, Table **tables)
-{
+short gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistics_tables, Table **tables) {
     //  e.g. Query_2: 5 0|0.2=1.0&0.3=9881|1.1 0.2 1.0
 #if PRINTING || DEEP_PRINTING
     fprintf(fp_print, "\nGathering statistics for filter: %d.c%d=%ju, using the realTableNum: %d\n", usedTableNum, filterColNum, k, realTableNum);
@@ -183,13 +175,12 @@ short gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum,
 
     // f'a = fa/da if k belongs to da, otherwise 0.
     // d'a = 1 if k belongs to da, otherwise 0.
-    if (does_k_belong_to_d_array(k, realTableNum, filterColNum, tables) ) {
+    if (does_k_belong_to_d_array(k, realTableNum, filterColNum, tables)) {
 
-        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) ((double)(tables[realTableNum]->column_statistics[filterColNum]->f)
-                                                                                                    / tables[realTableNum]->column_statistics[filterColNum]->d);
+        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) ((double) (tables[realTableNum]->column_statistics[filterColNum]->f)
+                                                                                             / tables[realTableNum]->column_statistics[filterColNum]->d);
         (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->d = 1;
-    }
-    else {
+    } else {
         // f'a = 0
         // d'a = 0
         // Because the queries are connected-graphs, we know that if a predicate returns zero-results (as in this case), then the general-result for this query will be zero.
@@ -203,8 +194,7 @@ short gatherStatisticsForFilterOperatorEqual(int usedTableNum, int realTableNum,
 }
 
 
-short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistics_tables, Table **tables)
-{
+short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistics_tables, Table **tables) {
     //  e.g. Query_5: 6 1 12|0.1=1.0&1.0=2.2&0.0<62236|1.0
 #if PRINTING || DEEP_PRINTING
     fprintf(fp_print, "\nGathering statistics for filter: %d.c%d<%ju, using the realTableNum: %d\n", usedTableNum, filterColNum, k, realTableNum);
@@ -214,12 +204,11 @@ short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, 
     bool doesKBelongInRange = TRUE;
     // If not, then we should set the <k> as follows:
     // If  k > ua, then:  k = ua
-    if ( k > tables[realTableNum]->column_statistics[filterColNum]->u ) {
+    if (k > tables[realTableNum]->column_statistics[filterColNum]->u) {
         doesKBelongInRange = FALSE;
         fprintf(fp_print, "\nK(%ju) is more than upper(%ju) in table[%d]", k, tables[realTableNum]->column_statistics[filterColNum]->u, realTableNum);
         k = tables[realTableNum]->column_statistics[filterColNum]->u;
-    }
-    else if ( k < tables[realTableNum]->column_statistics[filterColNum]->l ) {
+    } else if (k < tables[realTableNum]->column_statistics[filterColNum]->l) {
         // Else if k < la, then, after execution, this filter will produce an intermediate table with NO results..
         // As all expected queries as supposed to be connected-graphs.. the result of this filter will zero-out every other result, so the end result of this query will be NULL.
         return -1;
@@ -245,17 +234,18 @@ short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, 
         d'a = (ua-la)/(ua-la)*da = da
     }*/
 
-    if ( doesKBelongInRange ) {
+    if (doesKBelongInRange) {
         // Calculate the fraction first, which is used in both d'a and f'a.
-        double fraction = (double)(k - tables[realTableNum]->column_statistics[filterColNum]->l)
+        double fraction = (double) (k - tables[realTableNum]->column_statistics[filterColNum]->l)
                           / (tables[realTableNum]->column_statistics[filterColNum]->u - tables[realTableNum]->column_statistics[filterColNum]->l);
 
         // f'a = fraction * fa
-        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) (fraction * (double)(*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f);
+        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) (fraction *
+                                                                                             (double) (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f);
         // d'a = fraction * da
-        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->d = (uint64_t) (fraction * (double)(*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->d);
-    }
-    else {
+        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->d = (uint64_t) (fraction *
+                                                                                             (double) (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->d);
+    } else {
         // f'a = fa
         // d'a = da
         // Nothing needs to be done.. they are already the same..
@@ -267,8 +257,7 @@ short gatherStatisticsForFilterOperatorLess(int usedTableNum, int realTableNum, 
 }
 
 
-short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistics_tables, Table **tables)
-{
+short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNum, int filterColNum, uint64_t k, QueryTableStatistics ***statistics_tables, Table **tables) {
     //  e.g. Query_1: 3 0 1|0.2=1.0&0.1=2.0&0.2>3499|1.2 0.1
 #if PRINTING || DEEP_PRINTING
     fprintf(fp_print, "\nGathering statistics for filter: %d.c%d>%ju, using the realTableNum: %d\n", usedTableNum, filterColNum, k, realTableNum);
@@ -278,12 +267,11 @@ short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNu
     bool doesKBelongInRange = TRUE;
     // If not, then we should set the <k> as follows:
     // If  k < la, then: k = la.
-    if ( k < tables[realTableNum]->column_statistics[filterColNum]->l ) {
+    if (k < tables[realTableNum]->column_statistics[filterColNum]->l) {
         doesKBelongInRange = FALSE;
         fprintf(fp_print, "\nK(%ju) is less than lower(%ju) in table[%d]", k, tables[realTableNum]->column_statistics[filterColNum]->l, realTableNum);
         k = tables[realTableNum]->column_statistics[filterColNum]->l;
-    }
-    else if ( k > tables[realTableNum]->column_statistics[filterColNum]->u ) {
+    } else if (k > tables[realTableNum]->column_statistics[filterColNum]->u) {
         // Else if k > ua, then, after execution, this filter will produce an intermediate table with NO results..
         // As all expected queries as supposed to be connected-graphs.. the result of this filter will zero-out every other result, so the end result of this query will be NULL.
         return -1;
@@ -309,24 +297,25 @@ short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNu
         d'a = (ua-la)/(ua-la)*da = da
     }*/
 
-    if ( doesKBelongInRange ) {
+    if (doesKBelongInRange) {
         // Calculate the fraction first, which is used in both d'a and f'a.
-        double fraction = (double)(tables[realTableNum]->column_statistics[filterColNum]->u - k)
-                    / (tables[realTableNum]->column_statistics[filterColNum]->u - tables[realTableNum]->column_statistics[filterColNum]->l);
+        double fraction = (double) (tables[realTableNum]->column_statistics[filterColNum]->u - k)
+                          / (tables[realTableNum]->column_statistics[filterColNum]->u - tables[realTableNum]->column_statistics[filterColNum]->l);
 
         /*fprintf(fp_print, "\nTable[%d][%d] -> f'a = (ua-k)/(ua-la)*fa -> f'a = (%ju-%ju)/(%ju-%ju)*%ju",
                 realTableNum, filterColNum, tables[realTableNum]->column_statistics[filterColNum]->u, k, tables[realTableNum]->column_statistics[filterColNum]->u,
                 tables[realTableNum]->column_statistics[filterColNum]->l, tables[realTableNum]->column_statistics[filterColNum]->f);*/
 
         // f'a = fraction * fa
-        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) (fraction * (double)(*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f);
+        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f = (uint64_t) (fraction *
+                                                                                             (double) (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f);
 
         //fprintf(fp_print, " = %ju\n", (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->f);
 
         // d'a = fraction * da
-        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->d = (uint64_t) (fraction * (double)(*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->d);
-    }
-    else {
+        (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->d = (uint64_t) (fraction *
+                                                                                             (double) (*statistics_tables)[usedTableNum]->column_statistics[filterColNum]->d);
+    } else {
         // f'a = fa
         // d'a = da
         // Nothing needs to be done.. they are already the same..
@@ -338,22 +327,20 @@ short gatherStatisticsForFilterOperatorGreater(int usedTableNum, int realTableNu
 }
 
 
-bool does_k_belong_to_d_array(long k, int realTableNum, int colNum, Table **tables)
-{
+bool does_k_belong_to_d_array(long k, int realTableNum, int colNum, Table **tables) {
     uint64_t indexOfValueToInvestigate;
 
-    if ( tables[realTableNum]->column_statistics[colNum]->initialSizeExceededMax )
+    if (tables[realTableNum]->column_statistics[colNum]->initialSizeExceededMax)
         indexOfValueToInvestigate = k - tables[realTableNum]->column_statistics[colNum]->l % MAX_BOOL_TABLE_NUM;
     else
         indexOfValueToInvestigate = k - tables[realTableNum]->column_statistics[colNum]->l;
 
-    if ( tables[realTableNum]->column_statistics[colNum]->d_array[indexOfValueToInvestigate] == TRUE ) {   // We re-access the same value.
+    if (tables[realTableNum]->column_statistics[colNum]->d_array[indexOfValueToInvestigate] == TRUE) {   // We re-access the same value.
 #if DEEP_PRINTING
         fprintf(fp_print, "\nK=%ju exists inside d_array of table[%d], column[%d]\n\n", k, realTableNum, colNum);
 #endif
         return TRUE;
-    }
-    else {
+    } else {
 #if DEEP_PRINTING
         fprintf(fp_print, "\nK=%ju does not exist inside d_array of table[%d], column[%d]\n\n", k, realTableNum, colNum);
 #endif
@@ -362,8 +349,7 @@ bool does_k_belong_to_d_array(long k, int realTableNum, int colNum, Table **tabl
 }
 
 
-void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTableNum, int filterColNum, QueryTableStatistics ***statistics_tables, Table **tables)
-{
+void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTableNum, int filterColNum, QueryTableStatistics ***statistics_tables, Table **tables) {
     // "a" is referred to the filtered column, whereas "c" is referred to every other column.
 
     // f'a
@@ -371,9 +357,8 @@ void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTa
     // fa
     uint64_t f_filter_old = tables[realTableNum]->column_statistics[filterColNum]->f;
 
-    for ( int i = 0 ; i < tables[realTableNum]->num_columns ; i++ )
-    {
-        if ( i != filterColNum )  // For all columns except the one used by the filter.
+    for (int i = 0; i < tables[realTableNum]->num_columns; i++) {
+        if (i != filterColNum)  // For all columns except the one used by the filter.
         {
             // l'c = lc
             // u'c = uc
@@ -385,15 +370,15 @@ void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTa
             // d'c = dc * (1 - (1 - (f'a/fa))^(fc/dc))
 
             // Mathematics:
-                // if f'a == fa (when k was out of range), then:
-                //  d'c = dc * (1 - (1 - 1)^(fc/dc))
-                //  d'c = dc * (1 - 0^(fc/dc))
-                //  d'c = dc * (1 - 0)
-                //  d'c = dc * 1
-                //  d'c = dc
+            // if f'a == fa (when k was out of range), then:
+            //  d'c = dc * (1 - (1 - 1)^(fc/dc))
+            //  d'c = dc * (1 - 0^(fc/dc))
+            //  d'c = dc * (1 - 0)
+            //  d'c = dc * 1
+            //  d'c = dc
 
             // Implementation:
-            if ( f_filter_new != f_filter_old ) {
+            if (f_filter_new != f_filter_old) {
                 // d'c = dc * (1 - (1 - (f'a/fa))^(fc/dc))
 
                 uint64_t d_non_filter_old = tables[realTableNum]->column_statistics[i]->d;
@@ -406,8 +391,7 @@ void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTa
                                                   d_non_filter_old);
 
                 //fprintf(fp_print, " = %ju\n", (*statistics_tables)[usedTableNum]->column_statistics[i]->d);
-            }
-            else {
+            } else {
                 // It gets simplified to:  d'c = dc
                 // Nothing needs to be done.. they are the same..
             }
@@ -417,32 +401,33 @@ void setStatisticsForOtherColumnsOfTheFilteredTable(int usedTableNum, int realTa
 
 
 void setDistinctWithComplexCalculation(uint64_t *receiver_d, uint64_t factor, uint64_t base_numerator, uint64_t base_denominator, uint64_t exponent_numerator,
-                                       uint64_t exponent_denominator)
-{
-    double base = 1 - ((double)(base_numerator) / base_denominator);
-    uint64_t exponent = (uint64_t)((double)(exponent_numerator) / exponent_denominator);
+                                       uint64_t exponent_denominator) {
+    double base = 1 - ((double) (base_numerator) / base_denominator);
+    uint64_t exponent = (uint64_t) ((double) (exponent_numerator) / exponent_denominator);
 
     double powResult = myPow_uint64_t(base, exponent);
 
-    (*receiver_d) = (uint64_t) llabs((long long int)((double)(factor) * (1 - powResult)));  // llabs() -> get absolute from "long long int"
+    (*receiver_d) = (uint64_t) llabs((long long int) ((double) (factor) * (1 - powResult)));  // llabs() -> get absolute from "long long int"
 
-    if ( (*receiver_d) == 0 )   // A column cannot have less than 1 distinct values. Convert value to one from rounded-to-zero.
+    if ((*receiver_d) == 0)   // A column cannot have less than 1 distinct values. Convert value to one from rounded-to-zero.
         (*receiver_d) = 1;
 }
 
 
-void gatherStatisticsForJoins(Query_Info **qInfo, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed)
-{
+void gatherStatisticsForJoins(Query_Info **qInfo, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed) {
     //fprintf(fp_print, "For joins:\n");
+
+
+    /* test2(*qInfo, statistics_tables, numOfTablesToBeUsed);
+    return;*/
+
     int joinTableNum1, colNum1, joinTableNum2, colNum2, realTableNum1, realTableNum2;
 
-    for ( int i = 0 ; i < (*qInfo)->join_count ; i++ )
-    {
+    for (int i = 0; i < (*qInfo)->join_count; i++) {
         /*if ( i == 1 )
             break;*/
 
-        if ( (*qInfo)->joins[i] != NULL )
-        {
+        if ((*qInfo)->joins[i] != NULL) {
             joinTableNum1 = (*qInfo)->joins[i][0];
             colNum1 = (*qInfo)->joins[i][1];
             joinTableNum2 = (*qInfo)->joins[i][2];
@@ -451,16 +436,15 @@ void gatherStatisticsForJoins(Query_Info **qInfo, QueryTableStatistics ***statis
             realTableNum1 = (*qInfo)->relation_IDs[joinTableNum1];
             realTableNum2 = (*qInfo)->relation_IDs[joinTableNum2];
 
-            if ( joinTableNum1 == joinTableNum2 ) {
+            if (joinTableNum1 == joinTableNum2) {
                 if (colNum1 == colNum2) {
                     gatherStatisticsForJoinAutocorrelation(statistics_tables, joinTableNum1, colNum1);
-                }
-                else {
+                } else {
                     gatherStatisticsForJoinSameTableDiffColumns(statistics_tables, realTableNum1, joinTableNum1, colNum1, colNum2);
                 }
-            }
-            else
+            } else {
                 gatherStatisticsForJoinBetweenDifferentTables(statistics_tables, realTableNum1, realTableNum2, joinTableNum1, joinTableNum2, colNum1, colNum2);
+            }
 
             //printPredicatesStatistics((*statistics_tables), numOfTablesToBeUsed);     // DEBUG!
         }
@@ -468,8 +452,7 @@ void gatherStatisticsForJoins(Query_Info **qInfo, QueryTableStatistics ***statis
 }
 
 
-void gatherStatisticsForJoinAutocorrelation(QueryTableStatistics ***statistics_tables, int usedTableNum, int colNum)
-{
+void gatherStatisticsForJoinAutocorrelation(QueryTableStatistics ***statistics_tables, int usedTableNum, int colNum) {
     // l'A = lA
     // u'A = uA
     // Nothing needs to be done.. they are already the same..
@@ -478,7 +461,7 @@ void gatherStatisticsForJoinAutocorrelation(QueryTableStatistics ***statistics_t
 
     uint64_t n = (*statistics_tables)[usedTableNum]->column_statistics[colNum]->u - (*statistics_tables)[usedTableNum]->column_statistics[colNum]->l + 1;
 
-    double fraction = (double)((*statistics_tables)[usedTableNum]->column_statistics[colNum]->f * (*statistics_tables)[usedTableNum]->column_statistics[colNum]->f) / n;
+    double fraction = (double) ((*statistics_tables)[usedTableNum]->column_statistics[colNum]->f * (*statistics_tables)[usedTableNum]->column_statistics[colNum]->f) / n;
 
     (*statistics_tables)[usedTableNum]->column_statistics[colNum]->f = (uint64_t) fraction;
 
@@ -487,9 +470,8 @@ void gatherStatisticsForJoinAutocorrelation(QueryTableStatistics ***statistics_t
     // Set statistics for other columns of this table.
     uint64_t f_join_new = (*statistics_tables)[usedTableNum]->column_statistics[colNum]->f;
 
-    for ( int i = 0 ; i < (*statistics_tables)[usedTableNum]->num_columns ; i++ )
-    {
-        if ( i != colNum )  // For all columns except the one used by the filter.
+    for (int i = 0; i < (*statistics_tables)[usedTableNum]->num_columns; i++) {
+        if (i != colNum)  // For all columns except the one used by the filter.
         {
             // l'c = lc
             // u'c = uc
@@ -503,8 +485,7 @@ void gatherStatisticsForJoinAutocorrelation(QueryTableStatistics ***statistics_t
 }
 
 
-void gatherStatisticsForJoinSameTableDiffColumns(QueryTableStatistics ***statistics_tables, int realTableNum, int usedTableNum, int colNum1, int colNum2)
-{
+void gatherStatisticsForJoinSameTableDiffColumns(QueryTableStatistics ***statistics_tables, int realTableNum, int usedTableNum, int colNum1, int colNum2) {
     // Set the la and lb with the max of both values.
     uint64_t la = (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->l;
     uint64_t lb = (*statistics_tables)[usedTableNum]->column_statistics[colNum2]->l;
@@ -523,7 +504,7 @@ void gatherStatisticsForJoinSameTableDiffColumns(QueryTableStatistics ***statist
 
     // f'a = f'b = f / n
     uint64_t fa = (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->f;
-    fraction = (uint64_t)((double)fa / n);
+    fraction = (uint64_t) ((double) fa / n);
 
     uint64_t f_join_old = (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->f;
     (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->f = fraction;
@@ -536,8 +517,8 @@ void gatherStatisticsForJoinSameTableDiffColumns(QueryTableStatistics ***statist
                     (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->f, fa, fa, (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->d);
 */
     setDistinctWithComplexCalculation
-    (&(*statistics_tables)[usedTableNum]->column_statistics[colNum1]->d, (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->d,
-            (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->f, fa, fa, (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->d);
+            (&(*statistics_tables)[usedTableNum]->column_statistics[colNum1]->d, (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->d,
+             (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->f, fa, fa, (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->d);
 
     // d'B = d'A
     (*statistics_tables)[usedTableNum]->column_statistics[colNum2]->d = (*statistics_tables)[usedTableNum]->column_statistics[colNum1]->d;
@@ -548,16 +529,14 @@ void gatherStatisticsForJoinSameTableDiffColumns(QueryTableStatistics ***statist
 }
 
 
-void setStatisticsForOtherColumnsOfJoinSameTableDiffColumns(int usedTableNum, int realTableNum, int joinColumn, QueryTableStatistics ***statistics_tables, uint64_t f_join_old)
-{
+void setStatisticsForOtherColumnsOfJoinSameTableDiffColumns(int usedTableNum, int realTableNum, int joinColumn, QueryTableStatistics ***statistics_tables, uint64_t f_join_old) {
     // "a" is referred to the filtered column, whereas "c" is referred to every other column.
 
     // f'a
     uint64_t f_join_new = (*statistics_tables)[usedTableNum]->column_statistics[joinColumn]->f;
 
-    for ( int i = 0 ; i < (*statistics_tables)[usedTableNum]->num_columns ; i++ )
-    {
-        if ( i != joinColumn )  // For all columns except the one used by the join.
+    for (int i = 0; i < (*statistics_tables)[usedTableNum]->num_columns; i++) {
+        if (i != joinColumn)  // For all columns except the one used by the join.
         {
             // l'c = lc
             // u'c = uc
@@ -577,7 +556,7 @@ void setStatisticsForOtherColumnsOfJoinSameTableDiffColumns(int usedTableNum, in
             //  d'c = dc
 
             // Implementation:
-            if ( f_join_new != f_join_old ) {
+            if (f_join_new != f_join_old) {
                 // d'c = dc * (1 - (1 - (f'a/fa))^(fc/dc))
 
                 uint64_t d_non_filter_old = (*statistics_tables)[usedTableNum]->column_statistics[i]->d;
@@ -590,8 +569,7 @@ void setStatisticsForOtherColumnsOfJoinSameTableDiffColumns(int usedTableNum, in
                                                   d_non_filter_old);
 
                 fprintf(fp_print, " = %ju\n", (*statistics_tables)[usedTableNum]->column_statistics[i]->d);
-            }
-            else {
+            } else {
                 // It gets simplified to:  d'c = dc
                 // Nothing needs to be done.. they are already the same..
             }
@@ -600,9 +578,9 @@ void setStatisticsForOtherColumnsOfJoinSameTableDiffColumns(int usedTableNum, in
 }
 
 
-void gatherStatisticsForJoinBetweenDifferentTables(QueryTableStatistics ***statistics_tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2, int colNum1,
-                                                   int colNum2)
-{
+void
+gatherStatisticsForJoinBetweenDifferentTables(QueryTableStatistics ***statistics_tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2, int colNum1,
+                                              int colNum2) {
     // Set the la and lb with the max of both values.
     uint64_t la = (*statistics_tables)[usedTableNum1]->column_statistics[colNum1]->l;
     uint64_t lb = (*statistics_tables)[usedTableNum2]->column_statistics[colNum2]->l;
@@ -622,7 +600,7 @@ void gatherStatisticsForJoinBetweenDifferentTables(QueryTableStatistics ***stati
     // f'a = f'b = fa * fb / n
     uint64_t fa = (*statistics_tables)[usedTableNum1]->column_statistics[colNum1]->f;
     uint64_t fb = (*statistics_tables)[usedTableNum2]->column_statistics[colNum2]->f;
-    fraction = (uint64_t)((double)(fa * fb) / n);
+    fraction = (uint64_t) ((double) (fa * fb) / n);
 
     (*statistics_tables)[usedTableNum1]->column_statistics[colNum1]->f = fraction;
     (*statistics_tables)[usedTableNum2]->column_statistics[colNum2]->f = fraction;
@@ -631,8 +609,8 @@ void gatherStatisticsForJoinBetweenDifferentTables(QueryTableStatistics ***stati
     uint64_t da = (*statistics_tables)[usedTableNum1]->column_statistics[colNum1]->d;
     uint64_t db = (*statistics_tables)[usedTableNum2]->column_statistics[colNum2]->d;
 
-    fraction = (uint64_t)((double)(da * db) / n);
-    if ( fraction == 0 )
+    fraction = (uint64_t) ((double) (da * db) / n);
+    if (fraction == 0)
         fraction = 1;
 
     (*statistics_tables)[usedTableNum1]->column_statistics[colNum1]->d = fraction;
@@ -643,9 +621,9 @@ void gatherStatisticsForJoinBetweenDifferentTables(QueryTableStatistics ***stati
 }
 
 
-void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***statistics_tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2, int colNum1,
-                                                   int colNum2, uint64_t da, uint64_t db)
-{
+void
+setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***statistics_tables, int realTableNum1, int realTableNum2, int usedTableNum1, int usedTableNum2, int colNum1,
+                                              int colNum2, uint64_t da, uint64_t db) {
     // "A" & "B" is referred to the joined columns, whereas "c" is referred to every other column.
 
     // f'A = f'B
@@ -657,9 +635,8 @@ void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***stati
     // dA
     uint64_t d_join_old_A = da;
 
-    for ( int i = 0 ; i < (*statistics_tables)[usedTableNum1]->num_columns ; i++ )
-    {
-        if ( i != colNum1 )  // For all columns except the one used by the join.
+    for (int i = 0; i < (*statistics_tables)[usedTableNum1]->num_columns; i++) {
+        if (i != colNum1)  // For all columns except the one used by the join.
         {
             // l'c = lc
             // u'c = uc
@@ -688,9 +665,8 @@ void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***stati
     // dB
     uint64_t d_join_old_B = db;
 
-    for ( int i = 0 ; i < (*statistics_tables)[usedTableNum2]->num_columns ; i++ )
-    {
-        if ( i != colNum2 )  // For all columns except the one used by the join.
+    for (int i = 0; i < (*statistics_tables)[usedTableNum2]->num_columns; i++) {
+        if (i != colNum2)  // For all columns except the one used by the join.
         {
             // l'c = lc
             // u'c = uc
@@ -721,12 +697,10 @@ void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***stati
  * @param tables
  * @return
  */
-QueryTableStatistics** createStatisticsTables(Query_Info *qInfo, Table **tables, int numOfTablesToBeUsed)
-{
-    QueryTableStatistics** statistics_tables = myMalloc(sizeof(QueryTableStatistics *) * numOfTablesToBeUsed);
+QueryTableStatistics **createStatisticsTables(Query_Info *qInfo, Table **tables, int numOfTablesToBeUsed) {
+    QueryTableStatistics **statistics_tables = myMalloc(sizeof(QueryTableStatistics *) * numOfTablesToBeUsed);
 
-    for ( int i = 0 ; i < numOfTablesToBeUsed ; i++ )
-    {
+    for (int i = 0; i < numOfTablesToBeUsed; i++) {
         statistics_tables[i] = myMalloc(sizeof(QueryTableStatistics));
 
         // Set the "real"-tables' numbers
@@ -735,7 +709,7 @@ QueryTableStatistics** createStatisticsTables(Query_Info *qInfo, Table **tables,
 
         statistics_tables[i]->num_columns = tables[statistics_tables[i]->realNumOfTable]->num_columns;
         statistics_tables[i]->column_statistics = myMalloc(sizeof(ColumnStats *) * statistics_tables[i]->num_columns);
-        for ( int j = 0 ; j < statistics_tables[i]->num_columns ; j++ ) {
+        for (int j = 0; j < statistics_tables[i]->num_columns; j++) {
             statistics_tables[i]->column_statistics[j] = myMalloc(sizeof(ColumnStats));
             statistics_tables[i]->column_statistics[j]->l = tables[statistics_tables[i]->realNumOfTable]->column_statistics[j]->l;
             statistics_tables[i]->column_statistics[j]->u = tables[statistics_tables[i]->realNumOfTable]->column_statistics[j]->u;
@@ -749,14 +723,202 @@ QueryTableStatistics** createStatisticsTables(Query_Info *qInfo, Table **tables,
     return statistics_tables;
 }
 
-void freeStatisticsTables(QueryTableStatistics** statistics_tables, int numOfTablesToBeUsed)
-{
-    for ( int i = 0 ; i < numOfTablesToBeUsed ; i++ ) {
-        for (int j = 0; j < statistics_tables[i]->num_columns ; j++) {
+
+QueryTableStatistics **copyStatisticsTables(Query_Info *qInfo, QueryTableStatistics **old_statistics_tables, int numOfTablesToBeUsed) {
+    QueryTableStatistics **statistics_tables = myMalloc(sizeof(QueryTableStatistics *) * numOfTablesToBeUsed);
+
+    for (int i = 0; i < numOfTablesToBeUsed; i++) {
+        statistics_tables[i] = myMalloc(sizeof(QueryTableStatistics));
+
+        // Set the "real"-tables' numbers
+        statistics_tables[i]->realNumOfTable = old_statistics_tables[i]->realNumOfTable;
+        //printf("table[%d] has real name: %d\n", i, statistics_tables[i]->realNumOfTable);    // DEBUG!
+
+        statistics_tables[i]->num_columns = old_statistics_tables[i]->num_columns;
+        statistics_tables[i]->column_statistics = myMalloc(sizeof(ColumnStats *) * statistics_tables[i]->num_columns);
+        for (int j = 0; j < statistics_tables[i]->num_columns; j++) {
+            statistics_tables[i]->column_statistics[j] = myMalloc(sizeof(ColumnStats));
+            statistics_tables[i]->column_statistics[j]->l = old_statistics_tables[i]->column_statistics[j]->l;
+            statistics_tables[i]->column_statistics[j]->u = old_statistics_tables[i]->column_statistics[j]->u;
+            statistics_tables[i]->column_statistics[j]->f = old_statistics_tables[i]->column_statistics[j]->f;
+            statistics_tables[i]->column_statistics[j]->d = old_statistics_tables[i]->column_statistics[j]->d;
+            statistics_tables[i]->column_statistics[j]->d_array = old_statistics_tables[i]->column_statistics[j]->d_array;
+            statistics_tables[i]->column_statistics[j]->d_array_size = old_statistics_tables[i]->column_statistics[j]->d_array_size;
+            statistics_tables[i]->column_statistics[j]->initialSizeExceededMax = old_statistics_tables[i]->column_statistics[j]->initialSizeExceededMax;
+        }
+    }
+    return statistics_tables;
+}
+
+
+void freeStatisticsTables(QueryTableStatistics **statistics_tables, int numOfTablesToBeUsed) {
+    for (int i = 0; i < numOfTablesToBeUsed; i++) {
+        for (int j = 0; j < statistics_tables[i]->num_columns; j++) {
             free(statistics_tables[i]->column_statistics[j]);
         }
         free(statistics_tables[i]->column_statistics);
         free(statistics_tables[i]);
     }
     free(statistics_tables);
+}
+
+
+void test2(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed) {
+
+    Adjacent **adjacency_matrix;
+    int left, right;
+    int i, j;
+
+    adjacency_matrix = myMalloc(sizeof(Adjacent *) * query_info->relationId_count);
+    for (i = 0; i < query_info->relationId_count; i++) {
+        adjacency_matrix[i] = myMalloc(sizeof(Adjacent) * query_info->relationId_count);
+        for (j = 0; j < query_info->relationId_count; j++) {
+            adjacency_matrix[i][j].is_neighbour = 0;
+        }
+    }
+
+    for (i = 0; i < query_info->join_count; i++) {
+        left = query_info->joins[i][0];
+        right = query_info->joins[i][2];
+        adjacency_matrix[left][right].is_neighbour = 1;
+        adjacency_matrix[left][right].join_number = i;
+        adjacency_matrix[right][left].is_neighbour = 1;
+        adjacency_matrix[right][left].join_number = i;
+    }
+
+    printf("\n  ");
+    for (i = 0; i < query_info->relationId_count; i++)
+        printf(" %d ", i);
+    printf("\n");
+
+    for (i = 0; i < query_info->relationId_count; i++) {
+        printf("%d |", i);
+        for (j = 0; j < query_info->relationId_count; j++) {
+            printf("%d| ", adjacency_matrix[i][j].is_neighbour);
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    int set_count = 0, k;
+    bool is_same;
+    unsigned int number = 0;
+
+    Set *sets = myMalloc(query_info->join_count * sizeof(Set));
+
+
+    //sets = myMalloc(q->join_count * sizeof(unsigned int));
+
+    for (i = 0; i < query_info->join_count; i++)
+        sets[i].set_number = 0;
+
+    for (i = 0; i < query_info->relationId_count; i++) {
+
+        for (j = 0; j < query_info->relationId_count; j++) {
+
+            if (i != j && adjacency_matrix[i][j].is_neighbour) {
+
+                is_same = FALSE;
+                printf("Join %d: (%d, %d)\n", adjacency_matrix[i][j].join_number, i, j);
+
+                number = 0 | (unsigned int) myPow(2, i);
+                number = number | (unsigned int) myPow(2, j);
+
+                if (set_count == 0) {
+
+                    sets[set_count].set_number = number;
+                    sets[set_count].join_order = myMalloc(sizeof(int) * query_info->join_count);
+                    sets[set_count].join_order[0] = adjacency_matrix[i][j].join_number;
+                    set_count++;
+                } else {
+
+                    for (k = 0; k < set_count; k++) {
+
+                        if (sets[k].set_number == number) {
+                            is_same = TRUE;
+                            break;
+                        }
+                    }
+                    if (is_same)
+                        continue;
+
+                    sets[set_count].set_number = number;
+                    sets[set_count].join_order = myMalloc(sizeof(int) * query_info->join_count);
+                    sets[set_count].join_order[0] = adjacency_matrix[i][j].join_number;
+                    set_count++;
+
+                }
+            }
+        }
+    }
+
+    printf("\n");
+
+    int pow, left_join, right_join;
+    int joinTableNum1, colNum1, joinTableNum2, colNum2, realTableNum1, realTableNum2;
+
+    // 1) Create statistics_tables
+
+    // 2) Pass it through filters
+
+    // 3) Copy the initial statistic-tables to join-number of new statistic table to run independent test (all of them will have the initial-values those from the filters-statistics)
+
+    // 4) Run the individual tests.
+
+
+
+    for (i = 0; i < set_count; i++) {
+
+        left_join = -1;
+        right_join = -1;
+
+        for (j = 0; j < query_info->relationId_count; j++) {
+            pow = (int) myPow(2, j);
+            if ((sets[i].set_number & pow) == pow) {
+                if (left_join == -1)
+                    left_join = j;
+                else if (right_join == -1)
+                    right_join = j;
+            }
+        }
+
+        printf("Set[%d]: %d, (%d, %d) - Join #: %d, ", i, sets[i].set_number, left_join, right_join, sets[i].join_order[0]);
+
+        // Gather statistics for every join.
+        sets[i].tableStatistics = copyStatisticsTables(query_info, *statistics_tables, numOfTablesToBeUsed);
+
+        joinTableNum1 = query_info->joins[sets[i].join_order[0]][0];
+        colNum1 = query_info->joins[sets[i].join_order[0]][1];
+        joinTableNum2 = query_info->joins[sets[i].join_order[0]][2];
+        colNum2 = query_info->joins[sets[i].join_order[0]][3];
+
+        realTableNum1 = query_info->relation_IDs[joinTableNum1];
+        realTableNum2 = query_info->relation_IDs[joinTableNum2];
+
+        gatherStatisticsForJoinBetweenDifferentTables(&sets[i].tableStatistics, realTableNum1, realTableNum2, joinTableNum1, joinTableNum2, colNum1, colNum2);
+
+        sets[i].cost_of_join = 0;
+        sets[i].size_of_join_result = sets[i].tableStatistics[joinTableNum1]->column_statistics[colNum1]->f;
+
+        //printPredicatesStatistics(sets[i].tableStatistics, numOfTablesToBeUsed);
+
+        printf("Size of join result: %ju\n", sets[i].size_of_join_result);
+
+        printf("==============================================================\n");
+
+    }
+
+    for (i = 0; i < set_count; i++) {
+
+        freeStatisticsTables(sets[i].tableStatistics, numOfTablesToBeUsed);
+        free(sets[i].join_order);
+    }
+    free(sets);
+
+
+    for (i = 0; i < query_info->relationId_count; i++)
+        free(adjacency_matrix[i]);
+
+    free(adjacency_matrix);
+
 }
