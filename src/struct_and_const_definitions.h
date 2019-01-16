@@ -2,7 +2,6 @@
 #define ADVANCED_DBMS_IMPLEMENTATION_STRUCT_AND_CONST_DEFINITIONS_H
 
 #include <stdint.h>
-#include <bits/types/FILE.h>
 #include <stdbool.h>
 
 #define MAX_BOOL_TABLE_NUM 50000000 // 50 millions

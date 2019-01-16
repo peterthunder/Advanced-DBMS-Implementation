@@ -232,8 +232,10 @@ void handleRelationFilter(Relation **original_relation, Entity **entity, int rel
         /* Get the rowIDs of the relation that satisfy the filter*/
         rowIDs = filterRelation(operator, num_filter, *original_relation, &rowId_count);
 
+#if PRINTING || DEEP_PRINTING
         if (rowId_count == 0)
             fprintf(fp_print, "Zero results returned after filter.\n");
+#endif
 
         /* Fill the intermediate table according to those rowIDs*/
         (*entity)->inter_tables[inter_table_num]->num_of_columns = 1;
