@@ -1,5 +1,19 @@
 #include "test_query_execution.h"
 
+/*
+void check_execute_query()
+{
+    char* query = "3 0 1|0.2=1.0&0.1=2.0&0.2>3499|1.2 0.1";
+
+    long sum1 = 26468015;
+    long sum2 = 32533054;
+
+    Query_Info *qInfo = parse_query(query);
+
+    long* sums = execute_query(qInfo, Table **tables, Relation ****relation_array, FILE *fp);
+}*/
+
+
 
 void check_filter_relation(void)
 {

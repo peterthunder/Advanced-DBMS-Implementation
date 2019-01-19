@@ -13,6 +13,7 @@ compiler:
     - '-Wno-address'
     - '-std=gnu99'
     - '-pedantic'
+    - '-pthread'
   includes:
     prefix: '-I'
     items:

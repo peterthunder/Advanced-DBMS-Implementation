@@ -63,7 +63,7 @@ void check_Psum(void) {
 void check_Partitioned_relation(void) {
 
     int i;
-
+    
     uint32_t numTuples1 = 4;
     uint32_t numTuples2 = 3;
 
@@ -84,15 +84,13 @@ void check_Partitioned_relation(void) {
 
     partition(relation1, &newrelation1, psum1);
     partition(relation2, &newrelation2, psum2);
-
-
+    
     int32_t p_array1[4] = {1, 2, 3, 4};
     int32_t key_array1[4] = {1, 2, 3, 4};
 
     int32_t p_array2[3] = {1, 1, 3};
     int32_t key_array2[3] = {1, 2, 3};
-
-
+    
     /* InitializeFakeRel1 */
     for (i = 0; i < numTuples1; i++) {
         newrelation1FAKE->tuples[i].payload = p_array1[i];
@@ -131,4 +129,5 @@ void check_Partitioned_relation(void) {
     free(newrelation1FAKE);
     free(newrelation2FAKE->tuples);
     free(newrelation2FAKE);
+    
 }

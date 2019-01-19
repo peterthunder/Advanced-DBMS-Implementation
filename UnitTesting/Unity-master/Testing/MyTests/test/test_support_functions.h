@@ -2,7 +2,7 @@
 #define ADVANCED_DBMS_IMPLEMENTATION_TEST_SUPPORT_FUNCTIONS_H
 
 #include "../../../src/unity.h"
-#include "../../../../../src/radixHashJoin.h"
+#include "../../../../../src/statistics_functions.h"
 
 
 void initializeRelations(Relation **relation1, Relation **relation2);
