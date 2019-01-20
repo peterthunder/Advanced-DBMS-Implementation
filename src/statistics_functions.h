@@ -6,23 +6,21 @@
 typedef struct Adjacent_{
     bool is_neighbour;
     int join_number;
-
 }Adjacent;
 
 typedef struct set_{
     int set_id;
-    unsigned int set_number;
+    int set_number;
     int relations_in_set; // number of relations in the set
     int *join_order;
+    int join_order_count;
     uint64_t cost_of_join;
     uint64_t size_of_join_result;
     QueryTableStatistics **tableStatistics;
 }Set;
 
 
-void test2(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed);
-
-
+void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed);
 
 void gatherInitialStatisticsForTable(Table **table);
 

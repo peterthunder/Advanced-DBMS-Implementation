@@ -7,7 +7,7 @@
 #define MAX_BOOL_TABLE_NUM 50000000 // 50 millions
 #define H1_PARAM 3 // Number of bits we keep after the 1st hash function pass in RadixHashJoin
 #define H2_PARAM 251 // The number we use in the 2nd hash function as a mod
-#define JOINED_ROWIDS_NUM ((128 * 1024) / 8) // 1MB: ((1024 * 1024) / 8)
+#define JOINED_ROWIDS_NUM ((128 * 1024) / 8) // 128 KB
 #define TRUE true
 #define FALSE false
 #define EQUAL 0
@@ -16,7 +16,7 @@
 #define WORKLOAD_BASE_PATH  "workloads/small/"
 #define USE_HARNESS TRUE
 #define MULTITHREADING TRUE
-#define SUM_SPLITS 32
+#define SUM_SPLITS 64
 
 int32_t number_of_buckets;
 

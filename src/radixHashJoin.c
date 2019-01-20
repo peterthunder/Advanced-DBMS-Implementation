@@ -112,13 +112,16 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
 #endif
 
     /* The bucket and index array of one of the 2 relation already exists */
+
     if ((*reIR)->is_built == TRUE) {
+
         //printf("   -Relation R already has an index.\n");
         //printf("  -Phase 3: Joining the relations.\n");
         result = joinRelations((*reIR)->paritioned_relation, (*reIS)->paritioned_relation, (*reIR)->psum,
                                (*reIS)->psum, (*reIR)->bucket_index, (*reIR)->chain, TRUE);
 
     } else if ((*reIS)->is_built == TRUE) {
+
         //printf("   -Relation S already has an index.\n");
         //printf("  -Phase 3: Joining the relations.\n");
         result = joinRelations((*reIS)->paritioned_relation, (*reIR)->paritioned_relation, (*reIS)->psum,

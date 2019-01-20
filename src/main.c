@@ -47,7 +47,9 @@ int main(void) {
 
         if (strcmp(query, "F") == 0) {
 
-            fprintf(fp_print, "F - End of Batch\n");
+            //query_count++;
+
+            //fprintf(fp_print, "F - End of Batch\n");
 
             // Print the sums to stdout before going to next batch of queries.
             writeSumsToStdout(sumStruct);
@@ -64,15 +66,15 @@ int main(void) {
 
 
         // DEBUG CODE:
-       /* int queryNum = 50;
-        if (query_count != queryNum)
-            continue;
-        */
+        /*
+         * int queryNum = 53; // 25, 26, 53 have filter joins
+         * if (query_count != queryNum)
+         *   continue;
+         */
 
         query_info = parse_query(query);
 
-        //print_query(query_info, query, query_count);
-
+        // print_query(query_info, query, query_count);
 
 #if PRINTING || DEEP_PRINTING
         fprintf(fp_print, "Original Query:");

@@ -98,17 +98,13 @@ short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int
 
 
     // Gather statistics for Joins
-    gatherStatisticsForJoins(qInfo, &statistics_tables, numOfTablesToBeUsed);
-
-
+    /* gatherStatisticsForJoins(qInfo, &statistics_tables, numOfTablesToBeUsed); */
 
     // Based on the gathered statistics, run  the BestTree() Algorithm to find the best order between Joins
 
-
-
+    //bestTree(*qInfo, &statistics_tables, numOfTablesToBeUsed);
 
     // Change Joins' order inside Query-info so that execute_query() will execute the Joins in their best order.
-
 
 
 #if PRINTING || DEEP_PRINTING
@@ -417,10 +413,6 @@ void setDistinctWithComplexCalculation(uint64_t *receiver_d, uint64_t factor, ui
 void gatherStatisticsForJoins(Query_Info **qInfo, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed) {
     //fprintf(fp_print, "For joins:\n");
 
-
-    /* test2(*qInfo, statistics_tables, numOfTablesToBeUsed);
-    return;*/
-
     int joinTableNum1, colNum1, joinTableNum2, colNum2, realTableNum1, realTableNum2;
 
     for (int i = 0; i < (*qInfo)->join_count; i++) {
@@ -705,7 +697,7 @@ QueryTableStatistics **createStatisticsTables(Query_Info *qInfo, Table **tables,
 
         // Set the "real"-tables' numbers
         statistics_tables[i]->realNumOfTable = qInfo->relation_IDs[i];
-        //printf("table[%d] has real name: %d\n", i, statistics_tables[i]->realNumOfTable);    // DEBUG!
+        //fprintf(fp_print,"table[%d] has real name: %d\n", i, statistics_tables[i]->realNumOfTable);    // DEBUG!
 
         statistics_tables[i]->num_columns = tables[statistics_tables[i]->realNumOfTable]->num_columns;
         statistics_tables[i]->column_statistics = myMalloc(sizeof(ColumnStats *) * statistics_tables[i]->num_columns);
@@ -725,14 +717,16 @@ QueryTableStatistics **createStatisticsTables(Query_Info *qInfo, Table **tables,
 
 
 QueryTableStatistics **copyStatisticsTables(Query_Info *qInfo, QueryTableStatistics **old_statistics_tables, int numOfTablesToBeUsed) {
+
     QueryTableStatistics **statistics_tables = myMalloc(sizeof(QueryTableStatistics *) * numOfTablesToBeUsed);
 
     for (int i = 0; i < numOfTablesToBeUsed; i++) {
+
         statistics_tables[i] = myMalloc(sizeof(QueryTableStatistics));
 
         // Set the "real"-tables' numbers
         statistics_tables[i]->realNumOfTable = old_statistics_tables[i]->realNumOfTable;
-        //printf("table[%d] has real name: %d\n", i, statistics_tables[i]->realNumOfTable);    // DEBUG!
+        //fprintf(fp_print,"table[%d] has real name: %d\n", i, statistics_tables[i]->realNumOfTable);    // DEBUG!
 
         statistics_tables[i]->num_columns = old_statistics_tables[i]->num_columns;
         statistics_tables[i]->column_statistics = myMalloc(sizeof(ColumnStats *) * statistics_tables[i]->num_columns);
@@ -763,12 +757,18 @@ void freeStatisticsTables(QueryTableStatistics **statistics_tables, int numOfTab
 }
 
 
-void test2(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed) {
+void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed) {
+
+    /* There is less than 1 joins, then return the same query_info */
+    if (query_info->join_count <= 1)
+        return;
 
     Adjacent **adjacency_matrix;
-    int left, right;
-    int i, j;
+    int left, right,  i, j;
+    int filter_joins_count = 0, filter_joins_max_count = 2;
+    int *joins_that_are_filters = myMalloc(sizeof(int) * 2);
 
+    /* Create an adjacency matrix and fill it according to the joins */
     adjacency_matrix = myMalloc(sizeof(Adjacent *) * query_info->relationId_count);
     for (i = 0; i < query_info->relationId_count; i++) {
         adjacency_matrix[i] = myMalloc(sizeof(Adjacent) * query_info->relationId_count);
@@ -777,64 +777,89 @@ void test2(Query_Info *query_info, QueryTableStatistics ***statistics_tables, in
         }
     }
 
+    /* For every join, we need to initialize the adjacency matrix */
     for (i = 0; i < query_info->join_count; i++) {
         left = query_info->joins[i][0];
         right = query_info->joins[i][2];
-        adjacency_matrix[left][right].is_neighbour = 1;
-        adjacency_matrix[left][right].join_number = i;
-        adjacency_matrix[right][left].is_neighbour = 1;
-        adjacency_matrix[right][left].join_number = i;
+        /* If the join_number_count is 0, then it is the fist join that fills our matrix*/
+        if (adjacency_matrix[left][right].is_neighbour == 0 &&
+            adjacency_matrix[right][left].is_neighbour == 0) {
+
+            adjacency_matrix[left][right].is_neighbour = 1;
+            adjacency_matrix[left][right].join_number = i;
+            adjacency_matrix[right][left].is_neighbour = 1;
+            adjacency_matrix[right][left].join_number = i;
+        } else {
+            /*Else it is a filter */
+            fprintf(fp_print, "\nJoin: %d is a filter.\n", i);
+            if (filter_joins_count == filter_joins_max_count) {
+                filter_joins_max_count = filter_joins_max_count * 2;
+                joins_that_are_filters = myRealloc(joins_that_are_filters, sizeof(int) * filter_joins_max_count);
+            }
+            joins_that_are_filters[filter_joins_count] = i;
+            filter_joins_count++;
+        }
     }
 
-    printf("\n  ");
+    fprintf(fp_print, "\n  ");
     for (i = 0; i < query_info->relationId_count; i++)
-        printf(" %d ", i);
-    printf("\n");
+        fprintf(fp_print, " %d ", i);
+
+    fprintf(fp_print, "\n");
 
     for (i = 0; i < query_info->relationId_count; i++) {
-        printf("%d |", i);
+        fprintf(fp_print, "%d |", i);
         for (j = 0; j < query_info->relationId_count; j++) {
-            printf("%d| ", adjacency_matrix[i][j].is_neighbour);
+            fprintf(fp_print, "%d| ", adjacency_matrix[i][j].is_neighbour);
         }
-        printf("\n");
+        fprintf(fp_print, "\n");
     }
-    printf("\n");
+    fprintf(fp_print, "\n");
 
     int set_count = 0, k;
     bool is_same;
     unsigned int number = 0;
 
-    Set *sets = myMalloc(query_info->join_count * sizeof(Set));
+    /* Set number is the number of joins minus the number of joins that are filters */
+    int set_number = query_info->join_count - filter_joins_count;
 
+    /* Create an array of sets that will contain the info for every set */
+    Set *sets = myMalloc(set_number * sizeof(Set));
 
-    //sets = myMalloc(q->join_count * sizeof(unsigned int));
-
-    for (i = 0; i < query_info->join_count; i++)
+    for (i = 0; i < set_number; i++) {
         sets[i].set_number = 0;
+        sets[i].join_order_count = 0;
+    }
 
+    /* First, we want to find sets of 2 */
+    /* So for every relation we check to find a neighbour in the adjacency matrix */
     for (i = 0; i < query_info->relationId_count; i++) {
 
         for (j = 0; j < query_info->relationId_count; j++) {
 
+            /* If a relation is adjacent to another, we want to insert a new set in the array of sets */
             if (i != j && adjacency_matrix[i][j].is_neighbour) {
 
                 is_same = FALSE;
-                printf("Join %d: (%d, %d)\n", adjacency_matrix[i][j].join_number, i, j);
+                fprintf(fp_print, "Join %d: (%d, %d)\n", adjacency_matrix[i][j].join_number, i, j);
 
                 number = 0 | (unsigned int) myPow(2, i);
                 number = number | (unsigned int) myPow(2, j);
 
+                /* If there are no other sets, then we "insert" it in the array */
                 if (set_count == 0) {
-
                     sets[set_count].set_number = number;
                     sets[set_count].join_order = myMalloc(sizeof(int) * query_info->join_count);
-                    sets[set_count].join_order[0] = adjacency_matrix[i][j].join_number;
+                    sets[set_count].join_order[sets[set_count].join_order_count] = adjacency_matrix[i][j].join_number;
+                    sets[set_count].relations_in_set = 2;
+                    sets[set_count].join_order_count++;
                     set_count++;
                 } else {
 
+                    /* Otherwise we need to check so that the set doesn't already exist in our sets */
                     for (k = 0; k < set_count; k++) {
-
-                        if (sets[k].set_number == number) {
+                        /* We check that the set_number is different and the join number is different */
+                        if (((sets[k].set_number >> j) & 1)) {
                             is_same = TRUE;
                             break;
                         }
@@ -844,7 +869,10 @@ void test2(Query_Info *query_info, QueryTableStatistics ***statistics_tables, in
 
                     sets[set_count].set_number = number;
                     sets[set_count].join_order = myMalloc(sizeof(int) * query_info->join_count);
-                    sets[set_count].join_order[0] = adjacency_matrix[i][j].join_number;
+                    sets[set_count].join_order[sets[set_count].join_order_count] = adjacency_matrix[i][j].join_number;
+                    sets[set_count].relations_in_set = 2;
+                    sets[set_count].join_order_count++;
+                    //sets[i].join_order_count++;
                     set_count++;
 
                 }
@@ -852,21 +880,12 @@ void test2(Query_Info *query_info, QueryTableStatistics ***statistics_tables, in
         }
     }
 
-    printf("\n");
+    fprintf(fp_print, "\n");
 
     int pow, left_join, right_join;
     int joinTableNum1, colNum1, joinTableNum2, colNum2, realTableNum1, realTableNum2;
 
-    // 1) Create statistics_tables
-
-    // 2) Pass it through filters
-
-    // 3) Copy the initial statistic-tables to join-number of new statistic table to run independent test (all of them will have the initial-values those from the filters-statistics)
-
-    // 4) Run the individual tests.
-
-
-
+    /* After we find all the sets of 2, we want to join the relations in our sets to get the statistics */
     for (i = 0; i < set_count; i++) {
 
         left_join = -1;
@@ -882,7 +901,7 @@ void test2(Query_Info *query_info, QueryTableStatistics ***statistics_tables, in
             }
         }
 
-        printf("Set[%d]: %d, (%d, %d) - Join #: %d, ", i, sets[i].set_number, left_join, right_join, sets[i].join_order[0]);
+        fprintf(fp_print, "Set[%d]: %d, (%d, %d) - Join #: %d, ", i, sets[i].set_number, left_join, right_join, sets[i].join_order[0]);
 
         // Gather statistics for every join.
         sets[i].tableStatistics = copyStatisticsTables(query_info, *statistics_tables, numOfTablesToBeUsed);
@@ -902,11 +921,195 @@ void test2(Query_Info *query_info, QueryTableStatistics ***statistics_tables, in
 
         //printPredicatesStatistics(sets[i].tableStatistics, numOfTablesToBeUsed);
 
-        printf("Size of join result: %ju\n", sets[i].size_of_join_result);
+        fprintf(fp_print, "Size of join result: %ju\n", sets[i].size_of_join_result);
 
-        printf("==============================================================\n");
+        fprintf(fp_print, "==============================================================\n");
 
     }
+
+    int index = 0, l, m;
+    int relation_id_starting_number = 2, *relation_ids_in_set;
+    int new_set_count, new_set_max_count;
+    Set *new_sets;
+    //sets[2].size_of_join_result = 500; // DEBUGGING
+
+    /* Next, we need to find sets of 3, 4, etc... */
+    for (;;) {
+
+        relation_ids_in_set = myMalloc(sizeof(int) * relation_id_starting_number);
+
+        /* Create an array of new sets that will contain the info for every new set */
+        new_set_count = 0;
+        new_set_max_count = 2;
+        new_sets = myMalloc(sizeof(Set) * new_set_max_count);
+        /* To do that, we want to check the neighbours of the relations in our sets */
+        for (i = 0; i < set_count; i++) {
+
+            /* So we create an array with the relation ids that exist in our set */
+            for (j = 0; j < query_info->relationId_count; j++) {
+
+                if (sets[i].set_number & (1 << j)) {
+                    relation_ids_in_set[index] = j;
+                    index++;
+                }
+            }
+
+            /* Then we need to find neighbours of the relations in our set */
+            for (k = 0; k < index; k++) {
+
+                /* So for every relation */
+                for (j = 0; j < query_info->relationId_count; j++) {
+
+                    is_same = FALSE;
+
+                    /* We check that it doesn't exist in our set already and that it is adjacent of the current relation */
+                    if (!((sets[i].set_number >> j) & 1) && adjacency_matrix[relation_ids_in_set[k]][j].is_neighbour) {
+
+                        // Kai an den yparxei hdh sto current set, tote ftia3e ena kainoyrgio set me (relations_in_set + 1) ari8mo relations
+                        // Prepei na psa3eis na mhn yparxei se ola ta joins mesa sto join order, oxi mono to prwto(gia na leitoyrgei dynamika)
+                        // h tsekare me bash ton ari8mo, bitwise (https://stackoverflow.com/questions/523724/c-c-check-if-one-bit-is-set-in-i-e-int-variable)
+
+                        /*
+                         * sets[i].set_number & (1 << j)  will return the bit position or 0 depending on if the bit is actually enabled
+                         * ((sets[i].set_number >> j) & 1)  will return either a 1 or 0 if the bit is enabled and not the position
+                         */
+
+                        fprintf(fp_print, "Join %d", sets[i].join_order[0]);
+                        fprintf(fp_print, " -> Join %d\n", adjacency_matrix[relation_ids_in_set[k]][j].join_number);
+                        fprintf(fp_print, "(%d, %d)", query_info->joins[sets[i].join_order[0]][0], query_info->joins[sets[i].join_order[0]][2]);
+                        fprintf(fp_print, ", %d\n", j);
+                        // new_sets[new_set_count].join_order_count;
+
+                        /* If it is only the first set, then just insert */
+                        if (new_set_count == 0) {
+
+                            new_sets[new_set_count].set_number = sets[i].set_number | (1 << j);
+
+                            new_sets[new_set_count].join_order = myMalloc(sizeof(int) * query_info->join_count);
+                            for (m = 0; m < sets[i].join_order_count; m++)
+                                new_sets[new_set_count].join_order[m] = sets[i].join_order[m];
+
+                            new_sets[new_set_count].join_order[m] = adjacency_matrix[relation_ids_in_set[k]][j].join_number;
+                            new_sets[new_set_count].join_order_count = sets[i].join_order_count + 1;
+                            new_sets[new_set_count].relations_in_set = sets[i].relations_in_set + 1;
+                            new_sets[new_set_count].cost_of_join = sets[i].cost_of_join + sets[i].size_of_join_result;
+
+                            new_sets[new_set_count].tableStatistics = copyStatisticsTables(query_info, sets[i].tableStatistics, numOfTablesToBeUsed);
+
+                            new_set_count++;
+
+                            continue;
+                        }
+
+                        for (l = 0; l < new_set_count; l++) {
+
+                            //fprintf(fp_print,"L is %d.\n", l);
+
+                            //fprintf(fp_print,"Number1: %d, number2: %d\n", new_sets[l].set_number, sets[i].set_number);
+
+                            if (new_sets[l].set_number == (sets[i].set_number | (1 << j))) {
+                                fprintf(fp_print, "Same number.\n");
+                                is_same = TRUE;
+                                break;
+                            }
+                        }
+                        if (is_same) {
+                            if (sets[i].cost_of_join + sets[i].size_of_join_result > new_sets[l].cost_of_join) {
+                                //fprintf(fp_print,"Old cost_of_join: %ju\n", new_sets[l].cost_of_join);
+                                //fprintf(fp_print,"New cost_of_join: %ju\n", sets[i].cost_of_join + sets[i].size_of_join_result);
+                                continue;
+                            } else {
+                                fprintf(fp_print, "New set is better!\n");
+
+                                new_sets[l].set_number = sets[i].set_number | (1 << j);
+
+                                for (m = 0; m < sets[i].join_order_count; m++)
+                                    new_sets[l].join_order[m] = sets[i].join_order[m];
+
+                                new_sets[l].join_order[m] = adjacency_matrix[relation_ids_in_set[k]][j].join_number;
+                                new_sets[l].join_order_count = sets[i].join_order_count + 1;
+                                new_sets[l].relations_in_set = sets[i].relations_in_set + 1;
+                                new_sets[l].cost_of_join = sets[i].cost_of_join + sets[i].size_of_join_result;
+
+                                freeStatisticsTables(new_sets[l].tableStatistics, numOfTablesToBeUsed);
+                                new_sets[l].tableStatistics = copyStatisticsTables(query_info, sets[i].tableStatistics, numOfTablesToBeUsed);
+
+                                continue;
+                            }
+
+                        }
+                        if (new_set_count == new_set_max_count) {
+                            new_set_max_count *= 2;
+                            new_sets = myRealloc(new_sets, sizeof(Set) * new_set_max_count);
+                        }
+
+                        new_sets[new_set_count].set_number = sets[i].set_number | (1 << j);
+
+                        new_sets[new_set_count].join_order = myMalloc(sizeof(int) * query_info->join_count);
+                        for (m = 0; m < sets[i].join_order_count; m++)
+                            new_sets[new_set_count].join_order[m] = sets[i].join_order[m];
+
+                        new_sets[new_set_count].join_order[m] = adjacency_matrix[relation_ids_in_set[k]][j].join_number;
+                        new_sets[new_set_count].join_order_count = sets[i].join_order_count + 1;
+                        new_sets[new_set_count].relations_in_set = sets[i].relations_in_set + 1;
+                        new_sets[new_set_count].cost_of_join = sets[i].cost_of_join + sets[i].size_of_join_result;
+
+                        new_sets[new_set_count].tableStatistics = copyStatisticsTables(query_info, sets[i].tableStatistics, numOfTablesToBeUsed);
+
+                        new_set_count++;
+
+
+                    }
+
+                }
+            }
+
+            index = 0;
+
+        }
+
+        for (i = 0; i < set_count; i++) {
+            freeStatisticsTables(sets[i].tableStatistics, numOfTablesToBeUsed);
+            free(sets[i].join_order);
+        }
+        free(sets);
+        sets = new_sets;
+        set_count = new_set_count;
+        new_sets = NULL;
+        relation_id_starting_number++;
+        free(relation_ids_in_set);
+
+        int dummy_int = 0;
+        for (i = 0; i < set_count; i++) {
+
+            dummy_int = 0;
+
+            fprintf(fp_print, "Set %d - Relations in set: %d and set: (", i, sets[i].relations_in_set);
+            for (j = 0; j < query_info->relationId_count; j++) {
+
+                if (sets[i].set_number & (1 << j)) {
+                    fprintf(fp_print, "%d", j);
+                    dummy_int++;
+                    if (dummy_int != sets[i].relations_in_set)
+                        fprintf(fp_print, ", ");
+                }
+
+            }
+            fprintf(fp_print, ")\n");
+
+            fprintf(fp_print, " Best cost until now: %ju\n", sets[i].cost_of_join);
+
+            for (j = 0; j < sets[i].join_order_count; j++)
+                fprintf(fp_print, " Join %d", sets[i].join_order[j]);
+
+            fprintf(fp_print, "\n");
+
+        }
+
+        break;
+    }
+
+    free(joins_that_are_filters);
 
     for (i = 0; i < set_count; i++) {
 
