@@ -39,8 +39,7 @@ long *execute_query(Query_Info *query_info, Table **tables, Relation ****relatio
         column_num1 = query_info->joins[i][1];
 
         if ((*relation_array)[table_num1][column_num1] == NULL) {
-            (*relation_array)[table_num1][column_num1] = allocateRelation((uint32_t) tables[table_num1]->num_tuples,
-                                                                          TRUE);
+            (*relation_array)[table_num1][column_num1] = allocateRelation((uint32_t) tables[table_num1]->num_tuples, TRUE);
             initializeRelation(&(*relation_array)[table_num1][column_num1], tables, table_num1, column_num1);
         }
 

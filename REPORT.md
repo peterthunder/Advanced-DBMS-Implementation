@@ -21,9 +21,10 @@ The project was split in three phases:<br/>
 3) In the third phase, we implemented multi-threaded-execution. We also gathered statistics for each table we loaded as well as for each query we were about to execute. We used these statistics to optimize the query-execution by re-ordering the joins, thus reducing the amount of intermediate table results that are created while joining the tables.<br/>
 
 
-#### Extra optimizations we applied in the third part
-In the third part of the project we were tasked with carrying out extra optimizations to reduce the query-execution-time.<br/>
-We implemented the following:<br/>
+## Extra optimizations we applied in the third phase
+In the third part of the project we worked on extra optimizations to reduce the query-execution-time.<br/>
+Those optimization where not inside the project guidelines.<br/>
+We implemented the following extra optimizations:<br/>
 1) Multi-threaded SUM-calculation.<br/>
 2) Blocking the execution of individual queries which are guaranteed to produce zero-results. During statistics-gathering, when a filter of a query is guaranteed to produce zero-results, all other predicates will produce zero-results too, because the query is a connected-graph.<br/>
 3) Remove duplicate joins inside the queries.<br/>
@@ -52,12 +53,22 @@ The statistics, calculated for the numeric-data of each column of each table, ar
 We use these statistics later when we want to re-order the joins of a query to achieve faster query-execution.<br/>
 
 ### Process query
-For each query we receive, we parse....
+#### Parsing
+For each query we receive, we parse it to extract its members (**FROM** - **WHERE** - **SELECT**) and save this information in a query-structure. The query members are those are:
+1. The "**RelationIDs**" which are the names of the tables which participate in the query along with their aliases.<br/>
+2. The "**Predicates**" which contain the filters and the joins based on which the results will be calculated.<br/>
+3. The "**Selections**" containing the type of results that are asked. These results are the SUMs of of the values which (values) coming from the tables which participate in the query.<br/>
+<br/>
+#### Statistics & Best Tree Join-order
+After the parsing, we gather statistics for the predicates in order to predict the best order in which the joins will be executed.<br/>
+In order to achieve the best Join-order, we first gather the statistics for the filters and then we gather statistics for different Join-combinations and apply the one which is predicted to produce the least amount or intermediate results.<br/>
+The new Join-order gets saved in the query-structure.<br/>
+<br/>
+#### Execution and results
+Then, we execute the query by firstly executing the filters and creating intermediate tables to store the results produced by them.<br/>
+Afterwards, we execute the joins in the order they exist in the query-structure (which order will be the best since it will have change as a result of the **Best-Tree** optimization).<br/>
+In the end, we will have the produced results in the final intermediate tables. Those results will then get SUM-med depending on the given query-selections and those SUMs will be returned.<br/>
+<br/>
 
-
-
-#### Experiments we did.... (H1, H2, MULTI-THREADING, JOINED_ROW-IDS_NUM)
+### Experiments we did.... (H1, H2, MULTI-THREADING, JOINED_ROW-IDS_NUM)
 When experimented with the H1 hash-parameter, we found that by assigning it to 3 we get the best execution-time.<br/>
-
-
-
