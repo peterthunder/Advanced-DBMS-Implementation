@@ -102,7 +102,12 @@ short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int
 
     // Based on the gathered statistics, run  the BestTree() Algorithm to find the best order between Joins
 
-    //bestTree(*qInfo, &statistics_tables, numOfTablesToBeUsed);
+    Query_Info *query_info_with_reordered_joins;
+
+    query_info_with_reordered_joins = bestTree(*qInfo, &statistics_tables, numOfTablesToBeUsed);
+
+    if (query_info_with_reordered_joins != NULL)
+        *qInfo = query_info_with_reordered_joins;
 
     // Change Joins' order inside Query-info so that execute_query() will execute the Joins in their best order.
 
@@ -757,14 +762,14 @@ void freeStatisticsTables(QueryTableStatistics **statistics_tables, int numOfTab
 }
 
 
-void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed) {
+Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed) {
 
     /* There is less than 1 joins, then return the same query_info */
     if (query_info->join_count <= 1)
-        return;
+        return NULL;
 
     Adjacent **adjacency_matrix;
-    int left, right,  i, j;
+    int left, right, i, j;
     int filter_joins_count = 0, filter_joins_max_count = 2;
     int *joins_that_are_filters = myMalloc(sizeof(int) * 2);
 
@@ -791,7 +796,7 @@ void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables,
             adjacency_matrix[right][left].join_number = i;
         } else {
             /*Else it is a filter */
-            fprintf(fp_print, "\nJoin: %d is a filter.\n", i);
+            // fprintf(fp_print, "\nJoin: %d is a filter.\n", i);
             if (filter_joins_count == filter_joins_max_count) {
                 filter_joins_max_count = filter_joins_max_count * 2;
                 joins_that_are_filters = myRealloc(joins_that_are_filters, sizeof(int) * filter_joins_max_count);
@@ -801,20 +806,22 @@ void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables,
         }
     }
 
-    fprintf(fp_print, "\n  ");
-    for (i = 0; i < query_info->relationId_count; i++)
-        fprintf(fp_print, " %d ", i);
+    // fprintf(fp_print, "\n  ");
+    for (i = 0; i < query_info->relationId_count; i++){
 
-    fprintf(fp_print, "\n");
+        // fprintf(fp_print, " %d ", i);
+    }
+
+    // fprintf(fp_print, "\n");
 
     for (i = 0; i < query_info->relationId_count; i++) {
-        fprintf(fp_print, "%d |", i);
+        //fprintf(fp_print, "%d |", i);
         for (j = 0; j < query_info->relationId_count; j++) {
-            fprintf(fp_print, "%d| ", adjacency_matrix[i][j].is_neighbour);
+            //fprintf(fp_print, "%d| ", adjacency_matrix[i][j].is_neighbour);
         }
-        fprintf(fp_print, "\n");
+        //fprintf(fp_print, "\n");
     }
-    fprintf(fp_print, "\n");
+    //fprintf(fp_print, "\n");
 
     int set_count = 0, k;
     bool is_same;
@@ -841,7 +848,7 @@ void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables,
             if (i != j && adjacency_matrix[i][j].is_neighbour) {
 
                 is_same = FALSE;
-                fprintf(fp_print, "Join %d: (%d, %d)\n", adjacency_matrix[i][j].join_number, i, j);
+                // fprintf(fp_print, "Join %d: (%d, %d)\n", adjacency_matrix[i][j].join_number, i, j);
 
                 number = 0 | (unsigned int) myPow(2, i);
                 number = number | (unsigned int) myPow(2, j);
@@ -880,7 +887,7 @@ void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables,
         }
     }
 
-    fprintf(fp_print, "\n");
+    //fprintf(fp_print, "\n");
 
     int pow, left_join, right_join;
     int joinTableNum1, colNum1, joinTableNum2, colNum2, realTableNum1, realTableNum2;
@@ -901,7 +908,7 @@ void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables,
             }
         }
 
-        fprintf(fp_print, "Set[%d]: %d, (%d, %d) - Join #: %d, ", i, sets[i].set_number, left_join, right_join, sets[i].join_order[0]);
+        // fprintf(fp_print, "Set[%d]: %d, (%d, %d) - Join #: %d, ", i, sets[i].set_number, left_join, right_join, sets[i].join_order[0]);
 
         // Gather statistics for every join.
         sets[i].tableStatistics = copyStatisticsTables(query_info, *statistics_tables, numOfTablesToBeUsed);
@@ -919,13 +926,14 @@ void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables,
         sets[i].cost_of_join = 0;
         sets[i].size_of_join_result = sets[i].tableStatistics[joinTableNum1]->column_statistics[colNum1]->f;
 
-        //printPredicatesStatistics(sets[i].tableStatistics, numOfTablesToBeUsed);
+        // printPredicatesStatistics(sets[i].tableStatistics, numOfTablesToBeUsed);
 
-        fprintf(fp_print, "Size of join result: %ju\n", sets[i].size_of_join_result);
+        // fprintf(fp_print, "Size of join result: %ju\n", sets[i].size_of_join_result);
 
-        fprintf(fp_print, "==============================================================\n");
+        // fprintf(fp_print, "==============================================================\n");
 
     }
+
 
     int index = 0, l, m;
     int relation_id_starting_number = 2, *relation_ids_in_set;
@@ -935,6 +943,8 @@ void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables,
 
     /* Next, we need to find sets of 3, 4, etc... */
     for (;;) {
+
+        break;
 
         relation_ids_in_set = myMalloc(sizeof(int) * relation_id_starting_number);
 
@@ -1109,7 +1119,52 @@ void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables,
         break;
     }
 
-    free(joins_that_are_filters);
+    int best_set;
+
+    best_set = 0;
+    for (i = 1; i < set_count; i++) {
+        if (sets[i].cost_of_join + sets[i].size_of_join_result < sets[best_set].cost_of_join + sets[best_set].size_of_join_result) {
+            best_set = i;
+        }
+    }
+
+    int current_join = 0;
+    int **reordered_joins = myMalloc(sizeof(int *) * query_info->join_count);
+
+    for (i = 0; i < query_info->join_count; i++)
+        reordered_joins[i] = myMalloc(sizeof(int) * 4);
+
+    reordered_joins[current_join][0] = query_info->joins[sets[best_set].join_order[0]][0];
+    reordered_joins[current_join][1] = query_info->joins[sets[best_set].join_order[0]][1];
+    reordered_joins[current_join][2] = query_info->joins[sets[best_set].join_order[0]][2];
+    reordered_joins[current_join][3] = query_info->joins[sets[best_set].join_order[0]][3];
+    current_join++;
+
+    for (i = 0; i < set_count; i++) {
+        if (i != best_set) {
+            reordered_joins[current_join][0] = query_info->joins[sets[i].join_order[0]][0];
+            reordered_joins[current_join][1] = query_info->joins[sets[i].join_order[0]][1];
+            reordered_joins[current_join][2] = query_info->joins[sets[i].join_order[0]][2];
+            reordered_joins[current_join][3] = query_info->joins[sets[i].join_order[0]][3];
+            current_join++;
+        }
+    }
+
+    for (i = 0; i < filter_joins_count; i++) {
+        reordered_joins[current_join][0] = query_info->joins[joins_that_are_filters[i]][0];
+        reordered_joins[current_join][1] = query_info->joins[joins_that_are_filters[i]][1];
+        reordered_joins[current_join][2] = query_info->joins[joins_that_are_filters[i]][2];
+        reordered_joins[current_join][3] = query_info->joins[joins_that_are_filters[i]][3];
+    }
+
+
+    for (i = 0; i < query_info->join_count; i++)
+        free(query_info->joins[i]);
+    free(query_info->joins);
+
+    query_info->joins = reordered_joins;
+
+    //print_query(query_info, "0 13 7 10|0.0=1.2&0.0=2.1&0.0=3.2&1.2>295|3.2 0.0", 40);
 
     for (i = 0; i < set_count; i++) {
 
@@ -1117,11 +1172,14 @@ void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables,
         free(sets[i].join_order);
     }
     free(sets);
+    free(joins_that_are_filters);
 
 
     for (i = 0; i < query_info->relationId_count; i++)
         free(adjacency_matrix[i]);
 
     free(adjacency_matrix);
+
+    return query_info;
 
 }

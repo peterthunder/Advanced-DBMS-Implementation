@@ -20,7 +20,7 @@ typedef struct set_{
 }Set;
 
 
-void bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed);
+Query_Info * bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed);
 
 void gatherInitialStatisticsForTable(Table **table);
 
