@@ -2,11 +2,9 @@
 #define ADVANCED_DBMS_IMPLEMENTATION_SUPPORTFUNCTIONS_H
 
 #include <stdio.h>
-#include <stdint.h>
 #include <malloc.h>
 #include <stdlib.h>
 #include <time.h>
-#include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 #include <errno.h>

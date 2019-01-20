@@ -74,8 +74,7 @@ order of the joins is different, meaning the cost of joins is different and the 
 
 After finding the best set/best order of joins, the program reorders the joins in the query_info accordingly and it passes it to the function that is going to execute the query.
 
-
-### Execution and results
+#### Execution and results
 After re-ordering the joins (if needed), we execute the query. The filters are executed first and after their execution one or more (if there are more than one filters) intermediate tables get created to store the results (row ids) produced by the filters.<br/>
 Afterwards, we execute the joins one-by-one (their order will be the best since it will be changed after the **Best-Tree** optimization). <br/>
 
@@ -94,4 +93,3 @@ H2_PARAM: We chose the value 251 as the h2 value, even though it doesn't make a 
 Multithreading: For the "parallel" relation histogram creation, relation partition and join of relations, we use number of threads equal to the number of buckets, which means 8 (2 ^ H1_PARAM). But for the parallel SUM calculation, 
 after some experiments, we found out that splitting the sums at 32 or 64 parts is a better number than just splitting it at 8 parts (number of threads). The time of the SUM execution was improved significantly from ~0.55 to ~0.30 (45%).<br/><br/>
 JOINED_ROW-IDS_NUM: The size of every result was changed from 1MB to 128KB after adding multithreading because each thread had its own results, were as in the past all the results of the join were written in one result struct.
-

@@ -220,7 +220,7 @@ void thread_partition(Partition_struct **partition_struct) {
 /* Partition Relation */
 void partition(Relation *relation, Relation **relationNew, int32_t **psum) {
 
-    int i = 0, j = 0, partition_struct_created = FALSE, jobs_added_to_queue = 0;
+    int i = 0, j = 0, jobs_added_to_queue = 0;
     unsigned int indexOfNewR = 0;
     int32_t currHashAppearances = 0, currHashCounter = 0;
     Partition_struct **partition_struct = NULL;
