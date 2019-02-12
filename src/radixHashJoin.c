@@ -1,9 +1,10 @@
 #include "radixHashJoin.h"
 
 void testRHJ() {
-    // n  = cache size / maxsizeofbucket;
 
     int cache_size = 6 * (1024 * 1024); // Cache size is 6mb
+    // n  = cache size / maxsizeofbucket;
+    
     Result *result;
     int i;
     /* H1_PARAM is the number of the last-n bits of the 32-bit number we wanna keep */
@@ -26,9 +27,6 @@ void testRHJ() {
     /* Do Radix Hash Join on the conjunction of the relations */
     result = RadixHashJoin(&relations[0], &relations[1]);
     printResults(result);
-#if PRINTING
-
-#endif
 
     threadpool_destroy(threadpool);
 
@@ -48,12 +46,12 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
     int i;
 
     //printf("\n# Running RadixHashJoin on Relations R and S.\n");
-#if PRINTING
+#if PRINTING || DEEP_PRINTING
     clock_t start_t, end_t, total_t;
     start_t = clock();
 #endif
 
-/*    *//* Certain values to create chains *//*
+/*    //	Certain values to create chains *//*
     (*reIR)->tuples[(*reIR)->num_tuples - 2].payload = 929;
     (*reIR)->tuples[(*reIR)->num_tuples - 3].payload = 828;
     (*reIS)->tuples[(*reIS)->num_tuples - 1].payload = 929;
@@ -106,7 +104,7 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
         //printf("   -Relation S is already partitioned.\n");
     }
 
-#if PRINTING
+#if PRINTING || DEEP_PRINTING
     printAllForPartition(4, (*reIR), (*reIS), histogramR, histogramS, (*reIR)->psum, (*reIR)->psum, (*reIR)->paritioned_relation, (*reIS)->paritioned_relation);
     printf("\n\n");
 #endif
@@ -160,7 +158,7 @@ Result *RadixHashJoin(Relation **reIR, Relation **reIS) {
     }
 
 
-#if PRINTING
+#if PRINTING || DEEP_PRINTING
     end_t = clock();
     total_t = (clock_t) ((double) (end_t - start_t) / CLOCKS_PER_SEC);
     printf("  -Total time taken by CPU for RadixHashJoin: %f seconds.\n", (double) total_t);

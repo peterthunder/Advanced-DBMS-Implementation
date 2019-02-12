@@ -695,6 +695,7 @@ setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***statistics
  * @return
  */
 QueryTableStatistics **createStatisticsTables(Query_Info *qInfo, Table **tables, int numOfTablesToBeUsed) {
+	
     QueryTableStatistics **statistics_tables = myMalloc(sizeof(QueryTableStatistics *) * numOfTablesToBeUsed);
 
     for (int i = 0; i < numOfTablesToBeUsed; i++) {
@@ -721,8 +722,8 @@ QueryTableStatistics **createStatisticsTables(Query_Info *qInfo, Table **tables,
 }
 
 
-QueryTableStatistics **copyStatisticsTables(Query_Info *qInfo, QueryTableStatistics **old_statistics_tables, int numOfTablesToBeUsed) {
-
+QueryTableStatistics **copyStatisticsTables(QueryTableStatistics **old_statistics_tables, int numOfTablesToBeUsed)
+{
     QueryTableStatistics **statistics_tables = myMalloc(sizeof(QueryTableStatistics *) * numOfTablesToBeUsed);
 
     for (int i = 0; i < numOfTablesToBeUsed; i++) {
@@ -751,6 +752,7 @@ QueryTableStatistics **copyStatisticsTables(Query_Info *qInfo, QueryTableStatist
 
 
 void freeStatisticsTables(QueryTableStatistics **statistics_tables, int numOfTablesToBeUsed) {
+	
     for (int i = 0; i < numOfTablesToBeUsed; i++) {
         for (int j = 0; j < statistics_tables[i]->num_columns; j++) {
             free(statistics_tables[i]->column_statistics[j]);
@@ -881,7 +883,6 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
                     sets[set_count].join_order_count++;
                     //sets[i].join_order_count++;
                     set_count++;
-
                 }
             }
         }
@@ -911,7 +912,7 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
         // fprintf(fp_print, "Set[%d]: %d, (%d, %d) - Join #: %d, ", i, sets[i].set_number, left_join, right_join, sets[i].join_order[0]);
 
         // Gather statistics for every join.
-        sets[i].tableStatistics = copyStatisticsTables(query_info, *statistics_tables, numOfTablesToBeUsed);
+        sets[i].tableStatistics = copyStatisticsTables(*statistics_tables, numOfTablesToBeUsed);
 
         joinTableNum1 = query_info->joins[sets[i].join_order[0]][0];
         colNum1 = query_info->joins[sets[i].join_order[0]][1];
@@ -931,7 +932,6 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
         // fprintf(fp_print, "Size of join result: %ju\n", sets[i].size_of_join_result);
 
         // fprintf(fp_print, "==============================================================\n");
-
     }
 
 
@@ -1004,7 +1004,7 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
                             new_sets[new_set_count].relations_in_set = sets[i].relations_in_set + 1;
                             new_sets[new_set_count].cost_of_join = sets[i].cost_of_join + sets[i].size_of_join_result;
 
-                            new_sets[new_set_count].tableStatistics = copyStatisticsTables(query_info, sets[i].tableStatistics, numOfTablesToBeUsed);
+                            new_sets[new_set_count].tableStatistics = copyStatisticsTables(sets[i].tableStatistics, numOfTablesToBeUsed);
 
                             new_set_count++;
 
@@ -1042,7 +1042,7 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
                                 new_sets[l].cost_of_join = sets[i].cost_of_join + sets[i].size_of_join_result;
 
                                 freeStatisticsTables(new_sets[l].tableStatistics, numOfTablesToBeUsed);
-                                new_sets[l].tableStatistics = copyStatisticsTables(query_info, sets[i].tableStatistics, numOfTablesToBeUsed);
+                                new_sets[l].tableStatistics = copyStatisticsTables(sets[i].tableStatistics, numOfTablesToBeUsed);
 
                                 continue;
                             }
@@ -1064,18 +1064,15 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
                         new_sets[new_set_count].relations_in_set = sets[i].relations_in_set + 1;
                         new_sets[new_set_count].cost_of_join = sets[i].cost_of_join + sets[i].size_of_join_result;
 
-                        new_sets[new_set_count].tableStatistics = copyStatisticsTables(query_info, sets[i].tableStatistics, numOfTablesToBeUsed);
+                        new_sets[new_set_count].tableStatistics = copyStatisticsTables(sets[i].tableStatistics, numOfTablesToBeUsed);
 
                         new_set_count++;
-
-
                     }
 
                 }
             }
 
             index = 0;
-
         }
 
         for (i = 0; i < set_count; i++) {
@@ -1103,7 +1100,6 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
                     if (dummy_int != sets[i].relations_in_set)
                         fprintf(fp_print, ", ");
                 }
-
             }
             fprintf(fp_print, ")\n");
 
@@ -1181,5 +1177,4 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
     free(adjacency_matrix);
 
     return query_info;
-
 }
