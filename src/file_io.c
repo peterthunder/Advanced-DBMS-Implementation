@@ -13,7 +13,8 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     char table_path[1024];
     struct timeval start;
 
-    char **table_names = getTableNames(num_of_tables, &table_names_array_size);
+    char **table_names;
+    table_names = getTableNames(num_of_tables, &table_names_array_size);
 
     if (USE_HARNESS == FALSE) {
         if (fclose(fp_read_tables) == EOF) {   // Otherwise, on HARNESS this will be the stdin.
@@ -35,7 +36,6 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
     for (i = 0; i < (*num_of_tables); i++)
         (*mapped_tables_sizes)[i] = -1;
 
-    /* Read the names of the tables line by line */
     for (i = 0; i < *num_of_tables; i++) {
 
         /* Create the path of the mapped_tables */
@@ -107,14 +107,15 @@ Table **read_tables(int *num_of_tables, uint64_t ***mapped_tables, int **mapped_
 
 
 char **getTableNames(int *num_of_tables, int *table_names_array_size) {
+
     int i;
     size_t size;
     char *table_name = NULL;
 
     char **table_names = myMalloc(sizeof(char *) * 2);
-    for (i = 0; i < 2; i++) {
+    for (i = 0; i < 2; i++)
         table_names[i] = myMalloc(sizeof(char) * 1024);
-    }
+
 
     /* Init */
     *num_of_tables = 0;
@@ -134,7 +135,7 @@ char **getTableNames(int *num_of_tables, int *table_names_array_size) {
         (*num_of_tables)++;
 
         if ((*table_names_array_size) == *num_of_tables) {
-            (*table_names_array_size) <<= 1; // fast-multiply by 2
+            (*table_names_array_size) <<= 1; // super duper fast-multiply by 2
             table_names = myRealloc(table_names, (size_t) (*table_names_array_size) * sizeof(char *));
             for (i = *num_of_tables; i < (*table_names_array_size); i++) {
                 table_names[i] = myMalloc(sizeof(char) * 1024);
@@ -158,7 +159,9 @@ void initializeTable(Table **table, uint64_t *mapped_table) {
     (*table)->column_statistics = myMalloc(sizeof(ColumnStats *) * (*table)->num_columns);
 
     for (int j = 0; j < (*table)->num_columns; j++) {
+
         (*table)->column_indexes[j] = &mapped_table[2 + j * (*table)->num_tuples];
+
         (*table)->column_statistics[j] = myMalloc(sizeof(ColumnStats));
         (*table)->column_statistics[j]->l = 999999;    // Set it to ~1 million, to make sure it will be decreased later.
         (*table)->column_statistics[j]->u = 0;

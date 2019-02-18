@@ -96,7 +96,6 @@ short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int
     //fprintf(fp_print, "For filters:\n");
     //printPredicatesStatistics(statistics_tables, numOfTablesToBeUsed);     // DEBUG!
 
-
     // Gather statistics for Joins
     /* gatherStatisticsForJoins(qInfo, &statistics_tables, numOfTablesToBeUsed); */
 
@@ -110,7 +109,6 @@ short gatherPredicatesStatisticsForQuery(Query_Info **qInfo, Table **tables, int
         *qInfo = query_info_with_reordered_joins;
 
     // Change Joins' order inside Query-info so that execute_query() will execute the Joins in their best order.
-
 
 #if PRINTING || DEEP_PRINTING
     if ( USE_HARNESS == FALSE ) {
@@ -764,8 +762,8 @@ void freeStatisticsTables(QueryTableStatistics **statistics_tables, int numOfTab
 
 Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_tables, int numOfTablesToBeUsed) {
 
-    /* There is less than 1 joins, then return the same query_info */
-    if (query_info->join_count <= 1)
+    /* There is less than 2 joins, then return the same query_info */
+    if (query_info->join_count < 2)
         return NULL;
 
     Adjacent **adjacency_matrix;
@@ -862,7 +860,6 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
                     sets[set_count].join_order_count++;
                     set_count++;
                 } else {
-
                     /* Otherwise we need to check so that the set doesn't already exist in our sets */
                     for (k = 0; k < set_count; k++) {
                         /* We check that the set_number is different and the join number is different */
@@ -1164,16 +1161,12 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
 
     query_info->joins = reordered_joins;
 
-    //print_query(query_info, "0 13 7 10|0.0=1.2&0.0=2.1&0.0=3.2&1.2>295|3.2 0.0", 40);
-
     for (i = 0; i < set_count; i++) {
-
         freeStatisticsTables(sets[i].tableStatistics, numOfTablesToBeUsed);
         free(sets[i].join_order);
     }
     free(sets);
     free(joins_that_are_filters);
-
 
     for (i = 0; i < query_info->relationId_count; i++)
         free(adjacency_matrix[i]);
@@ -1181,5 +1174,4 @@ Query_Info *bestTree(Query_Info *query_info, QueryTableStatistics ***statistics_
     free(adjacency_matrix);
 
     return query_info;
-
 }

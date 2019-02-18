@@ -116,7 +116,7 @@ int exists_in_intermediate_table(int relation_Id, Entity *entity, int *inter_tab
 
     /* For every intermediate table */
     for (i = 0; i < entity->max_count; i++) {
-        /* Check if the inter table exists*/
+        /* Check if the intermediate table exists*/
         if (entity->inter_tables[i] != NULL) {
             /* For every column in the intermediate table */
             for (j = 0; j < entity->inter_tables[i]->num_of_columns; j++) {
@@ -212,8 +212,8 @@ void handleRelationFilter(Relation **original_relation, Entity **entity, int rel
     int inter_table_num;
 
     /* Check if the relation_id is already in an intermediate table.
-        * If it isn't, create a new intermediate table, filter the relation(full column) and fill the new inter table with the row ids that satisfy the filter.
-        * Otherwise, if the relation exists in an intermediate table, get the relation from it, based on the rowIDs, filter the relation and update the intermediate table.*/
+       * If it isn't, create a new intermediate table, filter the relation(full column) and fill the new inter table with the row ids that satisfy the filter.
+       * Otherwise, if the relation exists in an intermediate table, get the relation from it, based on the rowIDs, filter the relation and update the intermediate table.*/
     relation = create_intermediate_table(relation_Id, entity, *original_relation, &inter_table_num, TRUE, 0, 0);
 
     if (relation != NULL) {
@@ -266,6 +266,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
     /* If none of the relations exists in an intermediate table */
     if (ret1 == -1 && ret2 == -1) {
+
         /* Create the intermediate table */
         create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1, column_num1);    // It will return NULL.
         result = RadixHashJoin(relation1, relation2);
@@ -307,7 +308,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
         deAllocateResult(&result);
     }
-        /* If one of the relations exists in an intermediate table */
+    /* If one of the relations exists in an intermediate table */
     else if ((ret1 != -1 && ret2 == -1) || ret1 == -1) {
 
         if (ret1 != -1) {
@@ -375,7 +376,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
 
         deAllocateResult(&result);
     }
-        /* If both of the relations exist in the same or a different intermediate table */
+    /* If both of the relations exist in the same or a different intermediate table */
     else {
         new_relation1 = create_intermediate_table(relation_Id1, entity, *relation1, &inter_table_num1, FALSE, ret1, column_num1);
         new_relation2 = create_intermediate_table(relation_Id2, entity, *relation2, &inter_table_num2, FALSE, ret2, column_num2);
@@ -430,7 +431,7 @@ void handleRelationJoin(Relation **relation1, Relation **relation2, Entity **ent
             deAllocateRelation(&new_relation2);
             free(row_ids);
         }
-            /* Else just join them and combine the 2 intermediate tables */
+        /* Else just join them and combine the 2 intermediate tables */
         else {
 
 #if PRINTING

@@ -65,10 +65,9 @@ The query members are:<br/>
 
 #### Statistics & Best Tree Join-order
 After parsing a query, we gather statistics for the predicates in order to predict the best order for the joins to be executed in.<br/>
-In order to find the best join-order, we first gather the statistics for the filters and then we gather statistics for every join depending on the join type (self join, radixhashjoin, auto correlation, etc).<br/>
-Firstly, the BestTree function creates a adjacency matrix from the joins of the query, where every element is 1 or 0 depending on if it's adjacent with another or not.
+In order to find the best join-order, we gather the statistics for the filters and then execute the best tree. Our BestTree function creates a adjacency matrix from the joins of the query, where every element is 1 or 0 depending on if it's adjacent with another or not.
 Then, it needs to find best sets that contain 2 Relations (1 join), 3 Relations (2 joins), etc... Bitwise operations are used to judge between different sets(for example 0011 is the set (0,1) and 0101 is the set (0,2)).
-The sets of 2 are created from every individual join. When a set is found, then the statistics are gathered for that set and the cost is calculated.
+The sets of 2 are created from every individual join. When a set is found, then the join statistics(intermediate table results) are gathered for that set and the cost is calculated.
 After the sets of 2, come the sets of 3 where the same idea applies (same for sets of 4, etc). One set is better than another if they are the same number, for example [(0,1), 2] and [(1,2), 0] are the same number 0111 but the 
 order of the joins is different, meaning the cost of joins is different and the set that produced the smallest number of intermediate results is the better one.<br/>
 
