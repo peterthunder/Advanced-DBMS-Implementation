@@ -57,7 +57,7 @@ void setStatisticsForOtherColumnsOfTheJoinedTables(QueryTableStatistics ***stati
 
 QueryTableStatistics** createStatisticsTables(Query_Info *qInfo, Table **tables, int numOfTablesToBeUsed);
 
-QueryTableStatistics** copyStatisticsTables(Query_Info *qInfo, QueryTableStatistics **old_statistics_tables, int numOfTablesToBeUsed);
+QueryTableStatistics **copyStatisticsTables(QueryTableStatistics **old_statistics_tables, int numOfTablesToBeUsed);
 
 void freeStatisticsTables(QueryTableStatistics** statistics_tables, int numOfTablesToBeUsed);
 

@@ -425,18 +425,16 @@ void *myRealloc(void* memory_ptr, size_t sizeOfAllocation)
         return ptr;
 }
 
-// Taken From: https://www.geeksforgeeks.org/write-your-own-atoi/
-// A simple atoi() function
-int myAtoi(char *str) {
-    int res = 0; // Initialize result
+// Source: https://www.geeksforgeeks.org/write-your-own-atoi/
+int myAtoi(char *str)
+{
+    int result = 0;
 
-    // Iterate through all characters of input string and
-    // update result
+    // Iterate through all characters of input string and update result
     for (int i = 0; str[i] != '\0'; ++i)
-        res = res * 10 + str[i] - '0';
-
-    // return result.
-    return res;
+        result = result * 10 + str[i] - '0';
+	
+    return result;
 }
 
 // Source: https://stackoverflow.com/a/15265294
